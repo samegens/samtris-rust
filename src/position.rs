@@ -95,7 +95,11 @@ mod tests {
     #[case(Position::new(1, 1), Position::new(4, 5), 7)]
     #[case(Position::new(0, 0), Position::new(0, 0), 0)]
     #[case(Position::new(-2, 3), Position::new(1, -1), 7)]
-    fn manhattan_distance_calculates_correct_distance(#[case] pos1: Position, #[case] pos2: Position, #[case] expected: u32) {
+    fn manhattan_distance_calculates_correct_distance(
+        #[case] pos1: Position,
+        #[case] pos2: Position,
+        #[case] expected: u32,
+    ) {
         // Act
         let distance = pos1.manhattan_distance(pos2);
 
@@ -119,10 +123,14 @@ mod tests {
     #[rstest]
     #[case(Position::new(0, 0), Position::new(0, 0), Position::new(0, 0))]
     #[case(Position::new(1, 1), Position::new(4, 5), Position::new(5, 6))]
-    fn translate_equals_add(#[case] pos1: Position, #[case] pos2: Position, #[case] expected: Position) {
+    fn translate_equals_add(
+        #[case] pos1: Position,
+        #[case] pos2: Position,
+        #[case] expected: Position,
+    ) {
         // Act
         let result = pos1 + pos2;
-        
+
         // Assert
         assert_eq!(result, expected);
     }
@@ -133,7 +141,11 @@ mod tests {
     #[case(Position::new(0, 0), Position::new(0, 0), true)]
     #[case(Position::new(-3, 7), Position::new(-3, 7), true)]
     #[case(Position::new(-3, 7), Position::new(3, 7), false)]
-    fn equality_comparison_works(#[case] pos1: Position, #[case] pos2: Position, #[case] should_be_equal: bool) {
+    fn equality_comparison_works(
+        #[case] pos1: Position,
+        #[case] pos2: Position,
+        #[case] should_be_equal: bool,
+    ) {
         // Act
         let are_equal = pos1 == pos2;
 
