@@ -1,0 +1,5 @@
+# Rust target directory
+/target
+
+# RustRover settings
+/.idea
