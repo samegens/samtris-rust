@@ -1,15 +1,5 @@
 use crate::position::Position;
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct RotationIndex {
-    value: usize,
-}
-
-impl RotationIndex {
-    pub fn new(value: usize) -> Self {
-        Self { value }
-    }
-}
+use crate::rotation_index::RotationIndex;
 
 pub struct TetrominoDefinition {
     rotations: Vec<Vec<Vec<u8>>>,
@@ -20,8 +10,11 @@ impl TetrominoDefinition {
         Self { rotations }
     }
 
-    pub fn get_next_rotation_index_clockwise(&self, current: RotationIndex) -> RotationIndex {
-        let next_index = (current.value + 1) % self.rotations.len();
+    pub fn get_next_rotation_index_clockwise(
+        &self,
+        current_rotation_index: RotationIndex,
+    ) -> RotationIndex {
+        let next_index = (current_rotation_index.value() + 1) % self.rotations.len();
         RotationIndex::new(next_index)
     }
 
@@ -29,16 +22,16 @@ impl TetrominoDefinition {
         &self,
         current: RotationIndex,
     ) -> RotationIndex {
-        let next_index = (current.value + self.rotations.len() - 1) % self.rotations.len();
+        let next_index = (current.value() + self.rotations.len() - 1) % self.rotations.len();
         RotationIndex::new(next_index)
     }
 
     pub fn has_block_at(&self, position: Position, rotation: RotationIndex) -> bool {
-        if rotation.value >= self.rotations.len() {
+        if rotation.value() >= self.rotations.len() {
             return false;
         }
 
-        let matrix = &self.rotations[rotation.value];
+        let matrix = &self.rotations[rotation.value()];
 
         // Check if position is within matrix bounds
         if position.y < 0 || position.x < 0 {
