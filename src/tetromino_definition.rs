@@ -1,10 +1,14 @@
 use crate::position::Position;
 use crate::rotation_index::RotationIndex;
 
+//TODO: remove allow dead_code when TetrominoDefinition is used by application code
+#[allow(dead_code)]
 pub struct TetrominoDefinition {
     rotations: Vec<Vec<Vec<u8>>>,
 }
 
+//TODO: remove allow dead_code when TetrominoDefinition is used by application code
+#[allow(dead_code)]
 impl TetrominoDefinition {
     pub fn new(rotations: Vec<Vec<Vec<u8>>>) -> Self {
         Self { rotations }
