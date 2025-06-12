@@ -300,22 +300,10 @@ mod tests {
             o_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(0)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            o_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(0)),
-            false
-        );
-        assert_eq!(
-            o_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(0)),
-            true
-        );
-        assert_eq!(
-            o_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(0)),
-            true
-        );
-        assert_eq!(
-            o_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(0)),
-            false
-        );
+        assert!(!o_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(0)));
+        assert!(o_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(0)));
+        assert!(o_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(0)));
+        assert!(!o_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(0)));
     }
 
     #[test]
@@ -328,22 +316,10 @@ mod tests {
             i_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            i_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)),
-            false
-        );
-        assert_eq!(
-            i_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)),
-            true
-        );
-        assert_eq!(
-            i_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)),
-            false
-        );
-        assert_eq!(
-            i_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)),
-            false
-        );
+        assert!(!i_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
+        assert!(i_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
+        assert!(!i_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
+        assert!(!i_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
     }
 
     #[test]
@@ -356,22 +332,10 @@ mod tests {
             z_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            z_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)),
-            false
-        );
-        assert_eq!(
-            z_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)),
-            true
-        );
-        assert_eq!(
-            z_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)),
-            false
-        );
-        assert_eq!(
-            z_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)),
-            false
-        );
+        assert!(!z_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
+        assert!(z_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
+        assert!(!z_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
+        assert!(!z_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
     }
 
     #[test]
@@ -384,22 +348,10 @@ mod tests {
             s_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            s_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)),
-            true
-        );
-        assert_eq!(
-            s_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)),
-            true
-        );
-        assert_eq!(
-            s_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)),
-            false
-        );
-        assert_eq!(
-            s_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)),
-            false
-        );
+        assert!(s_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
+        assert!(s_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
+        assert!(!s_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
+        assert!(!s_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
     }
 
     #[test]
@@ -412,22 +364,10 @@ mod tests {
             t_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            t_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            t_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)),
-            true
-        );
-        assert_eq!(
-            t_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            t_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)),
-            false
-        );
+        assert!(!t_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
+        assert!(t_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
+        assert!(!t_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
+        assert!(!t_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
     }
 
     #[test]
@@ -440,22 +380,10 @@ mod tests {
             j_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            j_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            j_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            j_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)),
-            true
-        );
-        assert_eq!(
-            j_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)),
-            false
-        );
+        assert!(!j_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
+        assert!(!j_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
+        assert!(j_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
+        assert!(!j_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
     }
 
     #[test]
@@ -468,21 +396,9 @@ mod tests {
             l_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
             RotationIndex::new(0)
         );
-        assert_eq!(
-            l_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            l_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)),
-            false
-        );
-        assert_eq!(
-            l_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)),
-            true
-        );
-        assert_eq!(
-            l_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)),
-            false
-        );
+        assert!(!l_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
+        assert!(!l_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
+        assert!(l_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
+        assert!(!l_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
     }
 }
