@@ -2,17 +2,19 @@
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct RotationIndex {
-    value: usize,
+    index: usize,
 }
 
 //TODO: remove allow dead_code when RotationIndex is used by application code
 #[allow(dead_code)]
 impl RotationIndex {
     pub fn new(value: usize) -> Self {
-        Self { value }
+        Self { index: value }
     }
+}
 
-    pub fn value(&self) -> usize {
-        self.value
+impl From<RotationIndex> for usize {
+    fn from(rotation: RotationIndex) -> usize {
+        rotation.index
     }
 }
