@@ -214,6 +214,30 @@ impl TetrominoDefinition {
 
         matrix[y][x] != 0
     }
+
+    pub fn get_block_positions(&self, rotation: RotationIndex) -> Vec<Position> {
+        let rotation_index: usize = rotation.into();
+        if rotation_index >= self.rotations.len() {
+            panic!(
+                "Rotation index out of bounds: got {}, expected [0..{})",
+                rotation_index,
+                self.rotations.len()
+            );
+        }
+
+        let matrix = &self.rotations[rotation_index];
+        let mut positions = Vec::new();
+
+        for (y, row) in matrix.iter().enumerate() {
+            for (x, &cell) in row.iter().enumerate() {
+                if cell != 0 {
+                    positions.push(Position::new(x as i32, y as i32));
+                }
+            }
+        }
+
+        positions
+    }
 }
 
 #[cfg(test)]
@@ -341,5 +365,16 @@ mod tests {
         assert!(!l_tetromino.has_block_at(Position::new(1, 1), last_rotation));
         assert!(l_tetromino.has_block_at(Position::new(2, 2), last_rotation));
         assert!(!l_tetromino.has_block_at(Position::new(3, 3), last_rotation));
+    }
+
+    #[test]
+    #[should_panic(expected = "Rotation index out of bounds")]
+    fn get_blocks_panics_with_invalid_rotation_index() {
+        // Arrange
+        let definition = TetrominoDefinition::create_o(); // O-piece has 1 rotation (index 0 only)
+        let invalid_rotation = RotationIndex::new(1, 2); // Index 1, but O-piece only has 1 rotation
+
+        // Act & Assert (panic expected)
+        definition.get_block_positions(invalid_rotation);
     }
 }
