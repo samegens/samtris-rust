@@ -47,6 +47,26 @@ impl<'a> TetrominoInstance<'a> {
             .map(|block_position| self.position + block_position) // Transform to world coordinates
             .collect()
     }
+
+    pub fn move_down(&mut self) {
+        self.position = self.position.translate(0, 1);
+    }
+
+    pub fn move_left(&mut self) {
+        self.position = self.position.translate(-1, 0);
+    }
+
+    pub fn move_right(&mut self) {
+        self.position = self.position.translate(1, 0);
+    }
+
+    pub fn rotate_clockwise(&mut self) {
+        self.rotation_index.rotate_clockwise();
+    }
+
+    pub fn rotate_counterclockwise(&mut self) {
+        self.rotation_index.rotate_counterclockwise();
+    }
 }
 
 #[cfg(test)]
@@ -87,5 +107,80 @@ mod tests {
             Position::new(7, 7), // (2,2) + (5,5)
         ];
         assert_eq!(world_blocks, expected_blocks);
+    }
+
+    #[test]
+    fn move_down_increases_y_coordinate() {
+        // Arrange
+        let position = Position::new(5, 5);
+        let definitions = TetrominoDefinitions::new();
+        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+
+        // Act
+        instance.move_down();
+
+        // Assert
+        assert_eq!(instance.get_position(), Position::new(5, 6));
+        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+    }
+
+    #[test]
+    fn move_left_decreases_x_coordinate() {
+        // Arrange
+        let position = Position::new(5, 5);
+        let definitions = TetrominoDefinitions::new();
+        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+
+        // Act
+        instance.move_left();
+
+        // Assert
+        assert_eq!(instance.get_position(), Position::new(4, 5));
+        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+    }
+
+    #[test]
+    fn move_right_increases_x_coordinate() {
+        // Arrange
+        let position = Position::new(5, 5);
+        let definitions = TetrominoDefinitions::new();
+        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+
+        // Act
+        instance.move_right();
+
+        // Assert
+        assert_eq!(instance.get_position(), Position::new(6, 5));
+        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+    }
+
+    #[test]
+    fn rotate_clockwise_advances_rotation_index() {
+        // Arrange
+        let position = Position::new(5, 5);
+        let definitions = TetrominoDefinitions::new();
+        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions); // T-piece has 4 rotations
+
+        // Act
+        instance.rotate_clockwise();
+
+        // Assert
+        assert_eq!(instance.get_rotation_index(), RotationIndex::new(1, 4));
+        assert_eq!(instance.get_position(), Position::new(5, 5));
+    }
+
+    #[test]
+    fn rotate_counterclockwise_decreases_rotation_index() {
+        // Arrange
+        let position = Position::new(5, 5);
+        let definitions = TetrominoDefinitions::new();
+        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+
+        // Act
+        instance.rotate_counterclockwise();
+
+        // Assert
+        assert_eq!(instance.get_rotation_index(), RotationIndex::new(3, 4));
+        assert_eq!(instance.get_position(), Position::new(5, 5));
     }
 }
