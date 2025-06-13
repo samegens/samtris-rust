@@ -6,6 +6,8 @@ pub struct TetrominoDefinitions {
     definitions: HashMap<TetrominoType, TetrominoDefinition>,
 }
 
+//TODO: remove allow dead_code when TetrominoDefinitions is used by application code
+#[allow(dead_code)]
 impl TetrominoDefinitions {
     pub fn new() -> Self {
         let mut definitions = HashMap::new();

@@ -2,8 +2,6 @@ use crate::position::Position;
 use crate::rotation_index::RotationIndex;
 use crate::tetromino_type::TetrominoType;
 
-//TODO: remove allow dead_code when TetrominoDefinition is used by application code
-#[allow(dead_code)]
 pub struct TetrominoDefinition {
     tetromino_type: TetrominoType,
     rotations: Vec<Vec<Vec<u8>>>,
@@ -21,6 +19,10 @@ impl TetrominoDefinition {
 
     pub fn get_type(&self) -> TetrominoType {
         self.tetromino_type
+    }
+
+    pub fn get_nr_rotations(&self) -> usize {
+        self.rotations.len()
     }
 
     pub fn create_o() -> Self {
@@ -191,23 +193,6 @@ impl TetrominoDefinition {
         )
     }
 
-    pub fn get_next_rotation_index_clockwise(
-        &self,
-        rotation_index: RotationIndex,
-    ) -> RotationIndex {
-        let next_index = (usize::from(rotation_index) + 1) % self.rotations.len();
-        RotationIndex::new(next_index)
-    }
-
-    pub fn get_next_rotation_index_counterclockwise(
-        &self,
-        rotation_index: RotationIndex,
-    ) -> RotationIndex {
-        let next_index =
-            (usize::from(rotation_index) + self.rotations.len() - 1) % self.rotations.len();
-        RotationIndex::new(next_index)
-    }
-
     pub fn has_block_at(&self, position: Position, rotation_index: RotationIndex) -> bool {
         if usize::from(rotation_index) >= self.rotations.len() {
             return false;
@@ -236,81 +221,14 @@ mod tests {
     use super::*;
     use rstest::rstest;
 
-    #[test]
-    fn tetromino_with_one_rotation_clockwise_returns_same_rotation_index() {
-        // Arrange
-        let minimal_matrix = vec![vec![0]];
-        let single_rotation_tetromino =
-            TetrominoDefinition::new(TetrominoType::O, vec![minimal_matrix]);
-        let initial_rotation = RotationIndex::new(0);
-
-        // Act
-        let next_rotation =
-            single_rotation_tetromino.get_next_rotation_index_clockwise(initial_rotation);
-
-        // Assert
-        assert_eq!(next_rotation, initial_rotation);
-    }
-
-    #[test]
-    fn tetromino_with_two_rotations_clockwise_cycles_to_next_rotation() {
-        // Arrange
-        let minimal_matrix = vec![vec![0]];
-        let two_rotation_tetromino = TetrominoDefinition::new(
-            TetrominoType::O,
-            vec![minimal_matrix.clone(), minimal_matrix],
-        );
-        let rotation_zero = RotationIndex::new(0);
-
-        // Act
-        let next_rotation = two_rotation_tetromino.get_next_rotation_index_clockwise(rotation_zero);
-
-        // Assert
-        assert_eq!(next_rotation, RotationIndex::new(1));
-    }
-
-    #[test]
-    fn tetromino_with_one_rotation_counterclockwise_returns_same_rotation_index() {
-        // Arrange
-        let minimal_matrix = vec![vec![0]];
-        let single_rotation_tetromino =
-            TetrominoDefinition::new(TetrominoType::O, vec![minimal_matrix]);
-        let initial_rotation = RotationIndex::new(0);
-
-        // Act
-        let next_rotation =
-            single_rotation_tetromino.get_next_rotation_index_counterclockwise(initial_rotation);
-
-        // Assert
-        assert_eq!(next_rotation, initial_rotation);
-    }
-
-    #[test]
-    fn tetromino_with_two_rotations_counterclockwise_cycles_to_next_rotation() {
-        // Arrange
-        let minimal_matrix = vec![vec![0]];
-        let two_rotation_tetromino = TetrominoDefinition::new(
-            TetrominoType::O,
-            vec![minimal_matrix.clone(), minimal_matrix],
-        );
-        let rotation_zero = RotationIndex::new(0);
-
-        // Act
-        let next_rotation =
-            two_rotation_tetromino.get_next_rotation_index_counterclockwise(rotation_zero);
-
-        // Assert
-        assert_eq!(next_rotation, RotationIndex::new(1));
-    }
-
     #[rstest]
-    #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(0, 0), true)]
-    #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(-1, -1), false)]
-    #[case(vec![vec![vec![0]]], RotationIndex::new(0), Position::new(0, 0), false)]
-    #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(1, 0), false)]
-    #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(0, 1), false)]
-    #[case(vec![vec![vec![1]]], RotationIndex::new(1), Position::new(0, 0), false)]
-    #[case(vec![vec![vec![0]], vec![vec![1]]], RotationIndex::new(1), Position::new(0, 0), true)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(0, 1), Position::new(0, 0), true)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(0, 1), Position::new(-1, -1), false)]
+    #[case(vec![vec![vec![0]]], RotationIndex::new(0, 1), Position::new(0, 0), false)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(0, 1), Position::new(1, 0), false)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(0, 1), Position::new(0, 1), false)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(1, 1), Position::new(0, 0), false)]
+    #[case(vec![vec![vec![0]], vec![vec![1]]], RotationIndex::new(1, 2), Position::new(0, 0), true)]
     fn tetromino_has_block_at_position_matches_matrix_content(
         #[case] matrices: Vec<Vec<Vec<u8>>>,
         #[case] rotation: RotationIndex,
@@ -333,14 +251,12 @@ mod tests {
         let o_tetromino = TetrominoDefinition::create_o();
 
         // Assert
-        assert_eq!(
-            o_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(0)),
-            RotationIndex::new(0)
-        );
-        assert!(!o_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(0)));
-        assert!(o_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(0)));
-        assert!(o_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(0)));
-        assert!(!o_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(0)));
+        assert_eq!(o_tetromino.get_nr_rotations(), 1);
+        let last_rotation = RotationIndex::new(0, 1);
+        assert!(!o_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(o_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(o_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!o_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -349,14 +265,12 @@ mod tests {
         let i_tetromino = TetrominoDefinition::create_i();
 
         // Assert
-        assert_eq!(
-            i_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
-            RotationIndex::new(0)
-        );
-        assert!(!i_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
-        assert!(i_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
-        assert!(!i_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
-        assert!(!i_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
+        assert_eq!(i_tetromino.get_nr_rotations(), 2);
+        let last_rotation = RotationIndex::new(1, 2);
+        assert!(!i_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(i_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(!i_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!i_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -365,14 +279,12 @@ mod tests {
         let z_tetromino = TetrominoDefinition::create_z();
 
         // Assert
-        assert_eq!(
-            z_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
-            RotationIndex::new(0)
-        );
-        assert!(!z_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
-        assert!(z_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
-        assert!(!z_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
-        assert!(!z_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
+        assert_eq!(z_tetromino.get_nr_rotations(), 2);
+        let last_rotation = RotationIndex::new(1, 2);
+        assert!(!z_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(z_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(!z_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!z_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -381,14 +293,12 @@ mod tests {
         let s_tetromino = TetrominoDefinition::create_s();
 
         // Assert
-        assert_eq!(
-            s_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(1)),
-            RotationIndex::new(0)
-        );
-        assert!(s_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(1)));
-        assert!(s_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(1)));
-        assert!(!s_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(1)));
-        assert!(!s_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(1)));
+        assert_eq!(s_tetromino.get_nr_rotations(), 2);
+        let last_rotation = RotationIndex::new(1, 2);
+        assert!(s_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(s_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(!s_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!s_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -397,14 +307,12 @@ mod tests {
         let t_tetromino = TetrominoDefinition::create_t();
 
         // Assert
-        assert_eq!(
-            t_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
-            RotationIndex::new(0)
-        );
-        assert!(!t_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
-        assert!(t_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
-        assert!(!t_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
-        assert!(!t_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
+        assert_eq!(t_tetromino.get_nr_rotations(), 4);
+        let last_rotation = RotationIndex::new(3, 4);
+        assert!(!t_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(t_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(!t_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!t_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -413,14 +321,12 @@ mod tests {
         let j_tetromino = TetrominoDefinition::create_j();
 
         // Assert
-        assert_eq!(
-            j_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
-            RotationIndex::new(0)
-        );
-        assert!(!j_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
-        assert!(!j_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
-        assert!(j_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
-        assert!(!j_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
+        assert_eq!(j_tetromino.get_nr_rotations(), 4);
+        let last_rotation = RotationIndex::new(3, 4);
+        assert!(!j_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(!j_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(j_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!j_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 
     #[test]
@@ -429,13 +335,11 @@ mod tests {
         let l_tetromino = TetrominoDefinition::create_l();
 
         // Assert
-        assert_eq!(
-            l_tetromino.get_next_rotation_index_clockwise(RotationIndex::new(3)),
-            RotationIndex::new(0)
-        );
-        assert!(!l_tetromino.has_block_at(Position::new(0, 0), RotationIndex::new(3)));
-        assert!(!l_tetromino.has_block_at(Position::new(1, 1), RotationIndex::new(3)));
-        assert!(l_tetromino.has_block_at(Position::new(2, 2), RotationIndex::new(3)));
-        assert!(!l_tetromino.has_block_at(Position::new(3, 3), RotationIndex::new(3)));
+        assert_eq!(l_tetromino.get_nr_rotations(), 4);
+        let last_rotation = RotationIndex::new(3, 4);
+        assert!(!l_tetromino.has_block_at(Position::new(0, 0), last_rotation));
+        assert!(!l_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(l_tetromino.has_block_at(Position::new(2, 2), last_rotation));
+        assert!(!l_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
 }
