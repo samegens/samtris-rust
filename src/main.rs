@@ -1,3 +1,5 @@
+mod dimensions;
+mod playfield;
 mod position;
 mod rotation_index;
 mod tetromino_definition;
