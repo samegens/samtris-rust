@@ -11,6 +11,8 @@ pub struct TetrominoInstance<'a> {
     rotation_index: RotationIndex,
 }
 
+//TODO: remove allow dead_code when TetrominoDefinition is used by application code
+#[allow(dead_code)]
 impl<'a> TetrominoInstance<'a> {
     pub fn new(
         tetromino_type: TetrominoType,
