@@ -3,3 +3,7 @@
 
 # RustRover settings
 /.idea
+
+# Tarpauling reports
+*.html
+*.xml
