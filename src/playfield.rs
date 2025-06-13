@@ -1,6 +1,5 @@
 use crate::dimensions::Dimensions;
 use crate::position::Position;
-use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_instance::TetrominoInstance;
 use crate::tetromino_type::TetrominoType;
 
@@ -9,6 +8,8 @@ pub struct Playfield {
     grid: Vec<Vec<Option<TetrominoType>>>,
 }
 
+//TODO: remove allow dead_code when Playfield is used by application code
+#[allow(dead_code)]
 impl Playfield {
     pub fn new(dimensions: Dimensions) -> Self {
         let grid = vec![vec![None; dimensions.width]; dimensions.height];
@@ -48,6 +49,7 @@ impl Playfield {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tetromino_definitions::TetrominoDefinitions;
     use rstest::rstest;
 
     #[test]
