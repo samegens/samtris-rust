@@ -1,164 +1,194 @@
 use crate::position::Position;
 use crate::rotation_index::RotationIndex;
+use crate::tetromino_type::TetrominoType;
 
 //TODO: remove allow dead_code when TetrominoDefinition is used by application code
 #[allow(dead_code)]
 pub struct TetrominoDefinition {
+    tetromino_type: TetrominoType,
     rotations: Vec<Vec<Vec<u8>>>,
 }
 
 //TODO: remove allow dead_code when TetrominoDefinition is used by application code
 #[allow(dead_code)]
 impl TetrominoDefinition {
-    pub fn new(rotations: Vec<Vec<Vec<u8>>>) -> Self {
-        Self { rotations }
+    pub fn new(tetromino_type: TetrominoType, rotations: Vec<Vec<Vec<u8>>>) -> Self {
+        Self {
+            tetromino_type,
+            rotations,
+        }
+    }
+
+    pub fn get_type(&self) -> TetrominoType {
+        self.tetromino_type
     }
 
     pub fn create_o() -> Self {
-        Self::new(vec![vec![
-            vec![0, 0, 0, 0],
-            vec![0, 1, 1, 0],
-            vec![0, 1, 1, 0],
-            vec![0, 0, 0, 0],
-        ]])
+        Self::new(
+            TetrominoType::O,
+            vec![vec![
+                vec![0, 0, 0, 0],
+                vec![0, 1, 1, 0],
+                vec![0, 1, 1, 0],
+                vec![0, 0, 0, 0],
+            ]],
+        )
     }
 
     pub fn create_i() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::I,
             vec![
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
+                vec![
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 1, 1],
+                    vec![0, 0, 0, 0],
+                    vec![0, 0, 0, 0],
+                ],
             ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![1, 1, 1, 1],
-                vec![0, 0, 0, 0],
-                vec![0, 0, 0, 0],
-            ],
-        ])
+        )
     }
 
     pub fn create_z() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::Z,
             vec![
-                vec![0, 0, 0, 0],
-                vec![1, 1, 0, 0],
-                vec![0, 1, 1, 0],
-                vec![0, 0, 0, 0],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 0, 0],
+                    vec![0, 1, 1, 0],
+                    vec![0, 0, 0, 0],
+                ],
+                vec![
+                    vec![0, 1, 0, 0],
+                    vec![1, 1, 0, 0],
+                    vec![1, 0, 0, 0],
+                    vec![0, 0, 0, 0],
+                ],
             ],
-            vec![
-                vec![0, 1, 0, 0],
-                vec![1, 1, 0, 0],
-                vec![1, 0, 0, 0],
-                vec![0, 0, 0, 0],
-            ],
-        ])
+        )
     }
 
     pub fn create_s() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::S,
             vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 1, 0],
-                vec![1, 1, 0, 0],
-                vec![0, 0, 0, 0],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 1, 0],
+                    vec![1, 1, 0, 0],
+                    vec![0, 0, 0, 0],
+                ],
+                vec![
+                    vec![1, 0, 0, 0],
+                    vec![1, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 0, 0, 0],
+                ],
             ],
-            vec![
-                vec![1, 0, 0, 0],
-                vec![1, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 0, 0, 0],
-            ],
-        ])
+        )
     }
 
     pub fn create_t() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::T,
             vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![1, 1, 1, 0],
-                vec![0, 0, 0, 0],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![1, 1, 1, 0],
+                    vec![0, 0, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 1, 0],
+                    vec![0, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 1, 0],
+                    vec![0, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![1, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                ],
             ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 1, 0],
-                vec![0, 1, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 0, 0, 0],
-                vec![1, 1, 1, 0],
-                vec![0, 1, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![1, 1, 0, 0],
-                vec![0, 1, 0, 0],
-            ],
-        ])
+        )
     }
 
     pub fn create_j() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::J,
             vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![1, 1, 0, 0],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![1, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![1, 0, 0, 0],
+                    vec![1, 1, 1, 0],
+                    vec![0, 0, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 1, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 1, 0],
+                    vec![0, 0, 1, 0],
+                ],
             ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![1, 0, 0, 0],
-                vec![1, 1, 1, 0],
-                vec![0, 0, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 1, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 0, 0, 0],
-                vec![1, 1, 1, 0],
-                vec![0, 0, 1, 0],
-            ],
-        ])
+        )
     }
 
     pub fn create_l() -> Self {
-        Self::new(vec![
+        Self::new(
+            TetrominoType::L,
             vec![
-                vec![0, 0, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 1, 0],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 1, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 1, 0],
+                    vec![1, 0, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![1, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                ],
+                vec![
+                    vec![0, 0, 0, 0],
+                    vec![0, 0, 1, 0],
+                    vec![1, 1, 1, 0],
+                    vec![0, 0, 0, 0],
+                ],
             ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 0, 0, 0],
-                vec![1, 1, 1, 0],
-                vec![1, 0, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![1, 1, 0, 0],
-                vec![0, 1, 0, 0],
-                vec![0, 1, 0, 0],
-            ],
-            vec![
-                vec![0, 0, 0, 0],
-                vec![0, 0, 1, 0],
-                vec![1, 1, 1, 0],
-                vec![0, 0, 0, 0],
-            ],
-        ])
+        )
     }
 
     pub fn get_next_rotation_index_clockwise(
@@ -210,7 +240,8 @@ mod tests {
     fn tetromino_with_one_rotation_clockwise_returns_same_rotation_index() {
         // Arrange
         let minimal_matrix = vec![vec![0]];
-        let single_rotation_tetromino = TetrominoDefinition::new(vec![minimal_matrix]);
+        let single_rotation_tetromino =
+            TetrominoDefinition::new(TetrominoType::O, vec![minimal_matrix]);
         let initial_rotation = RotationIndex::new(0);
 
         // Act
@@ -225,8 +256,10 @@ mod tests {
     fn tetromino_with_two_rotations_clockwise_cycles_to_next_rotation() {
         // Arrange
         let minimal_matrix = vec![vec![0]];
-        let two_rotation_tetromino =
-            TetrominoDefinition::new(vec![minimal_matrix.clone(), minimal_matrix]);
+        let two_rotation_tetromino = TetrominoDefinition::new(
+            TetrominoType::O,
+            vec![minimal_matrix.clone(), minimal_matrix],
+        );
         let rotation_zero = RotationIndex::new(0);
 
         // Act
@@ -240,7 +273,8 @@ mod tests {
     fn tetromino_with_one_rotation_counterclockwise_returns_same_rotation_index() {
         // Arrange
         let minimal_matrix = vec![vec![0]];
-        let single_rotation_tetromino = TetrominoDefinition::new(vec![minimal_matrix]);
+        let single_rotation_tetromino =
+            TetrominoDefinition::new(TetrominoType::O, vec![minimal_matrix]);
         let initial_rotation = RotationIndex::new(0);
 
         // Act
@@ -255,8 +289,10 @@ mod tests {
     fn tetromino_with_two_rotations_counterclockwise_cycles_to_next_rotation() {
         // Arrange
         let minimal_matrix = vec![vec![0]];
-        let two_rotation_tetromino =
-            TetrominoDefinition::new(vec![minimal_matrix.clone(), minimal_matrix]);
+        let two_rotation_tetromino = TetrominoDefinition::new(
+            TetrominoType::O,
+            vec![minimal_matrix.clone(), minimal_matrix],
+        );
         let rotation_zero = RotationIndex::new(0);
 
         // Act
@@ -282,7 +318,7 @@ mod tests {
         #[case] expected: bool,
     ) {
         // Arrange
-        let tetromino = TetrominoDefinition::new(matrices);
+        let tetromino = TetrominoDefinition::new(TetrominoType::O, matrices);
 
         // Act
         let has_block = tetromino.has_block_at(position, rotation);
