@@ -120,6 +120,19 @@ mod tests {
         assert_eq!(result, Position::new(6, 8));
     }
 
+    #[test]
+    fn sub_returns_difference_of_two_positions() {
+        // Arrange
+        let pos1 = Position::new(2, 3);
+        let pos2 = Position::new(4, 5);
+
+        // Act
+        let result = pos1 - pos2;
+
+        // Assert
+        assert_eq!(result, Position::new(-2, -2));
+    }
+
     #[rstest]
     #[case(Position::new(0, 0), Position::new(0, 0), Position::new(0, 0))]
     #[case(Position::new(1, 1), Position::new(4, 5), Position::new(5, 6))]
@@ -151,5 +164,30 @@ mod tests {
 
         // Assert
         assert_eq!(are_equal, should_be_equal);
+    }
+
+    #[test]
+    fn position_from_tuple_creates_correct_position() {
+        // Arrange
+        let tuple = (5, 10);
+
+        // Act
+        let position = Position::from(tuple);
+
+        // Assert
+        assert_eq!(position.x, 5);
+        assert_eq!(position.y, 10);
+    }
+
+    #[test]
+    fn tuple_from_position_creates_correct_tuple() {
+        // Arrange
+        let position = Position::new(7, -3);
+
+        // Act
+        let tuple: (i32, i32) = position.into();
+
+        // Assert
+        assert_eq!(tuple, (7, -3));
     }
 }

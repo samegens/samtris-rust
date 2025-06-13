@@ -269,6 +269,7 @@ mod tests {
 
     #[rstest]
     #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(0, 0), true)]
+    #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(-1, -1), false)]
     #[case(vec![vec![vec![0]]], RotationIndex::new(0), Position::new(0, 0), false)]
     #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(1, 0), false)]
     #[case(vec![vec![vec![1]]], RotationIndex::new(0), Position::new(0, 1), false)]
