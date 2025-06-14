@@ -12,7 +12,8 @@ pub struct Playfield {
 #[allow(dead_code)]
 impl Playfield {
     pub fn new(dimensions: Dimensions) -> Self {
-        let grid = vec![vec![None; dimensions.width]; dimensions.height];
+        let grid: Vec<Vec<Option<TetrominoType>>> =
+            vec![vec![None; dimensions.width]; dimensions.height];
         Self { dimensions, grid }
     }
 
@@ -32,8 +33,8 @@ impl Playfield {
     }
 
     pub fn place_tetromino(&mut self, tetromino: &TetrominoInstance) {
-        let tetromino_type = tetromino.get_type();
-        let world_blocks = tetromino.get_world_blocks();
+        let tetromino_type: TetrominoType = tetromino.get_type();
+        let world_blocks: Vec<Position> = tetromino.get_world_blocks();
 
         for position in world_blocks {
             if self.dimensions.contains(position) {
@@ -43,6 +44,17 @@ impl Playfield {
                 self.grid[y][x] = Some(tetromino_type);
             }
         }
+    }
+
+    pub fn can_place_tetromino(&self, tetromino: &TetrominoInstance) -> bool {
+        let world_blocks: Vec<Position> = tetromino.get_world_blocks();
+        for position in world_blocks {
+            if !self.dimensions.contains(position) || self.is_position_occupied(position) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
@@ -99,5 +111,79 @@ mod tests {
         assert!(sut.is_position_occupied(Position::new(5 + 1, 5 + 2)));
         assert!(sut.is_position_occupied(Position::new(5 + 2, 5 + 2)));
         assert!(!sut.is_position_occupied(Position::new(5 + 3, 5 + 3)));
+    }
+
+    #[test]
+    fn can_place_tetromino_returns_true_on_empty_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let sut = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+        let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(4, 4), &definitions);
+
+        // Act
+        let result = sut.can_place_tetromino(&tetromino);
+
+        // Assert
+        assert!(result);
+    }
+
+    #[rstest]
+    #[case(Position::new(-4, 10), false)] // Too far left
+    #[case(Position::new(-2, 10), false)] // Partially left
+    #[case(Position::new(1, 10), true)] // Left edge (valid)
+    #[case(Position::new(7, 10), true)] // Right edge (valid for O-piece)
+    #[case(Position::new(8, 10), false)] // Partially right
+    #[case(Position::new(9, 10), false)] // Too far right
+    #[case(Position::new(4, 17), true)] // Bottom edge (valid for O-piece)
+    #[case(Position::new(4, 18), false)] // Partially bottom
+    #[case(Position::new(4, 19), false)] // Too far bottom
+    fn can_place_tetromino_handles_bounds_checking(
+        #[case] position: Position,
+        #[case] expected_can_place: bool,
+    ) {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let sut = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+        let tetromino = TetrominoInstance::new(TetrominoType::O, position, &definitions);
+
+        // Act
+        let can_place = sut.can_place_tetromino(&tetromino);
+
+        // Assert
+        assert_eq!(can_place, expected_can_place);
+    }
+
+    #[rstest]
+    #[case(Position::new(4, 4), Position::new(4, 4), false)] // Exact overlap
+    #[case(Position::new(4, 4), Position::new(5, 4), false)] // Partial overlap (right)
+    #[case(Position::new(4, 4), Position::new(3, 4), false)] // Partial overlap (left)
+    #[case(Position::new(4, 4), Position::new(4, 5), false)] // Partial overlap (down)
+    #[case(Position::new(4, 4), Position::new(4, 3), false)] // Partial overlap (up)
+    #[case(Position::new(4, 4), Position::new(6, 4), true)] // Adjacent (right, no overlap)
+    #[case(Position::new(4, 4), Position::new(2, 4), true)] // Adjacent (left, no overlap)
+    #[case(Position::new(4, 4), Position::new(4, 6), true)] // Adjacent (down, no overlap)
+    #[case(Position::new(4, 4), Position::new(4, 2), true)] // Adjacent (up, no overlap)
+    fn can_place_tetromino_handles_overlapping_and_adjacent_pieces(
+        #[case] first_position: Position,
+        #[case] second_position: Position,
+        #[case] expected_can_place: bool,
+    ) {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let mut sut = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+        let first_tetromino =
+            TetrominoInstance::new(TetrominoType::O, first_position, &definitions);
+        sut.place_tetromino(&first_tetromino);
+        let second_tetromino =
+            TetrominoInstance::new(TetrominoType::O, second_position, &definitions);
+
+        // Act
+        let result = sut.can_place_tetromino(&second_tetromino);
+
+        // Assert
+        assert_eq!(result, expected_can_place);
     }
 }
