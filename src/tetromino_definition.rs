@@ -2,6 +2,7 @@ use crate::position::Position;
 use crate::rotation_index::RotationIndex;
 use crate::tetromino_type::TetrominoType;
 
+#[derive(Clone)]
 pub struct TetrominoDefinition {
     tetromino_type: TetrominoType,
     rotations: Vec<Vec<Vec<u8>>>,

@@ -4,27 +4,28 @@ use crate::tetromino_definition::TetrominoDefinition;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_type::TetrominoType;
 
-pub struct TetrominoInstance<'a> {
+pub struct TetrominoInstance {
     tetromino_type: TetrominoType,
-    definition: &'a TetrominoDefinition,
+    definition: TetrominoDefinition,
     position: Position,
     rotation_index: RotationIndex,
 }
 
 //TODO: remove allow dead_code when TetrominoDefinition is used by application code
 #[allow(dead_code)]
-impl<'a> TetrominoInstance<'a> {
+impl TetrominoInstance {
     pub fn new(
         tetromino_type: TetrominoType,
         position: Position,
-        tetromino_definitions: &'a TetrominoDefinitions,
+        tetromino_definitions: &TetrominoDefinitions,
     ) -> Self {
-        let definition = tetromino_definitions.get(tetromino_type);
+        let definition = tetromino_definitions.get(tetromino_type).clone();
+        let nr_rotations = definition.get_nr_rotations();
         Self {
             tetromino_type,
             definition,
             position,
-            rotation_index: RotationIndex::new(0, definition.get_nr_rotations()),
+            rotation_index: RotationIndex::new(0, nr_rotations),
         }
     }
 

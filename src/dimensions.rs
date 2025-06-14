@@ -6,8 +6,6 @@ pub struct Dimensions {
     pub height: usize,
 }
 
-//TODO: remove allow dead_code when Dimensions is used by application code
-#[allow(dead_code)]
 impl Dimensions {
     pub fn new(width: usize, height: usize) -> Self {
         Self { width, height }

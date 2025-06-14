@@ -4,7 +4,6 @@ pub struct RotationIndex {
     nr_rotations: usize,
 }
 
-//TODO: remove allow dead_code when RotationIndex is used by application code
 impl RotationIndex {
     pub fn new(value: usize, nr_rotations: usize) -> Self {
         Self {
