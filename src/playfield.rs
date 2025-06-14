@@ -29,6 +29,10 @@ impl Playfield {
         let x = position.x as usize;
         let y = position.y as usize;
 
+        self.is_xy_occupied(x, y)
+    }
+
+    fn is_xy_occupied(&self, x: usize, y: usize) -> bool {
         self.grid[y][x].is_some()
     }
 
@@ -55,6 +59,16 @@ impl Playfield {
         }
 
         true
+    }
+
+    pub fn find_full_lines(&self) -> Vec<usize> {
+        (0..self.dimensions.height)
+            .filter(|&y| self.is_line_full(y))
+            .collect()
+    }
+
+    fn is_line_full(&self, y: usize) -> bool {
+        (0..self.dimensions.width).all(|x| self.is_xy_occupied(x, y))
     }
 }
 
@@ -185,5 +199,55 @@ mod tests {
 
         // Assert
         assert_eq!(result, expected_can_place);
+    }
+
+    #[test]
+    fn find_full_lines_returns_empty_for_empty_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let playfield = Playfield::new(dimensions);
+
+        // Act
+        let full_lines = playfield.find_full_lines();
+
+        // Assert
+        assert!(full_lines.is_empty());
+    }
+
+    #[test]
+    fn find_full_lines_detects_single_full_line_in_small_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(4, 1);
+        let mut playfield = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+        let mut tetromino =
+            TetrominoInstance::new(TetrominoType::I, Position::new(0, -1), &definitions);
+        tetromino.rotate_clockwise();
+        // Place I-piece horizontally to fill the single row.
+        playfield.place_tetromino(&tetromino);
+
+        // Act
+        let full_lines = playfield.find_full_lines();
+
+        // Assert
+        assert_eq!(full_lines, vec![0]);
+    }
+
+    #[test]
+    fn find_full_lines_detects_single_multiple_lines_in_small_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(1, 4);
+        let mut playfield = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+        let tetromino =
+            TetrominoInstance::new(TetrominoType::I, Position::new(-1, 0), &definitions);
+        // Place I-piece vertically to fill 4 rows.
+        playfield.place_tetromino(&tetromino);
+
+        // Act
+        let full_lines = playfield.find_full_lines();
+
+        // Assert
+        assert_eq!(full_lines, vec![0, 1, 2, 3]);
     }
 }
