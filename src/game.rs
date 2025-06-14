@@ -46,12 +46,33 @@ mod tests {
     use crate::dimensions::Dimensions;
     use crate::tetromino_type::TetrominoType;
 
+    fn create_test_game() -> Game {
+        let playfield = create_test_playfield();
+        Game::new(playfield)
+    }
+
+    fn create_test_playfield() -> Playfield {
+        let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
+        Playfield::new(dimensions)
+    }
+
+    fn get_tetromino_start_position() -> Position {
+        Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
+    }
+
+    fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
+        let tetromino_definitions = TetrominoDefinitions::new();
+        TetrominoInstance::new(
+            tetromino_type,
+            get_tetromino_start_position(),
+            &tetromino_definitions,
+        )
+    }
+
     #[test]
     fn new_game_has_no_current_tetromino() {
         // Arrange
-        let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
-        let playfield = Playfield::new(dimensions);
-        let sut = Game::new(playfield);
+        let sut = create_test_game();
 
         // Act
         let result: Option<&TetrominoInstance> = sut.get_current_tetromino();
@@ -63,9 +84,7 @@ mod tests {
     #[test]
     fn can_spawn_piece_in_new_game() {
         // Arrange
-        let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
-        let playfield = Playfield::new(dimensions);
-        let mut sut = Game::new(playfield);
+        let mut sut = create_test_game();
 
         // Act
         let result: bool = sut.spawn_piece(TetrominoType::O);
@@ -78,12 +97,9 @@ mod tests {
     #[test]
     fn cant_spawn_piece_on_top_of_occupied_blocks() {
         // Arrange
-        let tetromino_definitions = TetrominoDefinitions::new();
-        let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
-        let mut playfield = Playfield::new(dimensions);
-        let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
-        let tetromino = TetrominoInstance::new(TetrominoType::O, position, &tetromino_definitions);
-        playfield.place_tetromino(&tetromino);
+        let mut playfield = create_test_playfield();
+        let tetromino_instance = create_tetromino_instance(TetrominoType::O);
+        playfield.place_tetromino(&tetromino_instance);
         let mut sut = Game::new(playfield);
 
         // Act
