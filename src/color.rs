@@ -5,6 +5,8 @@ pub struct Color {
     pub b: u8,
 }
 
+//TODO: remove allow dead_code when Color is used by application code
+#[allow(dead_code)]
 impl Color {
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
