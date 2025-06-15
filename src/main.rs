@@ -10,6 +10,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
+mod color;
 mod constants;
 mod dimensions;
 mod display;
