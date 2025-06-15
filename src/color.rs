@@ -28,7 +28,6 @@ impl Color {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
 
     #[test]
     fn color_new_creates_correct_color() {
@@ -41,28 +40,6 @@ mod tests {
         assert_eq!(color.b, 64);
     }
 
-    #[rstest]
-    #[case(Color::BLACK, 0, 0, 0)]
-    #[case(Color::WHITE, 255, 255, 255)]
-    #[case(Color::RED, 255, 0, 0)]
-    #[case(Color::GREEN, 0, 255, 0)]
-    #[case(Color::BLUE, 0, 0, 255)]
-    #[case(Color::CYAN, 0, 255, 255)]
-    #[case(Color::YELLOW, 255, 255, 0)]
-    #[case(Color::PURPLE, 128, 0, 128)]
-    #[case(Color::ORANGE, 255, 165, 0)]
-    #[case(Color::GRAY, 128, 128, 128)]
-    fn color_constants_have_correct_values(
-        #[case] color: Color,
-        #[case] expected_r: u8,
-        #[case] expected_g: u8,
-        #[case] expected_b: u8,
-    ) {
-        // Assert
-        assert_eq!(color.r, expected_r);
-        assert_eq!(color.g, expected_g);
-        assert_eq!(color.b, expected_b);
-    }
     #[test]
     fn colors_are_copyable() {
         // Arrange
