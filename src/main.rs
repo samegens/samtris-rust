@@ -1,23 +1,21 @@
 use crate::constants::{TETRIS_PLAYFIELD_HEIGHT, TETRIS_PLAYFIELD_WIDTH};
-use crate::dimensions::Dimensions;
 use crate::game::Game;
 use crate::game_input::GameInput;
 use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
 use crate::playfield::Playfield;
 use crate::tetromino_type::TetrominoType;
+use common::Dimensions;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
+mod common;
 mod constants;
-mod dimensions;
 mod game;
 mod game_input;
 mod graphics;
 mod playfield;
-mod position;
-mod rotation_index;
 mod tetromino_definition;
 mod tetromino_definitions;
 mod tetromino_instance;

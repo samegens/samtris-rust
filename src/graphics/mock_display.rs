@@ -1,6 +1,6 @@
+use crate::common::Position;
 use crate::graphics::Color;
 use crate::graphics::Display;
-use crate::position::Position;
 use crate::tetromino_type::TetrominoType;
 
 #[derive(Debug, Default)]

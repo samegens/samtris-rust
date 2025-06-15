@@ -1,4 +1,4 @@
-use crate::position::Position;
+use crate::common::Position;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Dimensions {

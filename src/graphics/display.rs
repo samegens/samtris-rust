@@ -1,5 +1,5 @@
+use crate::common::Position;
 use crate::graphics::Color;
-use crate::position::Position;
 use crate::tetromino_type::TetrominoType;
 
 /// Abstract display interface

@@ -1,7 +1,7 @@
 use crate::constants::*;
 use crate::game_input::GameInput;
 use crate::playfield::Playfield;
-use crate::position::Position;
+use crate::common::Position;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_instance::TetrominoInstance;
 use crate::tetromino_type::TetrominoType;
@@ -75,8 +75,8 @@ impl Game {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dimensions::Dimensions;
     use crate::game_input::GameInput;
+    use crate::common::Dimensions;
     use crate::tetromino_type::TetrominoType;
     use rstest::rstest;
 

@@ -1,5 +1,5 @@
-use crate::dimensions::Dimensions;
-use crate::position::Position;
+use crate::common::Dimensions;
+use crate::common::Position;
 use crate::tetromino_instance::TetrominoInstance;
 use crate::tetromino_type::TetrominoType;
 

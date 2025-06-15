@@ -1,5 +1,5 @@
-use crate::position::Position;
-use crate::rotation_index::RotationIndex;
+use crate::common::Position;
+use crate::common::RotationIndex;
 use crate::tetromino_definition::TetrominoDefinition;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_type::TetrominoType;
