@@ -49,11 +49,8 @@ jobs:
       - name: Run tests
         run: cargo test --verbose
 
-      - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin
-
       - name: Generate code coverage
-        run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+        run: ./run-coverage.sh
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
