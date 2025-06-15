@@ -1,25 +1,23 @@
 use crate::constants::{TETRIS_PLAYFIELD_HEIGHT, TETRIS_PLAYFIELD_WIDTH};
 use crate::dimensions::Dimensions;
-use crate::display::Display;
 use crate::game::Game;
 use crate::game_input::GameInput;
+use crate::graphics::Display;
+use crate::graphics::SdlDisplay;
 use crate::playfield::Playfield;
-use crate::sdl_display::SdlDisplay;
 use crate::tetromino_type::TetrominoType;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
-mod color;
 mod constants;
 mod dimensions;
-mod display;
 mod game;
 mod game_input;
+mod graphics;
 mod playfield;
 mod position;
 mod rotation_index;
-mod sdl_display;
 mod tetromino_definition;
 mod tetromino_definitions;
 mod tetromino_instance;
@@ -44,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .position_centered()
         .build()?;
     let canvas = window.into_canvas().build()?;
-    let mut display = SdlDisplay::new(canvas, 30, playfield_dimensions);
+    let mut display = SdlDisplay::new(canvas, 30);
 
     let playfield = Playfield::new(playfield_dimensions);
     let mut game = Game::new(playfield);
@@ -94,9 +92,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // Draw playfield border
-        display
-            .draw_playfield_border()
-            .map_err(|e| format!("Draw border failed: {}", e))?;
+        // display
+        //     .draw_playfield_border()
+        //     .map_err(|e| format!("Draw border failed: {}", e))?;
 
         // Present frame
         display
