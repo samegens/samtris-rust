@@ -45,6 +45,12 @@ impl Game {
             GameInput::MoveLeft => self.try_move_piece(|tetromino| tetromino.move_left()),
             GameInput::MoveRight => self.try_move_piece(|tetromino| tetromino.move_right()),
             GameInput::MoveDown => self.try_move_piece(|tetromino| tetromino.move_down()),
+            GameInput::RotateClockwise => {
+                self.try_move_piece(|tetromino| tetromino.rotate_clockwise())
+            }
+            GameInput::RotateCounterclockwise => {
+                self.try_move_piece(|tetromino| tetromino.rotate_counterclockwise())
+            }
         }
     }
 
@@ -141,17 +147,20 @@ mod tests {
     }
 
     #[rstest]
-    #[case(GameInput::MoveLeft, -1, 0)]
-    #[case(GameInput::MoveRight, 1, 0)]
-    #[case(GameInput::MoveDown, 0, 1)]
+    #[case(GameInput::MoveLeft, -1, 0, 0)]
+    #[case(GameInput::MoveRight, 1, 0, 0)]
+    #[case(GameInput::MoveDown, 0, 1, 0)]
+    #[case(GameInput::RotateClockwise, 0, 0, 1)]
+    #[case(GameInput::RotateCounterclockwise, 0, 0, 3)]
     fn can_move_tetromino_when_no_collision(
         #[case] game_input: GameInput,
-        #[case] x_delta: i32,
-        #[case] y_delta: i32,
+        #[case] expected_x_delta: i32,
+        #[case] expected_y_delta: i32,
+        #[case] expected_rotation_index: usize,
     ) {
         // Arrange
         let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::O);
+        sut.spawn_tetromino(TetrominoType::T);
 
         let initial_position = get_tetromino_start_position();
 
@@ -160,16 +169,28 @@ mod tests {
 
         // Assert
         assert!(result);
+
         let new_position = sut.get_current_tetromino().unwrap().get_position();
-        let expected_position =
-            Position::new(initial_position.x + x_delta, initial_position.y + y_delta);
+        let expected_position = Position::new(
+            initial_position.x + expected_x_delta,
+            initial_position.y + expected_y_delta,
+        );
         assert_eq!(new_position.x, expected_position.x);
+
+        let new_rotation_index: usize = sut
+            .get_current_tetromino()
+            .unwrap()
+            .get_rotation_index()
+            .into();
+        assert_eq!(new_rotation_index, expected_rotation_index);
     }
 
     #[rstest]
-    #[case(GameInput::MoveLeft, TETRIS_SPAWN_X - 2, TETRIS_SPAWN_Y)]
-    #[case(GameInput::MoveRight, TETRIS_SPAWN_X + 2, TETRIS_SPAWN_Y)]
-    #[case(GameInput::MoveDown, TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 2)]
+    #[case(GameInput::MoveLeft, TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
+    #[case(GameInput::MoveRight, TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
+    #[case(GameInput::MoveDown, TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4)]
+    #[case(GameInput::RotateClockwise, TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
+    #[case(GameInput::RotateCounterclockwise, TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
     fn cant_move_tetromino_when_blocks_are_in_the_way(
         #[case] game_input: GameInput,
         #[case] x_of_blocking_tetromino: i32,
@@ -178,10 +199,10 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
-        let tetromino = create_tetromino_instance_at(TetrominoType::O, position);
+        let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
         playfield.place_tetromino(&tetromino);
         let mut sut = Game::new(playfield);
-        sut.spawn_tetromino(TetrominoType::O);
+        sut.spawn_tetromino(TetrominoType::I);
 
         // Act
         let result = sut.handle_input(game_input);
