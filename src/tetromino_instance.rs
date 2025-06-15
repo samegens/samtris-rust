@@ -4,6 +4,7 @@ use crate::tetromino_definition::TetrominoDefinition;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_type::TetrominoType;
 
+#[derive(Clone)]
 pub struct TetrominoInstance {
     tetromino_type: TetrominoType,
     definition: TetrominoDefinition,
@@ -82,12 +83,12 @@ mod tests {
         let definitions = TetrominoDefinitions::new();
 
         // Act
-        let instance = TetrominoInstance::new(TetrominoType::O, position, &definitions);
+        let sut = TetrominoInstance::new(TetrominoType::O, position, &definitions);
 
         // Assert
-        assert_eq!(instance.get_type(), TetrominoType::O);
-        assert_eq!(instance.get_position(), position);
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 1)); // O-piece has 1 rotation
+        assert_eq!(sut.get_type(), TetrominoType::O);
+        assert_eq!(sut.get_position(), position);
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(0, 1)); // O-piece has 1 rotation
     }
 
     #[test]
@@ -95,10 +96,10 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let instance = TetrominoInstance::new(TetrominoType::O, position, &definitions);
+        let sut = TetrominoInstance::new(TetrominoType::O, position, &definitions);
 
         // Act
-        let world_blocks = instance.get_world_blocks();
+        let result = sut.get_world_blocks();
 
         // Assert
         let expected_blocks = vec![
@@ -107,7 +108,7 @@ mod tests {
             Position::new(6, 7), // (1,2) + (5,5)
             Position::new(7, 7), // (2,2) + (5,5)
         ];
-        assert_eq!(world_blocks, expected_blocks);
+        assert_eq!(result, expected_blocks);
     }
 
     #[test]
@@ -115,14 +116,14 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+        let mut sut = TetrominoInstance::new(TetrominoType::T, position, &definitions);
 
         // Act
-        instance.move_down();
+        sut.move_down();
 
         // Assert
-        assert_eq!(instance.get_position(), Position::new(5, 6));
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+        assert_eq!(sut.get_position(), Position::new(5, 6));
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(0, 4));
     }
 
     #[test]
@@ -130,14 +131,14 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+        let mut sut = TetrominoInstance::new(TetrominoType::T, position, &definitions);
 
         // Act
-        instance.move_left();
+        sut.move_left();
 
         // Assert
-        assert_eq!(instance.get_position(), Position::new(4, 5));
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+        assert_eq!(sut.get_position(), Position::new(4, 5));
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(0, 4));
     }
 
     #[test]
@@ -145,14 +146,14 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+        let mut sut = TetrominoInstance::new(TetrominoType::T, position, &definitions);
 
         // Act
-        instance.move_right();
+        sut.move_right();
 
         // Assert
-        assert_eq!(instance.get_position(), Position::new(6, 5));
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(0, 4));
+        assert_eq!(sut.get_position(), Position::new(6, 5));
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(0, 4));
     }
 
     #[test]
@@ -160,14 +161,14 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions); // T-piece has 4 rotations
+        let mut sut = TetrominoInstance::new(TetrominoType::T, position, &definitions); // T-piece has 4 rotations
 
         // Act
-        instance.rotate_clockwise();
+        sut.rotate_clockwise();
 
         // Assert
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(1, 4));
-        assert_eq!(instance.get_position(), Position::new(5, 5));
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(1, 4));
+        assert_eq!(sut.get_position(), Position::new(5, 5));
     }
 
     #[test]
@@ -175,13 +176,13 @@ mod tests {
         // Arrange
         let position = Position::new(5, 5);
         let definitions = TetrominoDefinitions::new();
-        let mut instance = TetrominoInstance::new(TetrominoType::T, position, &definitions);
+        let mut sut = TetrominoInstance::new(TetrominoType::T, position, &definitions);
 
         // Act
-        instance.rotate_counterclockwise();
+        sut.rotate_counterclockwise();
 
         // Assert
-        assert_eq!(instance.get_rotation_index(), RotationIndex::new(3, 4));
-        assert_eq!(instance.get_position(), Position::new(5, 5));
+        assert_eq!(sut.get_rotation_index(), RotationIndex::new(3, 4));
+        assert_eq!(sut.get_position(), Position::new(5, 5));
     }
 }

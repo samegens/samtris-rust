@@ -7,6 +7,7 @@ use crate::tetromino_type::TetrominoType;
 mod constants;
 mod dimensions;
 mod game;
+mod game_input;
 mod playfield;
 mod position;
 mod rotation_index;
@@ -19,5 +20,5 @@ fn main() {
     let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
     let playfield = Playfield::new(dimensions);
     let mut game = Game::new(playfield);
-    game.spawn_piece(TetrominoType::O);
+    game.spawn_tetromino(TetrominoType::O);
 }
