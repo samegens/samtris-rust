@@ -1,7 +1,7 @@
 use crate::common::Position;
 use crate::constants::{
-    BLOCK_SIZE, PLAYFIELD_BORDER_WIDTH, PLAYFIELD_HORIZONTAL_MARGIN, PLAYFIELD_OFFSET_X,
-    PLAYFIELD_OFFSET_Y, PLAYFIELD_VERTICAL_MARGIN, TETRIS_PLAYFIELD_HEIGHT, TETRIS_PLAYFIELD_WIDTH,
+    BLOCK_SIZE, PLAYFIELD_BORDER_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_OFFSET_X, PLAYFIELD_OFFSET_Y,
+    PLAYFIELD_WIDTH, WINDOW_HEIGHT_IN_BLOCKS, WINDOW_WIDTH_IN_BLOCKS,
 };
 use crate::game::Game;
 use crate::game_input::GameInput;
@@ -12,6 +12,7 @@ use crate::playfield::Playfield;
 use crate::tetromino_type::TetrominoType;
 use common::Dimensions;
 use sdl2::event::Event;
+use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
@@ -27,21 +28,29 @@ mod tetromino_instance;
 mod tetromino_type;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let playfield_dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
+    let playfield_dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
 
     let sdl_context = sdl2::init()?;
+    let _image_context = image::init(InitFlag::PNG)?;
+
     let video_subsystem = sdl_context.video()?;
     let mut event_pump = sdl_context.event_pump()?;
 
-    let window_width = TETRIS_PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_HORIZONTAL_MARGIN * 2;
-    let window_height = TETRIS_PLAYFIELD_HEIGHT * BLOCK_SIZE + PLAYFIELD_VERTICAL_MARGIN * 2;
+    let window_width = WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE;
+    let window_height = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE;
 
     let window = video_subsystem
         .window("SAMTris Rust", window_width, window_height)
         .position_centered()
         .build()?;
     let canvas = window.into_canvas().build()?;
-    let mut display = SdlDisplay::new(canvas, BLOCK_SIZE);
+
+    let texture_creator = canvas.texture_creator();
+    let tetrominos_texture = texture_creator
+        .load_texture("assets/blocks.png")
+        .expect("Failed to load tetrominos texture");
+
+    let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
 
     let playfield = Playfield::new(playfield_dimensions);
     let mut game = Game::new(playfield);
@@ -100,27 +109,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
                 PLAYFIELD_OFFSET_Y,
                 PLAYFIELD_BORDER_WIDTH,
-                TETRIS_PLAYFIELD_HEIGHT * BLOCK_SIZE,
+                PLAYFIELD_HEIGHT * BLOCK_SIZE,
                 border_color,
             )
             .map_err(|e| format!("Draw border left failed: {}", e))?;
         display
             .draw_rectangle(
                 PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_OFFSET_Y + TETRIS_PLAYFIELD_HEIGHT * BLOCK_SIZE,
-                PLAYFIELD_BORDER_WIDTH
-                    + TETRIS_PLAYFIELD_WIDTH * BLOCK_SIZE
-                    + PLAYFIELD_BORDER_WIDTH,
+                PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE,
+                PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH,
                 PLAYFIELD_BORDER_WIDTH,
                 border_color,
             )
             .map_err(|e| format!("Draw border bottom failed: {}", e))?;
         display
             .draw_rectangle(
-                PLAYFIELD_OFFSET_X + TETRIS_PLAYFIELD_WIDTH * BLOCK_SIZE,
+                PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE,
                 PLAYFIELD_OFFSET_Y,
                 PLAYFIELD_BORDER_WIDTH,
-                TETRIS_PLAYFIELD_HEIGHT * BLOCK_SIZE,
+                PLAYFIELD_HEIGHT * BLOCK_SIZE,
                 border_color,
             )
             .map_err(|e| format!("Draw border right failed: {}", e))?;

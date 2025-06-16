@@ -86,7 +86,7 @@ mod tests {
     }
 
     fn create_test_playfield() -> Playfield {
-        let dimensions = Dimensions::new(TETRIS_PLAYFIELD_WIDTH, TETRIS_PLAYFIELD_HEIGHT);
+        let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
         Playfield::new(dimensions)
     }
 

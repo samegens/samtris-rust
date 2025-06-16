@@ -5,19 +5,25 @@ use crate::graphics::Display;
 use crate::tetromino_type::TetrominoType;
 use sdl2::pixels::Color as SdlColor;
 use sdl2::rect::Rect;
-use sdl2::render::Canvas;
+use sdl2::render::{Canvas, Texture};
 use sdl2::video::Window;
 
-pub struct SdlDisplay {
+pub struct SdlDisplay<'a> {
     canvas: Canvas<Window>,
     block_size_in_pixels: u32,
+    tetrominos_texture: Texture<'a>,
 }
 
-impl SdlDisplay {
-    pub fn new(canvas: Canvas<Window>, block_size_in_pixels: u32) -> Self {
+impl<'a> SdlDisplay<'a> {
+    pub fn new(
+        canvas: Canvas<Window>,
+        block_size_in_pixels: u32,
+        tetrominos_texture: Texture<'a>,
+    ) -> Self {
         Self {
             canvas,
             block_size_in_pixels,
+            tetrominos_texture,
         }
     }
 
@@ -36,9 +42,20 @@ impl SdlDisplay {
     fn convert_color(&self, color: Color) -> SdlColor {
         SdlColor::RGB(color.r, color.g, color.b)
     }
+
+    fn get_blocks_texture_rect(&self, tetromino_type: TetrominoType) -> Rect {
+        let index = tetromino_type as i32;
+        const TEXTURE_BLOCK_SIZE: u32 = 16;
+        Rect::new(
+            index * TEXTURE_BLOCK_SIZE as i32,
+            0,
+            TEXTURE_BLOCK_SIZE,
+            TEXTURE_BLOCK_SIZE,
+        )
+    }
 }
 
-impl Display for SdlDisplay {
+impl<'a> Display for SdlDisplay<'a> {
     type Error = String;
 
     fn clear(&mut self) -> Result<(), Self::Error> {
@@ -52,20 +69,18 @@ impl Display for SdlDisplay {
         position: Position,
         tetromino_type: TetrominoType,
     ) -> Result<(), Self::Error> {
-        let color = self.tetromino_color(tetromino_type);
+        let src_rect = self.get_blocks_texture_rect(tetromino_type);
 
-        let rect = Rect::new(
+        let dst_rect = Rect::new(
             position.x,
             position.y,
             self.block_size_in_pixels,
             self.block_size_in_pixels,
         );
 
-        self.canvas.set_draw_color(color);
-        self.canvas.fill_rect(rect).map_err(|e| e.to_string())?;
-
-        self.canvas.set_draw_color(SdlColor::RGB(255, 255, 255));
-        self.canvas.draw_rect(rect).map_err(|e| e.to_string())?;
+        self.canvas
+            .copy(&self.tetrominos_texture, Some(src_rect), Some(dst_rect))
+            .map_err(|e| e.to_string())?;
 
         Ok(())
     }
