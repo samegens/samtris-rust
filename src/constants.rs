@@ -5,6 +5,6 @@ pub const TETRIS_SPAWN_Y: i32 = 0;
 pub const PLAYFIELD_OFFSET_X: u32 = 100;
 pub const PLAYFIELD_OFFSET_Y: u32 = 100;
 pub const PLAYFIELD_BORDER_WIDTH: u32 = 20;
-pub const BLOCK_SIZE: u32 = 32;
+pub const BLOCK_SIZE: u32 = 16;
 pub const PLAYFIELD_HORIZONTAL_MARGIN: u32 = 100;
 pub const PLAYFIELD_VERTICAL_MARGIN: u32 = 100;

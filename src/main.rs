@@ -37,11 +37,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window_height = TETRIS_PLAYFIELD_HEIGHT * BLOCK_SIZE + PLAYFIELD_VERTICAL_MARGIN * 2;
 
     let window = video_subsystem
-        .window("Tetris", window_width, window_height)
+        .window("SAMTris Rust", window_width, window_height)
         .position_centered()
         .build()?;
     let canvas = window.into_canvas().build()?;
-    let mut display = SdlDisplay::new(canvas, 30);
+    let mut display = SdlDisplay::new(canvas, BLOCK_SIZE);
 
     let playfield = Playfield::new(playfield_dimensions);
     let mut game = Game::new(playfield);
