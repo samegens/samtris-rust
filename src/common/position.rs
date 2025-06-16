@@ -23,6 +23,10 @@ impl Position {
     pub fn translate(self, dx: i32, dy: i32) -> Self {
         Self::new(self.x + dx, self.y + dy)
     }
+
+    pub fn scale(&self, factor: i32) -> Position {
+        Self::new(self.x * factor, self.y * factor)
+    }
 }
 
 impl Add for Position {
@@ -189,5 +193,18 @@ mod tests {
 
         // Assert
         assert_eq!(tuple, (7, -3));
+    }
+
+    #[test]
+    fn scale_creates_correct_position() {
+        // Arrange
+        let position = Position::new(-3, 7);
+
+        // Act
+        let result = position.scale(5);
+
+        // Assert
+        let expected = Position::new(-3 * 5, 7 * 5);
+        assert_eq!(expected, result);
     }
 }

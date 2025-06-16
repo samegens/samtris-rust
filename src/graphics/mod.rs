@@ -1,6 +1,7 @@
 // src/graphics/mod.rs
 pub mod color;
 pub mod display;
+#[cfg(test)]
 pub mod mock_display;
 pub mod sdl_display;
 

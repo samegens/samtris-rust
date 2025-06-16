@@ -53,15 +53,15 @@ impl Display for SdlDisplay {
         tetromino_type: TetrominoType,
     ) -> Result<(), Self::Error> {
         let color = self.tetromino_color(tetromino_type);
-        self.canvas.set_draw_color(color);
 
         let rect = Rect::new(
-            position.x * self.block_size_in_pixels as i32,
-            position.y * self.block_size_in_pixels as i32,
+            position.x,
+            position.y,
             self.block_size_in_pixels,
             self.block_size_in_pixels,
         );
 
+        self.canvas.set_draw_color(color);
         self.canvas.fill_rect(rect).map_err(|e| e.to_string())?;
 
         self.canvas.set_draw_color(SdlColor::RGB(255, 255, 255));
@@ -72,8 +72,8 @@ impl Display for SdlDisplay {
 
     fn draw_rectangle(
         &mut self,
-        x: i32,
-        y: i32,
+        x: u32,
+        y: u32,
         width: u32,
         height: u32,
         color: Color,
@@ -81,8 +81,8 @@ impl Display for SdlDisplay {
         let sdl_color = self.convert_color(color);
         self.canvas.set_draw_color(sdl_color);
 
-        let rect = Rect::new(x, y, width, height);
-        self.canvas.draw_rect(rect).map_err(|e| e.to_string())?;
+        let rect = Rect::new(x as i32, y as i32, width, height);
+        self.canvas.fill_rect(rect).map_err(|e| e.to_string())?;
 
         Ok(())
     }

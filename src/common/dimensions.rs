@@ -2,12 +2,12 @@ use crate::common::Position;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Dimensions {
-    pub width: usize,
-    pub height: usize,
+    pub width: u32,
+    pub height: u32,
 }
 
 impl Dimensions {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         Self { width, height }
     }
 

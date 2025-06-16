@@ -16,8 +16,8 @@ pub trait Display {
 
     fn draw_rectangle(
         &mut self,
-        x: i32,
-        y: i32,
+        x: u32,
+        y: u32,
         width: u32,
         height: u32,
         color: Color,

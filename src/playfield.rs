@@ -13,7 +13,7 @@ pub struct Playfield {
 impl Playfield {
     pub fn new(dimensions: Dimensions) -> Self {
         let grid: Vec<Vec<Option<TetrominoType>>> =
-            vec![vec![None; dimensions.width]; dimensions.height];
+            vec![vec![None; dimensions.width as usize]; dimensions.height as usize];
         Self { dimensions, grid }
     }
 
@@ -26,14 +26,14 @@ impl Playfield {
             return false;
         }
 
-        let x = position.x as usize;
-        let y = position.y as usize;
+        let x = position.x as u32;
+        let y = position.y as u32;
 
         self.is_xy_occupied(x, y)
     }
 
-    fn is_xy_occupied(&self, x: usize, y: usize) -> bool {
-        self.grid[y][x].is_some()
+    fn is_xy_occupied(&self, x: u32, y: u32) -> bool {
+        self.grid[y as usize][x as usize].is_some()
     }
 
     pub fn place_tetromino(&mut self, tetromino: &TetrominoInstance) {
@@ -61,13 +61,13 @@ impl Playfield {
         true
     }
 
-    pub fn find_full_lines(&self) -> Vec<usize> {
+    pub fn find_full_lines(&self) -> Vec<u32> {
         (0..self.dimensions.height)
             .filter(|&y| self.is_line_full(y))
             .collect()
     }
 
-    fn is_line_full(&self, y: usize) -> bool {
+    fn is_line_full(&self, y: u32) -> bool {
         (0..self.dimensions.width).all(|x| self.is_xy_occupied(x, y))
     }
 }

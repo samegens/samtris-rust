@@ -7,7 +7,7 @@ use crate::tetromino_type::TetrominoType;
 pub struct MockDisplay {
     pub cleared: bool,
     pub drawn_blocks: Vec<(Position, TetrominoType)>,
-    pub drawn_rectangles: Vec<(i32, i32, u32, u32, Color)>,
+    pub drawn_rectangles: Vec<(u32, u32, u32, u32, Color)>,
     pub presented: bool,
 }
 
@@ -45,8 +45,8 @@ impl Display for MockDisplay {
 
     fn draw_rectangle(
         &mut self,
-        x: i32,
-        y: i32,
+        x: u32,
+        y: u32,
         width: u32,
         height: u32,
         color: Color,
