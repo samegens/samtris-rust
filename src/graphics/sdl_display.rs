@@ -27,18 +27,6 @@ impl<'a> SdlDisplay<'a> {
         }
     }
 
-    fn tetromino_color(&self, tetromino_type: TetrominoType) -> SdlColor {
-        match tetromino_type {
-            TetrominoType::I => SdlColor::RGB(0, 255, 255),
-            TetrominoType::O => SdlColor::RGB(255, 255, 0),
-            TetrominoType::T => SdlColor::RGB(128, 0, 128),
-            TetrominoType::Z => SdlColor::RGB(255, 0, 0),
-            TetrominoType::S => SdlColor::RGB(0, 255, 0),
-            TetrominoType::J => SdlColor::RGB(0, 0, 255),
-            TetrominoType::L => SdlColor::RGB(255, 165, 0),
-        }
-    }
-
     fn convert_color(&self, color: Color) -> SdlColor {
         SdlColor::RGB(color.r, color.g, color.b)
     }
