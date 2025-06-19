@@ -1,6 +1,4 @@
-use crate::constants::{
-    BLOCK_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, WINDOW_HEIGHT_IN_BLOCKS, WINDOW_WIDTH_IN_BLOCKS,
-};
+use crate::constants::*;
 use crate::game::Game;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
@@ -97,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         game.draw(&mut display)?;
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())
