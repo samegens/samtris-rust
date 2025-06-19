@@ -1,31 +1,59 @@
-use crate::common::Position;
 use crate::constants::{
-    BLOCK_SIZE, PLAYFIELD_BORDER_WIDTH, PLAYFIELD_HEIGHT, PLAYFIELD_OFFSET_X, PLAYFIELD_OFFSET_Y,
-    PLAYFIELD_WIDTH, WINDOW_HEIGHT_IN_BLOCKS, WINDOW_WIDTH_IN_BLOCKS,
+    BLOCK_SIZE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, WINDOW_HEIGHT_IN_BLOCKS, WINDOW_WIDTH_IN_BLOCKS,
 };
 use crate::game::Game;
-use crate::game_input::GameInput;
-use crate::graphics::Color;
-use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
+use crate::gui::Event;
+use crate::gui::GameInput;
 use crate::playfield::Playfield;
 use crate::tetromino_type::TetrominoType;
 use common::Dimensions;
-use sdl2::event::Event;
 use sdl2::image::{self, InitFlag, LoadTexture};
-use sdl2::keyboard::Keycode;
+use sdl2::EventPump;
 use std::time::Duration;
 
 mod common;
 mod constants;
 mod game;
-mod game_input;
 mod graphics;
+mod gui;
 mod playfield;
 mod tetromino_definition;
 mod tetromino_definitions;
 mod tetromino_instance;
 mod tetromino_type;
+
+fn poll_events(event_pump: &mut EventPump) -> Vec<Event> {
+    let mut events = Vec::new();
+
+    for sdl_event in event_pump.poll_iter() {
+        match sdl_event {
+            sdl2::event::Event::Quit { .. } => {
+                events.push(Event::Quit);
+            }
+            sdl2::event::Event::KeyDown {
+                keycode: Some(keycode),
+                ..
+            } => match keycode {
+                sdl2::keyboard::Keycode::Left => events.push(Event::GameInput(GameInput::MoveLeft)),
+                sdl2::keyboard::Keycode::Right => {
+                    events.push(Event::GameInput(GameInput::MoveRight))
+                }
+                sdl2::keyboard::Keycode::Up => {
+                    events.push(Event::GameInput(GameInput::RotateClockwise))
+                }
+                sdl2::keyboard::Keycode::Down => events.push(Event::GameInput(GameInput::MoveDown)),
+                sdl2::keyboard::Keycode::Escape => {
+                    events.push(Event::Quit);
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    events
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let playfield_dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
@@ -57,85 +85,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     game.spawn_tetromino(TetrominoType::T);
 
     'running: loop {
-        for event in event_pump.poll_iter() {
+        let events = poll_events(&mut event_pump);
+        for event in events {
             match event {
-                Event::Quit { .. } => break 'running,
-                Event::KeyDown {
-                    keycode: Some(keycode),
-                    ..
-                } => match keycode {
-                    Keycode::Left => {
-                        game.handle_input(GameInput::MoveLeft);
-                    }
-                    Keycode::Right => {
-                        game.handle_input(GameInput::MoveRight);
-                    }
-                    Keycode::Up => {
-                        game.handle_input(GameInput::RotateClockwise);
-                    }
-                    Keycode::Down => {
-                        game.handle_input(GameInput::MoveDown);
-                    }
-                    Keycode::Escape => break 'running,
-                    _ => {}
-                },
-                _ => {}
+                Event::Quit => break 'running,
+                Event::GameInput(game_input) => {
+                    game.handle_input(game_input);
+                }
             }
         }
 
-        display
-            .clear()
-            .map_err(|e| format!("Clear failed: {}", e))?;
-
-        // Draw current tetromino directly
-        let playfield_position =
-            Position::new(PLAYFIELD_OFFSET_X as i32, PLAYFIELD_OFFSET_Y as i32);
-        if let Some(tetromino) = game.get_current_tetromino() {
-            let blocks = tetromino.get_world_blocks();
-            let tetromino_type = tetromino.get_type();
-
-            for position in blocks {
-                let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
-                display
-                    .draw_block(window_position, tetromino_type)
-                    .map_err(|e| format!("Draw block failed: {}", e))?;
-            }
-        }
-
-        // Draw playfield border
-        let border_color = Color::WHITE;
-        display
-            .draw_rectangle(
-                PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_OFFSET_Y,
-                PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_HEIGHT * BLOCK_SIZE,
-                border_color,
-            )
-            .map_err(|e| format!("Draw border left failed: {}", e))?;
-        display
-            .draw_rectangle(
-                PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE,
-                PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_BORDER_WIDTH,
-                border_color,
-            )
-            .map_err(|e| format!("Draw border bottom failed: {}", e))?;
-        display
-            .draw_rectangle(
-                PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE,
-                PLAYFIELD_OFFSET_Y,
-                PLAYFIELD_BORDER_WIDTH,
-                PLAYFIELD_HEIGHT * BLOCK_SIZE,
-                border_color,
-            )
-            .map_err(|e| format!("Draw border right failed: {}", e))?;
-
-        // Present frame
-        display
-            .present()
-            .map_err(|e| format!("Present failed: {}", e))?;
+        game.draw(&mut display)?;
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }

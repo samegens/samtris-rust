@@ -1,6 +1,7 @@
 use crate::common::Position;
 use crate::constants::*;
-use crate::game_input::GameInput;
+use crate::graphics::{Color, Display};
+use crate::gui::GameInput;
 use crate::playfield::Playfield;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_instance::TetrominoInstance;
@@ -70,13 +71,65 @@ impl Game {
 
         false
     }
+
+    pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+        display.clear()?;
+        self.draw_current_tetromino(display)?;
+        Self::draw_playfield_border(display)?;
+        display.present()?;
+
+        Ok(())
+    }
+
+    fn draw_current_tetromino<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+        let playfield_position =
+            Position::new(PLAYFIELD_OFFSET_X as i32, PLAYFIELD_OFFSET_Y as i32);
+        if let Some(tetromino) = self.get_current_tetromino() {
+            let blocks = tetromino.get_world_blocks();
+            let tetromino_type = tetromino.get_type();
+
+            for position in blocks {
+                let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
+                display.draw_block(window_position, tetromino_type)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn draw_playfield_border<D: Display>(display: &mut D) -> Result<(), D::Error> {
+        let border_color = Color::WHITE;
+
+        display.draw_rectangle(
+            PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
+            PLAYFIELD_OFFSET_Y,
+            PLAYFIELD_BORDER_WIDTH,
+            PLAYFIELD_HEIGHT * BLOCK_SIZE,
+            border_color,
+        )?;
+        display.draw_rectangle(
+            PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
+            PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE,
+            PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH,
+            PLAYFIELD_BORDER_WIDTH,
+            border_color,
+        )?;
+        display.draw_rectangle(
+            PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE,
+            PLAYFIELD_OFFSET_Y,
+            PLAYFIELD_BORDER_WIDTH,
+            PLAYFIELD_HEIGHT * BLOCK_SIZE,
+            border_color,
+        )?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::common::Dimensions;
-    use crate::game_input::GameInput;
+    use crate::gui::game_input::GameInput;
     use crate::tetromino_type::TetrominoType;
     use rstest::rstest;
 
