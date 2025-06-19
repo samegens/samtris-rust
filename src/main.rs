@@ -8,12 +8,13 @@ use crate::tetromino_type::TetrominoType;
 use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 mod common;
 mod constants;
 mod game;
 mod graphics;
+mod gravity_timer;
 mod gui;
 mod playfield;
 mod tetromino_definition;
@@ -82,7 +83,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut game = Game::new(playfield);
     game.spawn_tetromino(TetrominoType::T);
 
+    let mut last_time = Instant::now();
+
     'running: loop {
+        let current_time = Instant::now();
+        let delta_time = current_time - last_time;
+        last_time = current_time;
+
+        game.update(delta_time);
+
         let events = poll_events(&mut event_pump);
         for event in events {
             match event {

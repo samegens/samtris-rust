@@ -1,26 +1,32 @@
 use crate::common::Position;
 use crate::constants::*;
 use crate::graphics::{Color, Display};
+use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
 use crate::tetromino_definitions::TetrominoDefinitions;
 use crate::tetromino_instance::TetrominoInstance;
 use crate::tetromino_type::TetrominoType;
+use std::time::Duration;
 
 pub struct Game {
     playfield: Playfield,
     tetromino_definitions: TetrominoDefinitions,
     current_tetromino: Option<TetrominoInstance>,
+    gravity_timer: GravityTimer,
 }
 
 //TODO: remove allow dead_code when Game is used by application code
 #[allow(dead_code)]
 impl Game {
     pub fn new(playfield: Playfield) -> Self {
+        let level: usize = 0;
+        let gravity_timer = GravityTimer::new(level);
         Self {
             playfield,
             tetromino_definitions: TetrominoDefinitions::new(),
             current_tetromino: None,
+            gravity_timer,
         }
     }
 
@@ -55,16 +61,18 @@ impl Game {
         }
     }
 
+    /// Try to move the current tetromino. Returns true if the tetromino was moved successfully
+    /// (there were no obstacles), false otherwise.
     fn try_move_piece<F>(&mut self, move_fn: F) -> bool
     where
         F: FnOnce(&mut TetrominoInstance),
     {
         if let Some(tetromino) = &self.current_tetromino {
-            let mut new_tetromino = tetromino.clone();
-            move_fn(&mut new_tetromino);
+            let mut moved_tetromino = tetromino.clone();
+            move_fn(&mut moved_tetromino);
 
-            if self.playfield.can_place_tetromino(&new_tetromino) {
-                self.current_tetromino = Some(new_tetromino);
+            if self.playfield.can_place_tetromino(&moved_tetromino) {
+                self.current_tetromino = Some(moved_tetromino);
                 return true;
             }
         }
@@ -121,6 +129,21 @@ impl Game {
 
         Ok(())
     }
+
+    pub fn update(&mut self, delta_time: Duration) {
+        if self.current_tetromino.is_some() && self.gravity_timer.update(delta_time) {
+            self.apply_gravity();
+        }
+    }
+
+    fn apply_gravity(&mut self) {
+        let moved = self.try_move_piece(|tetromino| tetromino.move_down());
+
+        if !moved {
+            // Piece can't move down - start lock delay logic here later
+            // For now, just keep the piece where it is
+        }
+    }
 }
 
 #[cfg(test)]
@@ -131,6 +154,7 @@ mod tests {
     use crate::gui::game_input::GameInput;
     use crate::tetromino_type::TetrominoType;
     use rstest::rstest;
+    use std::time::Duration;
 
     fn create_test_game() -> Game {
         let playfield = create_test_playfield();
@@ -298,5 +322,35 @@ mod tests {
         for (_, tetromino_type) in &display.drawn_blocks {
             assert_eq!(*tetromino_type, TetrominoType::O);
         }
+    }
+
+    #[test]
+    fn tetromino_falls_automatically_when_gravity_timer_expires() {
+        // Arrange
+        let mut sut = create_test_game();
+        sut.spawn_tetromino(TetrominoType::I);
+        let initial_position = sut.get_current_tetromino().unwrap().get_position();
+
+        // Act
+        sut.update(Duration::from_millis(1000));
+
+        // Assert
+        let new_position = sut.get_current_tetromino().unwrap().get_position();
+        assert_eq!(new_position.y, initial_position.y + 1);
+    }
+
+    #[test]
+    fn tetromino_does_not_falls_automatically_before_gravity_timer_expires() {
+        // Arrange
+        let mut sut = create_test_game();
+        sut.spawn_tetromino(TetrominoType::I);
+        let initial_position = sut.get_current_tetromino().unwrap().get_position();
+
+        // Act
+        sut.update(Duration::from_millis(500));
+
+        // Assert
+        let new_position = sut.get_current_tetromino().unwrap().get_position();
+        assert_eq!(new_position.y, initial_position.y);
     }
 }
