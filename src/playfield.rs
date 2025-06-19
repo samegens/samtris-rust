@@ -21,6 +21,17 @@ impl Playfield {
         self.dimensions
     }
 
+    pub fn get_tetromino_type_at(&self, position: Position) -> Option<TetrominoType> {
+        if !self.dimensions.contains(position) {
+            return None;
+        }
+
+        let x = position.x as usize;
+        let y = position.y as usize;
+
+        self.grid[y][x]
+    }
+
     pub fn is_position_occupied(&self, position: Position) -> bool {
         if !self.dimensions.contains(position) {
             return false;
@@ -36,7 +47,7 @@ impl Playfield {
         self.grid[y as usize][x as usize].is_some()
     }
 
-    pub fn place_tetromino(&mut self, tetromino: &TetrominoInstance) {
+    pub fn lock_tetromino(&mut self, tetromino: &TetrominoInstance) {
         let tetromino_type: TetrominoType = tetromino.get_type();
         let world_blocks: Vec<Position> = tetromino.get_world_blocks();
 
@@ -75,6 +86,7 @@ impl Playfield {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
     use crate::tetromino_definitions::TetrominoDefinitions;
     use rstest::rstest;
 
@@ -88,6 +100,58 @@ mod tests {
 
         // Assert
         assert_eq!(sut.get_dimensions(), dimensions);
+    }
+
+    #[rstest]
+    #[case(Position::new(-1, 0))]
+    #[case(Position::new(10, 0))]
+    #[case(Position::new(10, 20))]
+    #[case(Position::new(0, 20))]
+    fn get_tetromino_type_at_handles_out_of_bounds(#[case] position: Position) {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let sut = Playfield::new(dimensions);
+
+        // Act
+        let result: Option<TetrominoType> = sut.get_tetromino_type_at(position);
+
+        // Assert
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn get_tetromino_type_at_handles_unoccupied_position() {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let sut = Playfield::new(dimensions);
+        let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
+
+        // Act
+        let result: Option<TetrominoType> = sut.get_tetromino_type_at(position);
+
+        // Assert
+        assert!(result.is_none());
+    }
+
+    #[rstest]
+    #[case(Position::new(1, 1))]
+    #[case(Position::new(2, 1))]
+    #[case(Position::new(1, 2))]
+    #[case(Position::new(2, 2))]
+    fn get_tetromino_type_at_handles_occupied_position(#[case] position: Position) {
+        // Arrange
+        let dimensions = Dimensions::new(4, 4);
+        let mut sut = Playfield::new(dimensions);
+        let spawn_position = Position::new(0, 0);
+        let definitions = TetrominoDefinitions::new();
+        let tetromino = TetrominoInstance::new(TetrominoType::O, spawn_position, &definitions);
+        sut.lock_tetromino(&tetromino);
+
+        // Act
+        let result: Option<TetrominoType> = sut.get_tetromino_type_at(position);
+
+        // Assert
+        assert_eq!(result.unwrap(), TetrominoType::O);
     }
 
     #[rstest]
@@ -116,7 +180,7 @@ mod tests {
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(5, 5), &definitions);
 
         // Act
-        sut.place_tetromino(&tetromino);
+        sut.lock_tetromino(&tetromino);
 
         // Assert
         assert!(!sut.is_position_occupied(Position::new(5, 5)));
@@ -190,7 +254,7 @@ mod tests {
         let definitions = TetrominoDefinitions::new();
         let first_tetromino =
             TetrominoInstance::new(TetrominoType::O, first_position, &definitions);
-        sut.place_tetromino(&first_tetromino);
+        sut.lock_tetromino(&first_tetromino);
         let second_tetromino =
             TetrominoInstance::new(TetrominoType::O, second_position, &definitions);
 
@@ -224,7 +288,7 @@ mod tests {
             TetrominoInstance::new(TetrominoType::I, Position::new(0, -1), &definitions);
         tetromino.rotate_clockwise();
         // Place I-piece horizontally to fill the single row.
-        playfield.place_tetromino(&tetromino);
+        playfield.lock_tetromino(&tetromino);
 
         // Act
         let full_lines = playfield.find_full_lines();
@@ -242,7 +306,7 @@ mod tests {
         let tetromino =
             TetrominoInstance::new(TetrominoType::I, Position::new(-1, 0), &definitions);
         // Place I-piece vertically to fill 4 rows.
-        playfield.place_tetromino(&tetromino);
+        playfield.lock_tetromino(&tetromino);
 
         // Act
         let full_lines = playfield.find_full_lines();

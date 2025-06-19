@@ -30,6 +30,10 @@ impl Game {
         }
     }
 
+    pub fn get_playfield(&self) -> &Playfield {
+        &self.playfield
+    }
+
     pub fn spawn_tetromino(&mut self, _tetromino_type: TetrominoType) -> bool {
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
         let tetromino =
@@ -51,7 +55,16 @@ impl Game {
         match input {
             GameInput::MoveLeft => self.try_move_piece(|tetromino| tetromino.move_left()),
             GameInput::MoveRight => self.try_move_piece(|tetromino| tetromino.move_right()),
-            GameInput::MoveDown => self.try_move_piece(|tetromino| tetromino.move_down()),
+            GameInput::MoveDown => {
+                let has_moved: bool = self.try_move_piece(|tetromino| tetromino.move_down());
+                if has_moved {
+                    self.gravity_timer.reset();
+                } else {
+                    self.lock_current_tetromino();
+                    self.spawn_tetromino(TetrominoType::O);
+                }
+                has_moved
+            }
             GameInput::RotateClockwise => {
                 self.try_move_piece(|tetromino| tetromino.rotate_clockwise())
             }
@@ -84,6 +97,7 @@ impl Game {
         display.clear()?;
         self.draw_current_tetromino(display)?;
         Self::draw_playfield_border(display)?;
+        self.draw_playfield(display)?;
         display.present()?;
 
         Ok(())
@@ -130,6 +144,36 @@ impl Game {
         Ok(())
     }
 
+    fn draw_playfield<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+        let x = PLAYFIELD_OFFSET_X as i32;
+        let y = PLAYFIELD_OFFSET_Y as i32;
+        let playfield_position = Position::new(x, y);
+
+        for y in 0..self.playfield.get_dimensions().height {
+            for x in 0..self.playfield.get_dimensions().width {
+                let position = Position::new(x as i32, y as i32);
+                self.draw_playfield_position(display, playfield_position, position)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn draw_playfield_position<D: Display>(
+        &self,
+        display: &mut D,
+        playfield_position: Position,
+        position: Position,
+    ) -> Result<(), D::Error> {
+        if self.playfield.is_position_occupied(position) {
+            if let Some(tetromino_type) = self.playfield.get_tetromino_type_at(position) {
+                let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
+                display.draw_block(window_position, tetromino_type)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn update(&mut self, delta_time: Duration) {
         if self.current_tetromino.is_some() && self.gravity_timer.update(delta_time) {
             self.apply_gravity();
@@ -143,6 +187,11 @@ impl Game {
             // Piece can't move down - start lock delay logic here later
             // For now, just keep the piece where it is
         }
+    }
+
+    fn lock_current_tetromino(&mut self) {
+        self.playfield
+            .lock_tetromino(self.current_tetromino.as_ref().unwrap());
     }
 }
 
@@ -212,7 +261,7 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         let tetromino_instance = create_tetromino_instance(TetrominoType::O);
-        playfield.place_tetromino(&tetromino_instance);
+        playfield.lock_tetromino(&tetromino_instance);
         let mut sut = Game::new(playfield);
 
         // Act
@@ -276,7 +325,7 @@ mod tests {
         let mut playfield = create_test_playfield();
         let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
         let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
-        playfield.place_tetromino(&tetromino);
+        playfield.lock_tetromino(&tetromino);
         let mut sut = Game::new(playfield);
         sut.spawn_tetromino(TetrominoType::I);
 
@@ -352,5 +401,70 @@ mod tests {
         // Assert
         let new_position = sut.get_current_tetromino().unwrap().get_position();
         assert_eq!(new_position.y, initial_position.y);
+    }
+
+    #[test]
+    fn handle_input_move_down_returns_false_when_tetromino_cannot_move() {
+        // Arrange
+        let mut playfield = create_test_playfield();
+        let position = Position::new(TETRIS_SPAWN_X, (PLAYFIELD_HEIGHT - 3) as i32);
+        let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
+        playfield.lock_tetromino(&blocking_tetromino);
+
+        let mut sut = Game::new(playfield);
+        sut.spawn_tetromino(TetrominoType::O);
+
+        // Move down until just above the blocking row
+        while sut.get_current_tetromino().unwrap().get_position().y < (PLAYFIELD_HEIGHT - 5) as i32
+        {
+            sut.handle_input(GameInput::MoveDown);
+        }
+
+        // Act
+        let result = sut.handle_input(GameInput::MoveDown);
+
+        // Assert
+        assert!(!result);
+        let expected_position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
+        assert_eq!(
+            sut.get_current_tetromino().unwrap().get_position(),
+            expected_position
+        );
+
+        let locked_position = Position::new(TETRIS_SPAWN_X + 1, (PLAYFIELD_HEIGHT - 2) as i32);
+        assert!(sut.get_playfield().is_position_occupied(locked_position));
+    }
+
+    #[test]
+    fn draw_playfield_renders_placed_tetromino_blocks() {
+        // Arrange
+        let mut playfield = create_test_playfield();
+        let tetromino = create_tetromino_instance_at(TetrominoType::O, Position::new(1, 1));
+        playfield.lock_tetromino(&tetromino);
+
+        let game = Game::new(playfield);
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = game.draw_playfield(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(!display.drawn_blocks.is_empty());
+    }
+
+    #[test]
+    fn draw_playfield_draws_nothing_on_empty_playfield() {
+        // Arrange
+        let playfield = create_test_playfield();
+        let game = Game::new(playfield);
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = game.draw_playfield(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(display.drawn_blocks.is_empty());
     }
 }

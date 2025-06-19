@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::game::Game;
+use crate::game_timer::GameTimer;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
 use crate::gui::GameInput;
@@ -8,11 +9,12 @@ use crate::tetromino_type::TetrominoType;
 use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 mod common;
 mod constants;
 mod game;
+mod game_timer;
 mod graphics;
 mod gravity_timer;
 mod gui;
@@ -83,14 +85,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut game = Game::new(playfield);
     game.spawn_tetromino(TetrominoType::T);
 
-    let mut last_time = Instant::now();
+    let mut game_timer = GameTimer::new();
 
     'running: loop {
-        let current_time = Instant::now();
-        let delta_time = current_time - last_time;
-        last_time = current_time;
-
-        game.update(delta_time);
+        game.update(game_timer.delta());
 
         let events = poll_events(&mut event_pump);
         for event in events {
