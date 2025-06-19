@@ -82,8 +82,10 @@ impl Game {
     }
 
     fn draw_current_tetromino<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
-        let playfield_position =
-            Position::new(PLAYFIELD_OFFSET_X as i32, PLAYFIELD_OFFSET_Y as i32);
+        let x = PLAYFIELD_OFFSET_X as i32;
+        let y = PLAYFIELD_OFFSET_Y as i32;
+        let playfield_position = Position::new(x, y);
+
         if let Some(tetromino) = self.get_current_tetromino() {
             let blocks = tetromino.get_world_blocks();
             let tetromino_type = tetromino.get_type();
@@ -99,27 +101,23 @@ impl Game {
     fn draw_playfield_border<D: Display>(display: &mut D) -> Result<(), D::Error> {
         let border_color = Color::WHITE;
 
-        display.draw_rectangle(
-            PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
-            PLAYFIELD_OFFSET_Y,
-            PLAYFIELD_BORDER_WIDTH,
-            PLAYFIELD_HEIGHT * BLOCK_SIZE,
-            border_color,
-        )?;
-        display.draw_rectangle(
-            PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH,
-            PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE,
-            PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH,
-            PLAYFIELD_BORDER_WIDTH,
-            border_color,
-        )?;
-        display.draw_rectangle(
-            PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE,
-            PLAYFIELD_OFFSET_Y,
-            PLAYFIELD_BORDER_WIDTH,
-            PLAYFIELD_HEIGHT * BLOCK_SIZE,
-            border_color,
-        )?;
+        let mut x = PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH;
+        let mut y = PLAYFIELD_OFFSET_Y;
+        let mut width = PLAYFIELD_BORDER_WIDTH;
+        let mut height = PLAYFIELD_HEIGHT * BLOCK_SIZE;
+        display.draw_rectangle(x, y, width, height, border_color)?;
+
+        x = PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH;
+        y = PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE;
+        width = PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH;
+        height = PLAYFIELD_BORDER_WIDTH;
+        display.draw_rectangle(x, y, width, height, border_color)?;
+
+        x = PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE;
+        y = PLAYFIELD_OFFSET_Y;
+        width = PLAYFIELD_BORDER_WIDTH;
+        height = PLAYFIELD_HEIGHT * BLOCK_SIZE;
+        display.draw_rectangle(x, y, width, height, border_color)?;
 
         Ok(())
     }
@@ -129,6 +127,7 @@ impl Game {
 mod tests {
     use super::*;
     use crate::common::Dimensions;
+    use crate::graphics::mock_display::MockDisplay;
     use crate::gui::game_input::GameInput;
     use crate::tetromino_type::TetrominoType;
     use rstest::rstest;
@@ -262,5 +261,42 @@ mod tests {
 
         // Assert
         assert!(!result);
+    }
+
+    #[test]
+    fn draw_with_no_current_tetromino_only_draws_border() {
+        // Arrange
+        let playfield = Playfield::new(Dimensions::new(10, 20));
+        let sut = Game::new(playfield); // No tetromino spawned
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(display.drawn_blocks.is_empty()); // No tetromino blocks
+        assert!(!display.drawn_rectangles.is_empty()); // But border is drawn
+    }
+
+    #[test]
+    fn draw_renders_current_tetromino_blocks() {
+        // Arrange
+        let playfield = Playfield::new(Dimensions::new(10, 20));
+        let mut sut = Game::new(playfield);
+        sut.spawn_tetromino(TetrominoType::O);
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(!display.drawn_blocks.is_empty());
+
+        // Verify all drawn blocks are O-type
+        for (_, tetromino_type) in &display.drawn_blocks {
+            assert_eq!(*tetromino_type, TetrominoType::O);
+        }
     }
 }
