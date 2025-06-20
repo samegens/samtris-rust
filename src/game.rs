@@ -40,6 +40,7 @@ impl Game {
             TetrominoInstance::new(_tetromino_type, position, &self.tetromino_definitions);
 
         if !self.playfield.can_place_tetromino(&tetromino) {
+            // TODO: this means end of game.
             return false;
         }
 
@@ -61,7 +62,6 @@ impl Game {
                     self.gravity_timer.reset();
                 } else {
                     self.lock_current_tetromino();
-                    self.spawn_tetromino(TetrominoType::O);
                 }
                 has_moved
             }
@@ -184,14 +184,16 @@ impl Game {
         let moved = self.try_move_piece(|tetromino| tetromino.move_down());
 
         if !moved {
-            // Piece can't move down - start lock delay logic here later
-            // For now, just keep the piece where it is
+            self.lock_current_tetromino();
         }
     }
 
+    /// Locks the current tetromino in its current position and spawns a new tetromino in the
+    /// start position.
     fn lock_current_tetromino(&mut self) {
         self.playfield
             .lock_tetromino(self.current_tetromino.as_ref().unwrap());
+        self.spawn_tetromino(TetrominoType::O);
     }
 }
 
@@ -407,28 +409,25 @@ mod tests {
     fn handle_input_move_down_returns_false_when_tetromino_cannot_move() {
         // Arrange
         let mut playfield = create_test_playfield();
-        let position = Position::new(TETRIS_SPAWN_X, (PLAYFIELD_HEIGHT - 3) as i32);
+        // Place an O-tetromino 4 lines below the spawn line so the locked O will fit and a new O.
+        let position = Position::new(TETRIS_SPAWN_X, 4);
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
         playfield.lock_tetromino(&blocking_tetromino);
 
         let mut sut = Game::new(playfield);
         sut.spawn_tetromino(TetrominoType::O);
 
-        // Move down until just above the blocking row
-        while sut.get_current_tetromino().unwrap().get_position().y < (PLAYFIELD_HEIGHT - 5) as i32
-        {
-            sut.handle_input(GameInput::MoveDown);
-        }
+        sut.handle_input(GameInput::MoveDown);
+        sut.handle_input(GameInput::MoveDown);
 
         // Act
         let result = sut.handle_input(GameInput::MoveDown);
 
         // Assert
         assert!(!result);
-        let expected_position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
         assert_eq!(
             sut.get_current_tetromino().unwrap().get_position(),
-            expected_position
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
         );
 
         let locked_position = Position::new(TETRIS_SPAWN_X + 1, (PLAYFIELD_HEIGHT - 2) as i32);
@@ -466,5 +465,36 @@ mod tests {
         // Assert
         assert!(result.is_ok());
         assert!(display.drawn_blocks.is_empty());
+    }
+
+    #[test]
+    fn tetromino_locks_when_gravity_cannot_move_it_down() {
+        // Arrange
+        let mut playfield = Playfield::new(Dimensions::new(PLAYFIELD_WIDTH, 5)); // Small playfield
+        let definitions = TetrominoDefinitions::new();
+
+        // Place an O tetromino directly below spawn position to block movement
+        let blocking_tetromino = TetrominoInstance::new(
+            TetrominoType::O,
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 2),
+            &definitions,
+        );
+        playfield.lock_tetromino(&blocking_tetromino);
+
+        let mut sut = Game::new(playfield);
+        sut.spawn_tetromino(TetrominoType::O);
+
+        // Act
+        sut.update(Duration::from_millis(1000)); // Trigger gravity
+
+        // Assert
+        assert!(sut.get_current_tetromino().is_some());
+        assert_eq!(
+            sut.get_current_tetromino().unwrap().get_position(),
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
+        );
+        assert!(sut
+            .get_playfield()
+            .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
     }
 }
