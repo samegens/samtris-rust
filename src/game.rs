@@ -410,7 +410,7 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         // Place an O-tetromino 4 lines below the spawn line so the locked O will fit and a new O.
-        let position = Position::new(TETRIS_SPAWN_X, 4);
+        let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4);
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
         playfield.lock_tetromino(&blocking_tetromino);
 
@@ -430,7 +430,7 @@ mod tests {
             Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
         );
 
-        let locked_position = Position::new(TETRIS_SPAWN_X + 1, (PLAYFIELD_HEIGHT - 2) as i32);
+        let locked_position = Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 3);
         assert!(sut.get_playfield().is_position_occupied(locked_position));
     }
 
