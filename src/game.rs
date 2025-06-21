@@ -496,6 +496,22 @@ mod tests {
             .any(|(_, _, _, _, color)| *color == Color::RED));
     }
 
+    #[test]
+    fn update_when_game_over_does_not_apply_gravity() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.spawn_tetromino();
+        let expected = sut.current_tetromino.as_ref().unwrap().get_position();
+        sut.set_game_state_game_over();
+
+        // Act
+        sut.update(Duration::from_millis(1000));
+
+        // Assert
+        let actual = sut.current_tetromino.as_ref().unwrap().get_position();
+        assert_eq!(actual, expected);
+    }
+
     fn create_standard_test_game() -> Game {
         create_test_game(TetrominoType::O)
     }
