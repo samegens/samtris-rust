@@ -40,10 +40,16 @@ fn poll_events(event_pump: &mut EventPump) -> Vec<Event> {
                 sdl2::keyboard::Keycode::Right => {
                     events.push(Event::GameInput(GameInput::MoveRight))
                 }
-                sdl2::keyboard::Keycode::Up => {
+                sdl2::keyboard::Keycode::Up | sdl2::keyboard::Keycode::X => {
                     events.push(Event::GameInput(GameInput::RotateClockwise))
                 }
                 sdl2::keyboard::Keycode::Down => events.push(Event::GameInput(GameInput::MoveDown)),
+                sdl2::keyboard::Keycode::Z => {
+                    events.push(Event::GameInput(GameInput::RotateCounterclockwise))
+                }
+                sdl2::keyboard::Keycode::Space => {
+                    events.push(Event::GameInput(GameInput::Drop));
+                }
                 sdl2::keyboard::Keycode::Escape => {
                     events.push(Event::Quit);
                 }

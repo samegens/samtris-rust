@@ -53,6 +53,7 @@ impl Game {
         self.current_tetromino.as_ref()
     }
 
+    /// Handle game input, returns true if the tetromino was moved successfully, false otherwise.
     pub fn handle_input(&mut self, input: GameInput) -> bool {
         match input {
             GameInput::MoveLeft => self.try_move_piece(|tetromino| tetromino.move_left()),
@@ -62,7 +63,7 @@ impl Game {
                 if has_moved {
                     self.gravity_timer.reset();
                 } else {
-                    self.lock_current_tetromino();
+                    self.lock_tetromino();
                 }
                 has_moved
             }
@@ -72,7 +73,16 @@ impl Game {
             GameInput::RotateCounterclockwise => {
                 self.try_move_piece(|tetromino| tetromino.rotate_counterclockwise())
             }
+            GameInput::Drop => {
+                self.harddrop_tetromino();
+                true
+            }
         }
+    }
+
+    fn harddrop_tetromino(&mut self) {
+        while self.try_move_piece(|tetromino| tetromino.move_down()) {}
+        self.lock_tetromino();
     }
 
     /// Try to move the current tetromino. Returns true if the tetromino was moved successfully
@@ -112,16 +122,17 @@ impl Game {
         let moved = self.try_move_piece(|tetromino| tetromino.move_down());
 
         if !moved {
-            self.lock_current_tetromino();
+            self.lock_tetromino();
         }
     }
 
     /// Locks the current tetromino in its current position and spawns a new tetromino in the
-    /// start position.
-    fn lock_current_tetromino(&mut self) {
+    /// start position. Resets the gravity timer.
+    fn lock_tetromino(&mut self) {
         self.playfield
             .lock_tetromino(self.current_tetromino.as_ref().unwrap());
         self.spawn_tetromino(TetrominoType::O);
+        self.gravity_timer.reset();
     }
 }
 
@@ -323,6 +334,36 @@ mod tests {
 
         let locked_position = Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 3);
         assert!(sut.get_playfield().is_position_occupied(locked_position));
+    }
+
+    #[test]
+    fn handle_input_drop_moves_tetromino_to_bottom() {
+        // Arrange
+        let mut sut = create_test_game();
+        sut.spawn_tetromino(TetrominoType::O);
+        sut.handle_input(GameInput::MoveDown);
+
+        // Act
+        let result = sut.handle_input(GameInput::Drop);
+
+        // Assert
+        assert!(result);
+        assert_eq!(
+            sut.get_current_tetromino().unwrap().get_position(),
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
+        );
+        let bottom_y = PLAYFIELD_HEIGHT as i32 - 1;
+        assert!(sut
+            .get_playfield()
+            .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, bottom_y)));
+        assert!(sut
+            .get_playfield()
+            .is_position_occupied(Position::new(TETRIS_SPAWN_X + 2, bottom_y)));
+        assert_eq!(
+            sut.get_playfield()
+                .get_tetromino_type_at(Position::new(TETRIS_SPAWN_X + 1, bottom_y)),
+            Some(TetrominoType::O)
+        );
     }
 
     #[test]

@@ -7,6 +7,5 @@ pub enum GameInput {
     MoveDown,
     RotateClockwise,
     RotateCounterclockwise,
-    // Drop,
-    // Quit,
+    Drop,
 }
