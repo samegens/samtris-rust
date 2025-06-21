@@ -1,7 +1,7 @@
 pub const BLOCK_SIZE: u32 = 16; // Length of block in pixels (also height)
 pub const PLAYFIELD_WIDTH: u32 = 10; // In blocks
 pub const PLAYFIELD_HEIGHT: u32 = 20; // In blocks
-pub const TETRIS_SPAWN_X: i32 = 4; // In blocks within playfield, x = 0 is left
+pub const TETRIS_SPAWN_X: i32 = 3; // In blocks within playfield, x = 0 is left
 pub const TETRIS_SPAWN_Y: i32 = 0; // In blocks within playfield, y = 0 is up
 pub const WINDOW_WIDTH_IN_BLOCKS: u32 = 40;
 pub const WINDOW_HEIGHT_IN_BLOCKS: u32 = 25;
