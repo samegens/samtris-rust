@@ -391,7 +391,7 @@ mod tests {
     }
 
     #[test]
-    fn tetromino_does_not_falls_automatically_before_gravity_timer_expires() {
+    fn tetromino_does_not_fall_automatically_before_gravity_timer_expires() {
         // Arrange
         let mut sut = create_test_game();
         sut.spawn_tetromino(TetrominoType::I);
