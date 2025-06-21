@@ -17,8 +17,6 @@ pub struct Game {
     renderer: PlayfieldRenderer,
 }
 
-//TODO: remove allow dead_code when Game is used by application code
-#[allow(dead_code)]
 impl Game {
     pub fn new(playfield: Playfield) -> Self {
         let level: usize = 0;
@@ -32,6 +30,7 @@ impl Game {
         }
     }
 
+    #[cfg(test)]
     pub fn get_playfield(&self) -> &Playfield {
         &self.playfield
     }
@@ -98,7 +97,7 @@ impl Game {
     pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
         display.clear()?;
         self.renderer
-            .draw(&self.playfield, self.current_tetromino.as_ref(), display)?;
+            .draw(&self.playfield, self.get_current_tetromino(), display)?;
         display.present()?;
         Ok(())
     }
