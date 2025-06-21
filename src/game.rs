@@ -1,6 +1,6 @@
 use crate::common::Position;
 use crate::constants::*;
-use crate::graphics::{Color, Display};
+use crate::graphics::{Display, PlayfieldRenderer};
 use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
@@ -14,6 +14,7 @@ pub struct Game {
     tetromino_definitions: TetrominoDefinitions,
     current_tetromino: Option<TetrominoInstance>,
     gravity_timer: GravityTimer,
+    renderer: PlayfieldRenderer,
 }
 
 //TODO: remove allow dead_code when Game is used by application code
@@ -27,6 +28,7 @@ impl Game {
             tetromino_definitions: TetrominoDefinitions::new(),
             current_tetromino: None,
             gravity_timer,
+            renderer: PlayfieldRenderer::new(),
         }
     }
 
@@ -95,82 +97,9 @@ impl Game {
 
     pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
         display.clear()?;
-        self.draw_current_tetromino(display)?;
-        Self::draw_playfield_border(display)?;
-        self.draw_playfield(display)?;
+        self.renderer
+            .draw(&self.playfield, self.current_tetromino.as_ref(), display)?;
         display.present()?;
-
-        Ok(())
-    }
-
-    fn draw_current_tetromino<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
-        let x = PLAYFIELD_OFFSET_X as i32;
-        let y = PLAYFIELD_OFFSET_Y as i32;
-        let playfield_position = Position::new(x, y);
-
-        if let Some(tetromino) = self.get_current_tetromino() {
-            let blocks = tetromino.get_world_blocks();
-            let tetromino_type = tetromino.get_type();
-
-            for position in blocks {
-                let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
-                display.draw_block(window_position, tetromino_type)?;
-            }
-        }
-        Ok(())
-    }
-
-    fn draw_playfield_border<D: Display>(display: &mut D) -> Result<(), D::Error> {
-        let border_color = Color::WHITE;
-
-        let mut x = PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH;
-        let mut y = PLAYFIELD_OFFSET_Y;
-        let mut width = PLAYFIELD_BORDER_WIDTH;
-        let mut height = PLAYFIELD_HEIGHT * BLOCK_SIZE;
-        display.draw_rectangle(x, y, width, height, border_color)?;
-
-        x = PLAYFIELD_OFFSET_X - PLAYFIELD_BORDER_WIDTH;
-        y = PLAYFIELD_OFFSET_Y + PLAYFIELD_HEIGHT * BLOCK_SIZE;
-        width = PLAYFIELD_BORDER_WIDTH + PLAYFIELD_WIDTH * BLOCK_SIZE + PLAYFIELD_BORDER_WIDTH;
-        height = PLAYFIELD_BORDER_WIDTH;
-        display.draw_rectangle(x, y, width, height, border_color)?;
-
-        x = PLAYFIELD_OFFSET_X + PLAYFIELD_WIDTH * BLOCK_SIZE;
-        y = PLAYFIELD_OFFSET_Y;
-        width = PLAYFIELD_BORDER_WIDTH;
-        height = PLAYFIELD_HEIGHT * BLOCK_SIZE;
-        display.draw_rectangle(x, y, width, height, border_color)?;
-
-        Ok(())
-    }
-
-    fn draw_playfield<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
-        let x = PLAYFIELD_OFFSET_X as i32;
-        let y = PLAYFIELD_OFFSET_Y as i32;
-        let playfield_position = Position::new(x, y);
-
-        for y in 0..self.playfield.get_dimensions().height {
-            for x in 0..self.playfield.get_dimensions().width {
-                let position = Position::new(x as i32, y as i32);
-                self.draw_playfield_position(display, playfield_position, position)?;
-            }
-        }
-
-        Ok(())
-    }
-
-    fn draw_playfield_position<D: Display>(
-        &self,
-        display: &mut D,
-        playfield_position: Position,
-        position: Position,
-    ) -> Result<(), D::Error> {
-        if self.playfield.is_position_occupied(position) {
-            if let Some(tetromino_type) = self.playfield.get_tetromino_type_at(position) {
-                let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
-                display.draw_block(window_position, tetromino_type)?;
-            }
-        }
         Ok(())
     }
 
@@ -201,7 +130,7 @@ impl Game {
 mod tests {
     use super::*;
     use crate::common::Dimensions;
-    use crate::graphics::mock_display::MockDisplay;
+    use crate::graphics::MockDisplay;
     use crate::gui::game_input::GameInput;
     use crate::tetromino_type::TetrominoType;
     use rstest::rstest;
@@ -339,43 +268,6 @@ mod tests {
     }
 
     #[test]
-    fn draw_with_no_current_tetromino_only_draws_border() {
-        // Arrange
-        let playfield = Playfield::new(Dimensions::new(10, 20));
-        let sut = Game::new(playfield); // No tetromino spawned
-        let mut display = MockDisplay::new();
-
-        // Act
-        let result = sut.draw(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-        assert!(display.drawn_blocks.is_empty()); // No tetromino blocks
-        assert!(!display.drawn_rectangles.is_empty()); // But border is drawn
-    }
-
-    #[test]
-    fn draw_renders_current_tetromino_blocks() {
-        // Arrange
-        let playfield = Playfield::new(Dimensions::new(10, 20));
-        let mut sut = Game::new(playfield);
-        sut.spawn_tetromino(TetrominoType::O);
-        let mut display = MockDisplay::new();
-
-        // Act
-        let result = sut.draw(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-        assert!(!display.drawn_blocks.is_empty());
-
-        // Verify all drawn blocks are O-type
-        for (_, tetromino_type) in &display.drawn_blocks {
-            assert_eq!(*tetromino_type, TetrominoType::O);
-        }
-    }
-
-    #[test]
     fn tetromino_falls_automatically_when_gravity_timer_expires() {
         // Arrange
         let mut sut = create_test_game();
@@ -435,39 +327,6 @@ mod tests {
     }
 
     #[test]
-    fn draw_playfield_renders_placed_tetromino_blocks() {
-        // Arrange
-        let mut playfield = create_test_playfield();
-        let tetromino = create_tetromino_instance_at(TetrominoType::O, Position::new(1, 1));
-        playfield.lock_tetromino(&tetromino);
-
-        let game = Game::new(playfield);
-        let mut display = MockDisplay::new();
-
-        // Act
-        let result = game.draw_playfield(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-        assert!(!display.drawn_blocks.is_empty());
-    }
-
-    #[test]
-    fn draw_playfield_draws_nothing_on_empty_playfield() {
-        // Arrange
-        let playfield = create_test_playfield();
-        let game = Game::new(playfield);
-        let mut display = MockDisplay::new();
-
-        // Act
-        let result = game.draw_playfield(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-        assert!(display.drawn_blocks.is_empty());
-    }
-
-    #[test]
     fn tetromino_locks_when_gravity_cannot_move_it_down() {
         // Arrange
         let mut playfield = Playfield::new(Dimensions::new(PLAYFIELD_WIDTH, 5)); // Small playfield
@@ -496,5 +355,24 @@ mod tests {
         assert!(sut
             .get_playfield()
             .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
+    }
+
+    #[test]
+    fn draw_coordinates_display_lifecycle() {
+        // Arrange
+        let mut sut = create_test_game();
+        sut.spawn_tetromino(TetrominoType::O);
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(display.cleared); // Game called clear
+        assert!(display.presented); // Game called present
+                                    // The renderer was called (evidenced by drawing operations between clear and present)
+        assert!(!display.drawn_rectangles.is_empty()); // Border drawn by renderer
+        assert!(!display.drawn_blocks.is_empty()); // Tetromino drawn by renderer
     }
 }
