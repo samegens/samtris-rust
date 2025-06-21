@@ -8,4 +8,5 @@ pub enum GameInput {
     RotateClockwise,
     RotateCounterclockwise,
     Drop,
+    StartGame,
 }

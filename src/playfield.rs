@@ -81,6 +81,11 @@ impl Playfield {
     fn is_line_full(&self, y: u32) -> bool {
         (0..self.dimensions.width).all(|x| self.is_xy_occupied(x, y))
     }
+
+    pub fn clear(&mut self) {
+        self.grid =
+            vec![vec![None; self.dimensions.width as usize]; self.dimensions.height as usize];
+    }
 }
 
 #[cfg(test)]
@@ -313,5 +318,27 @@ mod tests {
 
         // Assert
         assert_eq!(full_lines, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn clear_removes_all_placed_pieces() {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let mut sut = Playfield::new(dimensions);
+        let definitions = TetrominoDefinitions::new();
+
+        // Place several tetrominos on the playfield
+        let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(2, 2), &definitions);
+        sut.lock_tetromino(&tetromino);
+
+        // Act
+        sut.clear();
+
+        // Assert
+        for y in 0..dimensions.height {
+            for x in 0..dimensions.width {
+                assert!(!sut.is_position_occupied(Position::new(x as i32, y as i32)));
+            }
+        }
     }
 }

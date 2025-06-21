@@ -1,6 +1,7 @@
 use crate::common::Position;
 use crate::constants::*;
-use crate::graphics::{Display, PlayfieldRenderer};
+use crate::game_state::GameState;
+use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
@@ -14,6 +15,7 @@ pub struct Game {
     gravity_timer: GravityTimer,
     renderer: PlayfieldRenderer,
     tetromino_generator: Box<dyn TetrominoGenerator>,
+    game_state: GameState,
 }
 
 impl Game {
@@ -26,6 +28,7 @@ impl Game {
             gravity_timer,
             renderer: PlayfieldRenderer::new(),
             tetromino_generator,
+            game_state: GameState::Playing,
         }
     }
 
@@ -34,12 +37,16 @@ impl Game {
         &self.playfield
     }
 
+    pub fn get_game_state(&self) -> &GameState {
+        &self.game_state
+    }
+
     pub fn spawn_tetromino(&mut self) -> bool {
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
         let tetromino = self.tetromino_generator.generate(position);
 
         if !self.playfield.can_place_tetromino(&tetromino) {
-            // TODO: this means end of game.
+            self.game_state = GameState::GameOver;
             return false;
         }
 
@@ -54,6 +61,10 @@ impl Game {
     /// Handle game input, returns true if the tetromino was moved successfully, false otherwise.
     pub fn handle_input(&mut self, input: GameInput) -> bool {
         match input {
+            GameInput::StartGame => {
+                self.start_game();
+                true
+            }
             GameInput::MoveLeft => self.try_move_piece(|tetromino| tetromino.move_left()),
             GameInput::MoveRight => self.try_move_piece(|tetromino| tetromino.move_right()),
             GameInput::MoveDown => {
@@ -106,12 +117,32 @@ impl Game {
         display.clear()?;
         self.renderer
             .draw(&self.playfield, self.get_current_tetromino(), display)?;
+
+        if self.game_state == GameState::GameOver {
+            self.draw_game_over(display)?;
+        }
+
         display.present()?;
+
+        Ok(())
+    }
+
+    pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+        let width = 100;
+        let height = 50;
+        let x = PLAYFIELD_OFFSET_X + (PLAYFIELD_WIDTH * BLOCK_SIZE - width) / 2;
+        let y = PLAYFIELD_OFFSET_Y + (PLAYFIELD_HEIGHT * BLOCK_SIZE - height) / 2;
+
+        display.draw_rectangle(x, y, width, height, Color::RED)?;
+
         Ok(())
     }
 
     pub fn update(&mut self, delta_time: Duration) {
-        if self.current_tetromino.is_some() && self.gravity_timer.update(delta_time) {
+        if self.game_state == GameState::Playing
+            && self.current_tetromino.is_some()
+            && self.gravity_timer.update(delta_time)
+        {
             self.apply_gravity();
         }
     }
@@ -131,6 +162,17 @@ impl Game {
             .lock_tetromino(self.current_tetromino.as_ref().unwrap());
         self.spawn_tetromino();
         self.gravity_timer.reset();
+    }
+
+    fn start_game(&mut self) {
+        self.playfield.clear();
+        self.spawn_tetromino();
+        self.game_state = GameState::Playing;
+    }
+
+    #[cfg(test)]
+    pub(crate) fn set_game_state_game_over(&mut self) {
+        self.game_state = GameState::GameOver;
     }
 }
 
@@ -155,6 +197,19 @@ mod tests {
 
         // Assert
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn new_game_has_game_state_playing() {
+        // Arrange
+        let sut = create_standard_test_game();
+
+        // Act
+        let result: &GameState = sut.get_game_state();
+
+        // Assert
+        let expected_game_state = GameState::Playing;
+        assert_eq!(result, &expected_game_state);
     }
 
     #[test]
@@ -401,6 +456,46 @@ mod tests {
         assert!(!display.drawn_blocks.is_empty()); // Tetromino drawn by renderer
     }
 
+    #[test]
+    fn start_game_clears_playfield_spawns_tetromino_and_sets_playing_state() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        lock_tetromino(
+            &mut sut,
+            TetrominoType::O,
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y),
+        );
+        sut.set_game_state_game_over();
+
+        // Act
+        sut.handle_input(GameInput::StartGame);
+
+        // Assert
+        assert!(!sut
+            .playfield
+            .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
+        assert_eq!(sut.game_state, GameState::Playing);
+        assert!(sut.current_tetromino.is_some());
+    }
+
+    #[test]
+    fn draw_when_game_over_draws_game_over_rectangle() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.set_game_state_game_over();
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(display
+            .drawn_rectangles
+            .iter()
+            .any(|(_, _, _, _, color)| *color == Color::RED));
+    }
+
     fn create_standard_test_game() -> Game {
         create_test_game(TetrominoType::O)
     }
@@ -418,6 +513,11 @@ mod tests {
 
     fn get_tetromino_start_position() -> Position {
         Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
+    }
+
+    fn lock_tetromino(game: &mut Game, tetromino_type: TetrominoType, position: Position) {
+        game.playfield
+            .lock_tetromino(&create_tetromino_instance_at(tetromino_type, position));
     }
 
     fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
