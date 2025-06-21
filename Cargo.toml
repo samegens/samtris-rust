@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 rstest = "0.25.0"
 sdl2 = { version = "0.37", features = ["image"] }
+rand = "0.9"
+strum = { version = "0.27", features = ["derive"] }

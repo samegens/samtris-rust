@@ -5,11 +5,11 @@ use crate::graphics::SdlDisplay;
 use crate::gui::Event;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
-use crate::tetromino_type::TetrominoType;
 use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
 use std::time::Duration;
+use tetromino::RandomTetrominoGenerator;
 
 mod common;
 mod constants;
@@ -19,10 +19,7 @@ mod graphics;
 mod gravity_timer;
 mod gui;
 mod playfield;
-mod tetromino_definition;
-mod tetromino_definitions;
-mod tetromino_instance;
-mod tetromino_type;
+mod tetromino;
 
 fn poll_events(event_pump: &mut EventPump) -> Vec<Event> {
     let mut events = Vec::new();
@@ -88,8 +85,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
 
     let playfield = Playfield::new(playfield_dimensions);
-    let mut game = Game::new(playfield);
-    game.spawn_tetromino(TetrominoType::T);
+    let mut game = Game::new(playfield, Box::new(RandomTetrominoGenerator::new()));
+    game.spawn_tetromino();
 
     let mut game_timer = GameTimer::new();
 

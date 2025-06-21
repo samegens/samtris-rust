@@ -1,6 +1,6 @@
 use crate::common::Position;
 use crate::graphics::Color;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::TetrominoType;
 
 /// Abstract display interface
 pub trait Display {

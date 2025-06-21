@@ -1,8 +1,8 @@
 use crate::common::Position;
 use crate::common::RotationIndex;
-use crate::tetromino_definition::TetrominoDefinition;
-use crate::tetromino_definitions::TetrominoDefinitions;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::tetromino_definition::TetrominoDefinition;
+use crate::tetromino::tetromino_definitions::TetrominoDefinitions;
+use crate::tetromino::tetromino_type::TetrominoType;
 
 #[derive(Clone)]
 pub struct TetrominoInstance {
@@ -74,7 +74,7 @@ impl TetrominoInstance {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tetromino_definitions::TetrominoDefinitions;
+    use crate::tetromino::tetromino_definitions::TetrominoDefinitions;
 
     #[test]
     fn tetromino_instance_starts_with_given_position_and_rotation_zero() {

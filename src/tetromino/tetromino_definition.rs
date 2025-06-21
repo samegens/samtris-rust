@@ -1,6 +1,6 @@
 use crate::common::Position;
 use crate::common::RotationIndex;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::tetromino_type::TetrominoType;
 
 #[derive(Clone)]
 pub struct TetrominoDefinition {

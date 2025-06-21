@@ -2,7 +2,7 @@
 use crate::common::Position;
 use crate::graphics::Color;
 use crate::graphics::Display;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::TetrominoType;
 use sdl2::pixels::Color as SdlColor;
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};

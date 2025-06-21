@@ -1,7 +1,7 @@
 use crate::common::Position;
 use crate::graphics::Color;
 use crate::graphics::Display;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::TetrominoType;
 
 #[derive(Debug, Default)]
 pub struct MockDisplay {

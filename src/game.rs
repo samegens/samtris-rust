@@ -4,29 +4,28 @@ use crate::graphics::{Display, PlayfieldRenderer};
 use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
-use crate::tetromino_definitions::TetrominoDefinitions;
-use crate::tetromino_instance::TetrominoInstance;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::TetrominoGenerator;
+use crate::tetromino::TetrominoInstance;
 use std::time::Duration;
 
 pub struct Game {
     playfield: Playfield,
-    tetromino_definitions: TetrominoDefinitions,
     current_tetromino: Option<TetrominoInstance>,
     gravity_timer: GravityTimer,
     renderer: PlayfieldRenderer,
+    tetromino_generator: Box<dyn TetrominoGenerator>,
 }
 
 impl Game {
-    pub fn new(playfield: Playfield) -> Self {
+    pub fn new(playfield: Playfield, tetromino_generator: Box<dyn TetrominoGenerator>) -> Self {
         let level: usize = 0;
         let gravity_timer = GravityTimer::new(level);
         Self {
             playfield,
-            tetromino_definitions: TetrominoDefinitions::new(),
             current_tetromino: None,
             gravity_timer,
             renderer: PlayfieldRenderer::new(),
+            tetromino_generator,
         }
     }
 
@@ -35,10 +34,9 @@ impl Game {
         &self.playfield
     }
 
-    pub fn spawn_tetromino(&mut self, _tetromino_type: TetrominoType) -> bool {
+    pub fn spawn_tetromino(&mut self) -> bool {
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
-        let tetromino =
-            TetrominoInstance::new(_tetromino_type, position, &self.tetromino_definitions);
+        let tetromino = self.tetromino_generator.generate(position);
 
         if !self.playfield.can_place_tetromino(&tetromino) {
             // TODO: this means end of game.
@@ -131,7 +129,7 @@ impl Game {
     fn lock_tetromino(&mut self) {
         self.playfield
             .lock_tetromino(self.current_tetromino.as_ref().unwrap());
-        self.spawn_tetromino(TetrominoType::O);
+        self.spawn_tetromino();
         self.gravity_timer.reset();
     }
 }
@@ -142,40 +140,15 @@ mod tests {
     use crate::common::Dimensions;
     use crate::graphics::MockDisplay;
     use crate::gui::game_input::GameInput;
-    use crate::tetromino_type::TetrominoType;
+    use crate::tetromino::TetrominoType;
+    use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
     use rstest::rstest;
     use std::time::Duration;
-
-    fn create_test_game() -> Game {
-        let playfield = create_test_playfield();
-        Game::new(playfield)
-    }
-
-    fn create_test_playfield() -> Playfield {
-        let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-        Playfield::new(dimensions)
-    }
-
-    fn get_tetromino_start_position() -> Position {
-        Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
-    }
-
-    fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
-        create_tetromino_instance_at(tetromino_type, get_tetromino_start_position())
-    }
-
-    fn create_tetromino_instance_at(
-        tetromino_type: TetrominoType,
-        position: Position,
-    ) -> TetrominoInstance {
-        let tetromino_definitions = TetrominoDefinitions::new();
-        TetrominoInstance::new(tetromino_type, position, &tetromino_definitions)
-    }
 
     #[test]
     fn new_game_has_no_current_tetromino() {
         // Arrange
-        let sut = create_test_game();
+        let sut = create_standard_test_game();
 
         // Act
         let result: Option<&TetrominoInstance> = sut.get_current_tetromino();
@@ -187,10 +160,10 @@ mod tests {
     #[test]
     fn can_spawn_piece_in_new_game() {
         // Arrange
-        let mut sut = create_test_game();
+        let mut sut = create_standard_test_game();
 
         // Act
-        let result: bool = sut.spawn_tetromino(TetrominoType::O);
+        let result: bool = sut.spawn_tetromino();
 
         // Assert
         assert!(result);
@@ -203,10 +176,13 @@ mod tests {
         let mut playfield = create_test_playfield();
         let tetromino_instance = create_tetromino_instance(TetrominoType::O);
         playfield.lock_tetromino(&tetromino_instance);
-        let mut sut = Game::new(playfield);
+        let mut sut = Game::new(
+            playfield,
+            Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+        );
 
         // Act
-        let result: bool = sut.spawn_tetromino(TetrominoType::O);
+        let result: bool = sut.spawn_tetromino();
 
         // Assert
         assert!(!result);
@@ -225,8 +201,8 @@ mod tests {
         #[case] expected_rotation_index: usize,
     ) {
         // Arrange
-        let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::T);
+        let mut sut = create_test_game(TetrominoType::T);
+        sut.spawn_tetromino();
 
         let initial_position = get_tetromino_start_position();
 
@@ -267,8 +243,11 @@ mod tests {
         let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
         let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
         playfield.lock_tetromino(&tetromino);
-        let mut sut = Game::new(playfield);
-        sut.spawn_tetromino(TetrominoType::I);
+        let mut sut = Game::new(
+            playfield,
+            Box::new(FixedTetrominoGenerator::new(TetrominoType::I)),
+        );
+        sut.spawn_tetromino();
 
         // Act
         let result = sut.handle_input(game_input);
@@ -280,8 +259,8 @@ mod tests {
     #[test]
     fn tetromino_falls_automatically_when_gravity_timer_expires() {
         // Arrange
-        let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::I);
+        let mut sut = create_test_game(TetrominoType::I);
+        sut.spawn_tetromino();
         let initial_position = sut.get_current_tetromino().unwrap().get_position();
 
         // Act
@@ -295,8 +274,8 @@ mod tests {
     #[test]
     fn tetromino_does_not_fall_automatically_before_gravity_timer_expires() {
         // Arrange
-        let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::I);
+        let mut sut = create_test_game(TetrominoType::I);
+        sut.spawn_tetromino();
         let initial_position = sut.get_current_tetromino().unwrap().get_position();
 
         // Act
@@ -316,8 +295,11 @@ mod tests {
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
         playfield.lock_tetromino(&blocking_tetromino);
 
-        let mut sut = Game::new(playfield);
-        sut.spawn_tetromino(TetrominoType::O);
+        let mut sut = Game::new(
+            playfield,
+            Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+        );
+        sut.spawn_tetromino();
 
         sut.handle_input(GameInput::MoveDown);
         sut.handle_input(GameInput::MoveDown);
@@ -339,8 +321,8 @@ mod tests {
     #[test]
     fn handle_input_drop_moves_tetromino_to_bottom() {
         // Arrange
-        let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::O);
+        let mut sut = create_standard_test_game();
+        sut.spawn_tetromino();
         sut.handle_input(GameInput::MoveDown);
 
         // Act
@@ -380,8 +362,11 @@ mod tests {
         );
         playfield.lock_tetromino(&blocking_tetromino);
 
-        let mut sut = Game::new(playfield);
-        sut.spawn_tetromino(TetrominoType::O);
+        let mut sut = Game::new(
+            playfield,
+            Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+        );
+        sut.spawn_tetromino();
 
         // Act
         sut.update(Duration::from_millis(1000)); // Trigger gravity
@@ -400,8 +385,8 @@ mod tests {
     #[test]
     fn draw_coordinates_display_lifecycle() {
         // Arrange
-        let mut sut = create_test_game();
-        sut.spawn_tetromino(TetrominoType::O);
+        let mut sut = create_standard_test_game();
+        sut.spawn_tetromino();
         let mut display = MockDisplay::new();
 
         // Act
@@ -414,5 +399,36 @@ mod tests {
                                     // The renderer was called (evidenced by drawing operations between clear and present)
         assert!(!display.drawn_rectangles.is_empty()); // Border drawn by renderer
         assert!(!display.drawn_blocks.is_empty()); // Tetromino drawn by renderer
+    }
+
+    fn create_standard_test_game() -> Game {
+        create_test_game(TetrominoType::O)
+    }
+
+    fn create_test_game(tetromino_type_to_spawn: TetrominoType) -> Game {
+        let playfield = create_test_playfield();
+        let tetromino_generator = FixedTetrominoGenerator::new(tetromino_type_to_spawn);
+        Game::new(playfield, Box::new(tetromino_generator))
+    }
+
+    fn create_test_playfield() -> Playfield {
+        let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+        Playfield::new(dimensions)
+    }
+
+    fn get_tetromino_start_position() -> Position {
+        Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
+    }
+
+    fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
+        create_tetromino_instance_at(tetromino_type, get_tetromino_start_position())
+    }
+
+    fn create_tetromino_instance_at(
+        tetromino_type: TetrominoType,
+        position: Position,
+    ) -> TetrominoInstance {
+        let tetromino_definitions = TetrominoDefinitions::new();
+        TetrominoInstance::new(tetromino_type, position, &tetromino_definitions)
     }
 }

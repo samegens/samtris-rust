@@ -1,7 +1,7 @@
 use crate::common::Dimensions;
 use crate::common::Position;
-use crate::tetromino_instance::TetrominoInstance;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::TetrominoInstance;
+use crate::tetromino::TetrominoType;
 
 pub struct Playfield {
     dimensions: Dimensions,
@@ -87,7 +87,7 @@ impl Playfield {
 mod tests {
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
-    use crate::tetromino_definitions::TetrominoDefinitions;
+    use crate::tetromino::TetrominoDefinitions;
     use rstest::rstest;
 
     #[test]

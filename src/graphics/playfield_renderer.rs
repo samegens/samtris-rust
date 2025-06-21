@@ -2,7 +2,7 @@ use crate::common::Position;
 use crate::constants::*;
 use crate::graphics::{Color, Display};
 use crate::playfield::Playfield;
-use crate::tetromino_instance::TetrominoInstance;
+use crate::tetromino::TetrominoInstance;
 
 pub struct PlayfieldRenderer;
 
@@ -113,9 +113,9 @@ mod tests {
     use crate::common::Dimensions;
     use crate::graphics::MockDisplay;
     use crate::playfield::Playfield;
-    use crate::tetromino_definitions::TetrominoDefinitions;
-    use crate::tetromino_instance::TetrominoInstance;
-    use crate::tetromino_type::TetrominoType;
+    use crate::tetromino::TetrominoDefinitions;
+    use crate::tetromino::TetrominoInstance;
+    use crate::tetromino::TetrominoType;
 
     fn create_test_playfield() -> Playfield {
         let dimensions = Dimensions::new(10, 20);

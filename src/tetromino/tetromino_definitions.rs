@@ -1,5 +1,5 @@
-use crate::tetromino_definition::TetrominoDefinition;
-use crate::tetromino_type::TetrominoType;
+use crate::tetromino::tetromino_definition::TetrominoDefinition;
+use crate::tetromino::tetromino_type::TetrominoType;
 use std::collections::HashMap;
 
 pub struct TetrominoDefinitions {
