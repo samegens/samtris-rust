@@ -13,6 +13,7 @@ use sdl2::EventPump;
 use std::time::Duration;
 use tetromino::RandomTetrominoGenerator;
 
+mod animation;
 mod common;
 mod constants;
 mod game;

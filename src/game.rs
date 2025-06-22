@@ -1,3 +1,4 @@
+use crate::animation::should_show_blinking_lines;
 use crate::common::Position;
 use crate::constants::*;
 use crate::game_state::GameState;
@@ -248,10 +249,6 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     pub(crate) fn set_game_state_game_over(&mut self) {
         self.game_state = GameState::GameOver;
     }
-}
-
-fn should_show_blinking_lines(countdown: Duration) -> bool {
-    countdown.as_millis() % 400 > 200
 }
 
 #[cfg(test)]
@@ -667,25 +664,6 @@ mod tests {
         // Assert
         assert_eq!(sut.game_state, GameState::Playing);
         assert!(sut.current_tetromino.is_some()); // New piece spawned
-    }
-
-    #[rstest]
-    #[case(Duration::from_millis(1000), false)]
-    #[case(Duration::from_millis(800), false)]
-    #[case(Duration::from_millis(0), false)]
-    #[case(Duration::from_millis(999), false)]
-    #[case(Duration::from_millis(801), false)]
-    #[case(Duration::from_millis(601), true)]
-    #[case(Duration::from_millis(199), false)]
-    fn should_show_blinking_lines_returns_correct_state(
-        #[case] countdown: Duration,
-        #[case] expected: bool,
-    ) {
-        // Act
-        let actual = should_show_blinking_lines(countdown);
-
-        // Assert
-        assert_eq!(actual, expected);
     }
 
     #[test]
