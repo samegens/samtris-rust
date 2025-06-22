@@ -127,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let playfield = Playfield::new(playfield_dimensions);
     let mut game = Game::new(
         playfield,
-        Box::new(RandomTetrominoGenerator::new()),
+        RandomTetrominoGenerator::new(),
         GraphicsPlayfieldRenderer::new(),
     );
     game.spawn_tetromino();
