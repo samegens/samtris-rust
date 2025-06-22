@@ -2,13 +2,20 @@ use crate::animation::should_show_blinking_lines;
 use crate::common::Position;
 use crate::constants::*;
 use crate::game_state::GameState;
+#[cfg(test)]
+use crate::graphics::MockPlayfieldRenderer;
 use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
+#[cfg(test)]
+use crate::tetromino::FixedTetrominoGenerator;
 use crate::tetromino::TetrominoGenerator;
 use crate::tetromino::TetrominoInstance;
 use std::time::Duration;
+
+#[cfg(test)]
+type TestGame = Game<MockPlayfieldRenderer, FixedTetrominoGenerator>;
 
 pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
     playfield: Playfield,
@@ -734,13 +741,11 @@ mod tests {
         assert_eq!(current_position, initial_position); // Tetromino didn't move
     }
 
-    fn create_standard_test_game() -> Game<MockPlayfieldRenderer, FixedTetrominoGenerator> {
+    fn create_standard_test_game() -> TestGame {
         create_test_game(TetrominoType::O)
     }
 
-    fn create_test_game(
-        tetromino_type_to_spawn: TetrominoType,
-    ) -> Game<MockPlayfieldRenderer, FixedTetrominoGenerator> {
+    fn create_test_game(tetromino_type_to_spawn: TetrominoType) -> TestGame {
         let playfield = create_test_playfield();
         let tetromino_generator = FixedTetrominoGenerator::new(tetromino_type_to_spawn);
         Game::new(playfield, tetromino_generator, MockPlayfieldRenderer::new())
@@ -755,11 +760,7 @@ mod tests {
         Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
     }
 
-    fn lock_tetromino(
-        game: &mut Game<MockPlayfieldRenderer, FixedTetrominoGenerator>,
-        tetromino_type: TetrominoType,
-        position: Position,
-    ) {
+    fn lock_tetromino(game: &mut TestGame, tetromino_type: TetrominoType, position: Position) {
         game.playfield
             .lock_tetromino(&create_tetromino_instance_at(tetromino_type, position));
     }
