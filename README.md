@@ -5,18 +5,18 @@
 
 A Tetris clone implemented in Rust using SDL2 using TDD and test coverage.
 
-# Prerequisites
+## Prerequisites
 
 - Rust 1.70.0 or later (check with ```rustc --version```)
 
-## Ubuntu/Debian
+### Ubuntu/Debian
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y libsdl2-dev libsdl2-image-dev
 ```
 
-## For development & testing
+### For development & testing
 
 ```bash
 cargo install cargo-tarpaulin
