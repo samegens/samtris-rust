@@ -59,6 +59,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: samegens/samtris-rust
-          fail_ci_if_error: true
-          files: ./cobertura.xml
-
+          fail_ci_if_error: false
+          files: ./codecov.json

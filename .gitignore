@@ -4,6 +4,7 @@
 # RustRover settings
 /.idea
 
-# Tarpauling reports
+# Code coverage reports
 *.html
 *.xml
+codecov.json
