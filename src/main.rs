@@ -23,6 +23,8 @@ mod graphics;
 mod gravity_timer;
 mod gui;
 mod playfield;
+#[cfg(test)]
+mod test_helpers;
 mod tetromino;
 
 fn poll_events(event_pump: &mut EventPump, game_state: &GameState) -> Vec<Event> {
