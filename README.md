@@ -24,8 +24,6 @@ cargo install cargo-tarpaulin
 
 ## TODO
 
-- Add gravity
-- Detect lock and start new tetromino
 - Detect full lines, animate and update score
 - Add next block
 - Add score/number of lines/level
