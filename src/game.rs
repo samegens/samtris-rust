@@ -9,24 +9,28 @@ use crate::tetromino::TetrominoGenerator;
 use crate::tetromino::TetrominoInstance;
 use std::time::Duration;
 
-pub struct Game {
+pub struct Game<R: PlayfieldRenderer> {
     playfield: Playfield,
     current_tetromino: Option<TetrominoInstance>,
     gravity_timer: GravityTimer,
-    renderer: PlayfieldRenderer,
+    playfield_renderer: R,
     tetromino_generator: Box<dyn TetrominoGenerator>,
     game_state: GameState,
 }
 
-impl Game {
-    pub fn new(playfield: Playfield, tetromino_generator: Box<dyn TetrominoGenerator>) -> Self {
+impl<R: PlayfieldRenderer> Game<R> {
+    pub fn new(
+        playfield: Playfield,
+        tetromino_generator: Box<dyn TetrominoGenerator>,
+        playfield_renderer: R,
+    ) -> Self {
         let level: usize = 0;
         let gravity_timer = GravityTimer::new(level);
         Self {
             playfield,
             current_tetromino: None,
             gravity_timer,
-            renderer: PlayfieldRenderer::new(),
+            playfield_renderer,
             tetromino_generator,
             game_state: GameState::Playing,
         }
@@ -63,7 +67,10 @@ impl Game {
         match self.game_state {
             GameState::Playing => self.handle_playing_input(input),
             GameState::GameOver => self.handle_game_over_input(input),
-            GameState::AnimatingLines { countdown: _ } => false,
+            GameState::AnimatingLines {
+                countdown: _,
+                full_lines: _,
+            } => false,
         }
     }
 
@@ -129,11 +136,20 @@ impl Game {
         false
     }
 
-    pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+    pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
         display.clear()?;
-        let filled_lines = self.playfield.get_full_lines();
-        self.renderer
-            .draw(&self.playfield, self.get_current_tetromino(), &filled_lines, true, display)?;
+
+        let filled_lines = self.get_full_lines();
+        let show_blinking_lines = self.is_showing_blinking_lines();
+
+        let current_tetromino = self.get_current_tetromino();
+        self.playfield_renderer.draw(
+            &self.playfield,
+            current_tetromino,
+            &filled_lines,
+            show_blinking_lines,
+            display,
+        )?;
 
         if self.game_state == GameState::GameOver {
             self.draw_game_over(display)?;
@@ -144,7 +160,31 @@ impl Game {
         Ok(())
     }
 
-    pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
+    fn get_full_lines(&self) -> Vec<u32> {
+        match &self.game_state {
+            GameState::AnimatingLines { full_lines, .. } => full_lines.clone(),
+            _ => vec![],
+        }
+    }
+
+    fn is_showing_blinking_lines(&mut self) -> bool {
+        if let GameState::AnimatingLines {
+            countdown,
+            full_lines: _,
+        } = &self.game_state
+        {
+            Self::should_show_blinking_lines(*countdown)
+        } else {
+            false
+        }
+    }
+
+    fn should_show_blinking_lines(countdown: Duration) -> bool {
+        // Full lines will blink alternating every 200 ms.
+        countdown.as_millis() % 400 > 200
+    }
+
+    pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
         let width = 100;
         let height = 50;
         let x = PLAYFIELD_OFFSET_X + (PLAYFIELD_WIDTH * BLOCK_SIZE - width) / 2;
@@ -162,13 +202,17 @@ impl Game {
                     self.apply_gravity();
                 }
             }
-            GameState::AnimatingLines { countdown } => {
+            GameState::AnimatingLines {
+                countdown,
+                full_lines: ref filled_lines,
+            } => {
                 if delta_time >= countdown {
                     self.game_state = GameState::Playing;
                     self.spawn_tetromino();
                 } else {
                     self.game_state = GameState::AnimatingLines {
                         countdown: countdown - delta_time,
+                        full_lines: filled_lines.clone(),
                     };
                 }
             }
@@ -195,6 +239,7 @@ impl Game {
         if !full_lines.is_empty() {
             self.game_state = GameState::AnimatingLines {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
+                full_lines,
             };
             self.current_tetromino = None;
         } else {
@@ -218,7 +263,7 @@ impl Game {
 mod tests {
     use super::*;
     use crate::common::Dimensions;
-    use crate::graphics::MockDisplay;
+    use crate::graphics::{MockDisplay, MockPlayfieldRenderer};
     use crate::gui::game_input::GameInput;
     use crate::tetromino::TetrominoType;
     use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
@@ -269,9 +314,10 @@ mod tests {
         let mut playfield = create_test_playfield();
         let tetromino_instance = create_tetromino_instance(TetrominoType::O);
         playfield.lock_tetromino(&tetromino_instance);
-        let mut sut = Game::new(
+        let mut sut: Game<MockPlayfieldRenderer> = Game::new(
             playfield,
             Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+            MockPlayfieldRenderer::new(),
         );
 
         // Act
@@ -336,9 +382,10 @@ mod tests {
         let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
         let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
         playfield.lock_tetromino(&tetromino);
-        let mut sut = Game::new(
+        let mut sut: Game<MockPlayfieldRenderer> = Game::new(
             playfield,
             Box::new(FixedTetrominoGenerator::new(TetrominoType::I)),
+            MockPlayfieldRenderer::new(),
         );
         sut.spawn_tetromino();
 
@@ -388,9 +435,10 @@ mod tests {
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
         playfield.lock_tetromino(&blocking_tetromino);
 
-        let mut sut = Game::new(
+        let mut sut: Game<MockPlayfieldRenderer> = Game::new(
             playfield,
             Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+            MockPlayfieldRenderer::new(),
         );
         sut.spawn_tetromino();
 
@@ -455,9 +503,10 @@ mod tests {
         );
         playfield.lock_tetromino(&blocking_tetromino);
 
-        let mut sut = Game::new(
+        let mut sut: Game<MockPlayfieldRenderer> = Game::new(
             playfield,
             Box::new(FixedTetrominoGenerator::new(TetrominoType::O)),
+            MockPlayfieldRenderer::new(),
         );
         sut.spawn_tetromino();
 
@@ -487,11 +536,10 @@ mod tests {
 
         // Assert
         assert!(result.is_ok());
-        assert!(display.cleared); // Game called clear
-        assert!(display.presented); // Game called present
-                                    // The renderer was called (evidenced by drawing operations between clear and present)
-        assert!(!display.drawn_rectangles.is_empty()); // Border drawn by renderer
-        assert!(!display.drawn_blocks.is_empty()); // Tetromino drawn by renderer
+        assert!(display.cleared);
+        assert!(display.presented);
+        let draw_calls = sut.playfield_renderer.get_draw_calls();
+        assert_eq!(draw_calls.len(), 1);
     }
 
     #[test]
@@ -558,11 +606,11 @@ mod tests {
 
         let definitions = TetrominoDefinitions::new();
 
-        // Fill bottom line except for one space where I-piece will land
+        // Fill the four bottom lines except for one space where I-piece will land
         for x in 0..PLAYFIELD_WIDTH {
             if x != 4 {
                 let tetromino = TetrominoInstance::new(
-                    TetrominoType::O,
+                    TetrominoType::I,
                     Position::new(x as i32 - 1, PLAYFIELD_HEIGHT as i32 - 4),
                     &definitions,
                 );
@@ -578,6 +626,12 @@ mod tests {
             *sut.get_game_state(),
             GameState::AnimatingLines {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
+                full_lines: vec![
+                    PLAYFIELD_HEIGHT - 4,
+                    PLAYFIELD_HEIGHT - 3,
+                    PLAYFIELD_HEIGHT - 2,
+                    PLAYFIELD_HEIGHT - 1
+                ]
             }
         );
         assert!(sut.get_current_tetromino().is_none());
@@ -591,6 +645,7 @@ mod tests {
         let expected_position = sut.current_tetromino.as_ref().unwrap().get_position();
         sut.game_state = GameState::AnimatingLines {
             countdown: Duration::ZERO,
+            full_lines: vec![],
         };
 
         // Act
@@ -608,6 +663,7 @@ mod tests {
         let mut sut = create_test_game(TetrominoType::O);
         sut.game_state = GameState::AnimatingLines {
             countdown: Duration::ZERO,
+            full_lines: vec![],
         };
 
         // Act
@@ -618,14 +674,66 @@ mod tests {
         assert!(sut.current_tetromino.is_some()); // New piece spawned
     }
 
-    fn create_standard_test_game() -> Game {
+    #[rstest]
+    #[case(Duration::from_millis(1000), false)]
+    #[case(Duration::from_millis(800), false)]
+    #[case(Duration::from_millis(0), false)]
+    #[case(Duration::from_millis(999), false)]
+    #[case(Duration::from_millis(801), false)]
+    #[case(Duration::from_millis(601), true)]
+    #[case(Duration::from_millis(199), false)]
+    fn should_show_blinking_lines_returns_correct_state(
+        #[case] countdown: Duration,
+        #[case] expected: bool,
+    ) {
+        // Act
+        let actual = Game::<MockPlayfieldRenderer>::should_show_blinking_lines(countdown);
+
+        // Assert
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn draw_when_animating_lines_passes_correct_blink_state_to_renderer() {
+        // Arrange
+        let playfield = create_test_playfield();
+        let tetromino_generator = Box::new(FixedTetrominoGenerator::new(TetrominoType::O));
+        let mock_renderer = MockPlayfieldRenderer::new();
+        let mut sut = Game::new(playfield, tetromino_generator, mock_renderer);
+
+        sut.game_state = GameState::AnimatingLines {
+            countdown: Duration::from_millis(300),
+            full_lines: vec![18, 19],
+        };
+
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+
+        let draw_calls = sut.playfield_renderer.get_draw_calls();
+        assert_eq!(draw_calls.len(), 1);
+
+        let last_call = &draw_calls[0];
+        assert!(last_call.show_blinking_lines); // Should be true for 300ms
+        assert_eq!(last_call.blinking_lines, vec![18, 19]); // Should pass the filled lines
+    }
+
+    fn create_standard_test_game() -> Game<MockPlayfieldRenderer> {
         create_test_game(TetrominoType::O)
     }
 
-    fn create_test_game(tetromino_type_to_spawn: TetrominoType) -> Game {
+    fn create_test_game(tetromino_type_to_spawn: TetrominoType) -> Game<MockPlayfieldRenderer> {
         let playfield = create_test_playfield();
         let tetromino_generator = FixedTetrominoGenerator::new(tetromino_type_to_spawn);
-        Game::new(playfield, Box::new(tetromino_generator))
+        Game::new(
+            playfield,
+            Box::new(tetromino_generator),
+            MockPlayfieldRenderer::new(),
+        )
     }
 
     fn create_test_playfield() -> Playfield {
@@ -637,7 +745,11 @@ mod tests {
         Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
     }
 
-    fn lock_tetromino(game: &mut Game, tetromino_type: TetrominoType, position: Position) {
+    fn lock_tetromino(
+        game: &mut Game<MockPlayfieldRenderer>,
+        tetromino_type: TetrominoType,
+        position: Position,
+    ) {
         game.playfield
             .lock_tetromino(&create_tetromino_instance_at(tetromino_type, position));
     }

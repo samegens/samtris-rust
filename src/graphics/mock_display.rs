@@ -25,9 +25,7 @@ impl MockDisplay {
 }
 
 impl Display for MockDisplay {
-    type Error = ();
-
-    fn clear(&mut self) -> Result<(), Self::Error> {
+    fn clear(&mut self) -> Result<(), String> {
         self.cleared = true;
         self.drawn_blocks.clear();
         self.drawn_rectangles.clear();
@@ -38,7 +36,7 @@ impl Display for MockDisplay {
         &mut self,
         position: Position,
         tetromino_type: TetrominoType,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<(), String> {
         self.drawn_blocks.push((position, tetromino_type));
         Ok(())
     }
@@ -50,12 +48,12 @@ impl Display for MockDisplay {
         width: u32,
         height: u32,
         color: Color,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<(), String> {
         self.drawn_rectangles.push((x, y, width, height, color));
         Ok(())
     }
 
-    fn present(&mut self) -> Result<(), Self::Error> {
+    fn present(&mut self) -> Result<(), String> {
         self.presented = true;
         Ok(())
     }

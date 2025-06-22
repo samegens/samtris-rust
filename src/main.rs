@@ -2,6 +2,7 @@ use crate::constants::*;
 use crate::game::Game;
 use crate::game_state::GameState;
 use crate::game_timer::GameTimer;
+use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
 use crate::gui::GameInput;
@@ -34,7 +35,10 @@ fn poll_events(event_pump: &mut EventPump, game_state: &GameState) -> Vec<Event>
             GameState::GameOver => {
                 handle_game_over_events(&mut events, sdl_event);
             }
-            GameState::AnimatingLines { countdown: _ } => {
+            GameState::AnimatingLines {
+                countdown: _,
+                full_lines: _,
+            } => {
                 // In this state, we might not handle any events, or we could
                 // choose to ignore them until the animation is complete.
                 // For simplicity, we will not handle any events here.
@@ -121,7 +125,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
 
     let playfield = Playfield::new(playfield_dimensions);
-    let mut game = Game::new(playfield, Box::new(RandomTetrominoGenerator::new()));
+    let mut game = Game::new(
+        playfield,
+        Box::new(RandomTetrominoGenerator::new()),
+        GraphicsPlayfieldRenderer::new(),
+    );
     game.spawn_tetromino();
 
     let mut game_timer = GameTimer::new();

@@ -4,15 +4,13 @@ use crate::tetromino::TetrominoType;
 
 /// Abstract display interface
 pub trait Display {
-    type Error;
-
-    fn clear(&mut self) -> Result<(), Self::Error>;
+    fn clear(&mut self) -> Result<(), String>;
 
     fn draw_block(
         &mut self,
         position: Position,
         tetromino_type: TetrominoType,
-    ) -> Result<(), Self::Error>;
+    ) -> Result<(), String>;
 
     fn draw_rectangle(
         &mut self,
@@ -21,7 +19,7 @@ pub trait Display {
         width: u32,
         height: u32,
         color: Color,
-    ) -> Result<(), Self::Error>;
+    ) -> Result<(), String>;
 
-    fn present(&mut self) -> Result<(), Self::Error>;
+    fn present(&mut self) -> Result<(), String>;
 }

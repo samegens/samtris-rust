@@ -44,9 +44,7 @@ impl<'a> SdlDisplay<'a> {
 }
 
 impl<'a> Display for SdlDisplay<'a> {
-    type Error = String;
-
-    fn clear(&mut self) -> Result<(), Self::Error> {
+    fn clear(&mut self) -> Result<(), String> {
         self.canvas.set_draw_color(SdlColor::RGB(0, 0, 0));
         self.canvas.clear();
         Ok(())
@@ -56,7 +54,7 @@ impl<'a> Display for SdlDisplay<'a> {
         &mut self,
         position: Position,
         tetromino_type: TetrominoType,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<(), String> {
         let src_rect = self.get_blocks_texture_rect(tetromino_type);
 
         let dst_rect = Rect::new(
@@ -80,7 +78,7 @@ impl<'a> Display for SdlDisplay<'a> {
         width: u32,
         height: u32,
         color: Color,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<(), String> {
         let sdl_color = self.convert_color(color);
         self.canvas.set_draw_color(sdl_color);
 
@@ -90,7 +88,7 @@ impl<'a> Display for SdlDisplay<'a> {
         Ok(())
     }
 
-    fn present(&mut self) -> Result<(), Self::Error> {
+    fn present(&mut self) -> Result<(), String> {
         self.canvas.present();
         Ok(())
     }
