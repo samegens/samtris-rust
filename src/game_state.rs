@@ -2,4 +2,7 @@
 pub enum GameState {
     Playing,
     GameOver,
+    AnimatingLines {
+        countdown: std::time::Duration,
+    },
 }

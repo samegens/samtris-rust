@@ -34,6 +34,11 @@ fn poll_events(event_pump: &mut EventPump, game_state: &GameState) -> Vec<Event>
             GameState::GameOver => {
                 handle_game_over_events(&mut events, sdl_event);
             }
+            GameState::AnimatingLines { countdown: _ } => {
+                // In this state, we might not handle any events, or we could
+                // choose to ignore them until the animation is complete.
+                // For simplicity, we will not handle any events here.
+            }
         }
     }
 
