@@ -8,8 +8,6 @@ pub struct Playfield {
     grid: Vec<Vec<Option<TetrominoType>>>,
 }
 
-//TODO: remove allow dead_code when Playfield is used by application code
-#[allow(dead_code)]
 impl Playfield {
     pub fn new(dimensions: Dimensions) -> Self {
         let grid: Vec<Vec<Option<TetrominoType>>> =
