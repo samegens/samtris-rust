@@ -722,6 +722,45 @@ mod tests {
         assert_eq!(last_call.blinking_lines, vec![18, 19]); // Should pass the filled lines
     }
 
+    #[test]
+    fn update_when_animating_lines_decreases_countdown() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.game_state = GameState::AnimatingLines {
+            countdown: Duration::from_millis(1000),
+            full_lines: vec![19],
+        };
+
+        // Act
+        sut.update(Duration::from_millis(300));
+
+        // Assert
+        assert_eq!(
+            sut.game_state,
+            GameState::AnimatingLines {
+                countdown: Duration::from_millis(700), // 1000 - 300
+                full_lines: vec![19],
+            }
+        );
+    }
+
+    #[test]
+    fn update_when_game_over_does_nothing() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.spawn_tetromino();
+        let initial_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        sut.game_state = GameState::GameOver;
+
+        // Act
+        sut.update(Duration::from_millis(1000));
+
+        // Assert
+        assert_eq!(sut.game_state, GameState::GameOver);
+        let current_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        assert_eq!(current_position, initial_position); // Tetromino didn't move
+    }
+
     fn create_standard_test_game() -> Game<MockPlayfieldRenderer> {
         create_test_game(TetrominoType::O)
     }
