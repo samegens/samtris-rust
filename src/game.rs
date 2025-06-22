@@ -131,8 +131,9 @@ impl Game {
 
     pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), D::Error> {
         display.clear()?;
+        let filled_lines = self.playfield.get_full_lines();
         self.renderer
-            .draw(&self.playfield, self.get_current_tetromino(), display)?;
+            .draw(&self.playfield, self.get_current_tetromino(), &filled_lines, true, display)?;
 
         if self.game_state == GameState::GameOver {
             self.draw_game_over(display)?;
@@ -162,13 +163,12 @@ impl Game {
                 }
             }
             GameState::AnimatingLines { countdown } => {
-                let new_countdown = countdown - delta_time;
-                if new_countdown <= Duration::ZERO {
+                if delta_time >= countdown {
                     self.game_state = GameState::Playing;
                     self.spawn_tetromino();
                 } else {
                     self.game_state = GameState::AnimatingLines {
-                        countdown: new_countdown,
+                        countdown: countdown - delta_time,
                     };
                 }
             }
@@ -191,7 +191,7 @@ impl Game {
             .lock_tetromino(self.current_tetromino.as_ref().unwrap());
         self.gravity_timer.reset();
 
-        let full_lines = self.playfield.find_full_lines();
+        let full_lines = self.playfield.get_full_lines();
         if !full_lines.is_empty() {
             self.game_state = GameState::AnimatingLines {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),

@@ -15,10 +15,12 @@ impl PlayfieldRenderer {
         &self,
         playfield: &Playfield,
         current_tetromino: Option<&TetrominoInstance>,
+        blinking_lines: &[u32],
+        show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), D::Error> {
         self.draw_border(display)?;
-        self.draw_playfield_blocks(playfield, display)?;
+        self.draw_playfield_blocks(playfield, blinking_lines, show_blinking_lines, display)?;
         self.draw_current_tetromino(current_tetromino, display)?;
         Ok(())
     }
@@ -53,6 +55,8 @@ impl PlayfieldRenderer {
     fn draw_playfield_blocks<D: Display>(
         &self,
         playfield: &Playfield,
+        blinking_lines: &[u32],
+        show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), D::Error> {
         let x = PLAYFIELD_OFFSET_X as i32;
@@ -60,6 +64,9 @@ impl PlayfieldRenderer {
         let playfield_position = Position::new(x, y);
 
         for y in 0..playfield.get_dimensions().height {
+            if !show_blinking_lines && blinking_lines.contains(&(y as u32)) {
+                continue; // Skip drawing this line if blinking lines are hidden
+            }
             for x in 0..playfield.get_dimensions().width {
                 let position = Position::new(x as i32, y as i32);
                 self.draw_playfield_position(playfield, display, playfield_position, position)?;
@@ -117,17 +124,6 @@ mod tests {
     use crate::tetromino::TetrominoInstance;
     use crate::tetromino::TetrominoType;
 
-    fn create_test_playfield() -> Playfield {
-        let dimensions = Dimensions::new(10, 20);
-        Playfield::new(dimensions)
-    }
-
-    fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
-        let tetromino_definitions = TetrominoDefinitions::new();
-        let position = Position::new(4, 4);
-        TetrominoInstance::new(tetromino_type, position, &tetromino_definitions)
-    }
-
     #[test]
     fn draw_with_no_current_tetromino_only_draws_border() {
         // Arrange
@@ -136,7 +132,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &mut display);
+        let result = sut.draw(&playfield, None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -153,7 +149,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, Some(&tetromino), &mut display);
+        let result = sut.draw(&playfield, Some(&tetromino), &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -176,7 +172,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &mut display);
+        let result = sut.draw(&playfield, None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -191,7 +187,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &mut display);
+        let result = sut.draw(&playfield, None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -216,5 +212,33 @@ mod tests {
         for (_, _, _, _, color) in &display.drawn_rectangles {
             assert_eq!(*color, Color::WHITE);
         }
+    }
+
+    #[test]
+    fn draw_with_hidden_blinking_lines_does_not_draw_them() {
+        // Arrange
+        let mut playfield = create_test_playfield();
+        let tetromino = create_tetromino_instance(TetrominoType::O);
+        playfield.lock_tetromino(&tetromino);
+        let sut = PlayfieldRenderer::new();
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&playfield, None, &[5, 6], false, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert!(display.drawn_blocks.is_empty());
+    }
+
+    fn create_test_playfield() -> Playfield {
+        let dimensions = Dimensions::new(10, 20);
+        Playfield::new(dimensions)
+    }
+
+    fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
+        let tetromino_definitions = TetrominoDefinitions::new();
+        let position = Position::new(4, 4);
+        TetrominoInstance::new(tetromino_type, position, &tetromino_definitions)
     }
 }

@@ -72,7 +72,7 @@ impl Playfield {
         true
     }
 
-    pub fn find_full_lines(&self) -> Vec<u32> {
+    pub fn get_full_lines(&self) -> Vec<u32> {
         (0..self.dimensions.height)
             .filter(|&y| self.is_line_full(y))
             .collect()
@@ -277,7 +277,7 @@ mod tests {
         let playfield = Playfield::new(dimensions);
 
         // Act
-        let full_lines = playfield.find_full_lines();
+        let full_lines = playfield.get_full_lines();
 
         // Assert
         assert!(full_lines.is_empty());
@@ -296,7 +296,7 @@ mod tests {
         playfield.lock_tetromino(&tetromino);
 
         // Act
-        let full_lines = playfield.find_full_lines();
+        let full_lines = playfield.get_full_lines();
 
         // Assert
         assert_eq!(full_lines, vec![0]);
@@ -314,7 +314,7 @@ mod tests {
         playfield.lock_tetromino(&tetromino);
 
         // Act
-        let full_lines = playfield.find_full_lines();
+        let full_lines = playfield.get_full_lines();
 
         // Assert
         assert_eq!(full_lines, vec![0, 1, 2, 3]);
