@@ -215,7 +215,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
             }
             PlayfieldState::AnimatingLines {
                 countdown,
-                full_lines: ref filled_lines,
+                ref full_lines,
             } => {
                 if delta_time >= countdown {
                     self.state = PlayfieldState::Playing;
@@ -223,7 +223,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
                 } else {
                     self.state = PlayfieldState::AnimatingLines {
                         countdown: countdown - delta_time,
-                        full_lines: filled_lines.clone(),
+                        full_lines: full_lines.clone(),
                     };
                 }
             }
