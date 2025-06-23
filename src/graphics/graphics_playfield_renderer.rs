@@ -123,8 +123,8 @@ impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
 mod tests {
     use super::*;
     use crate::common::Dimensions;
+    use crate::game_logic::Playfield;
     use crate::graphics::MockDisplay;
-    use crate::playfield::Playfield;
     use crate::tetromino::FixedTetrominoGenerator;
     use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::TetrominoInstance;

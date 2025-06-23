@@ -1,12 +1,12 @@
 use crate::constants::*;
 use crate::game::Game;
+use crate::game_logic::Playfield;
 use crate::game_state::GameState;
 use crate::game_timer::GameTimer;
 use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
 use crate::gui::GameInput;
-use crate::playfield::Playfield;
 use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
@@ -17,12 +17,12 @@ mod animation;
 mod common;
 mod constants;
 mod game;
+mod game_logic;
 mod game_state;
 mod game_timer;
 mod graphics;
 mod gravity_timer;
 mod gui;
-mod playfield;
 #[cfg(test)]
 mod test_helpers;
 mod tetromino;

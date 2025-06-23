@@ -1,8 +1,8 @@
 use crate::common::{Dimensions, Position};
 use crate::constants::*;
 use crate::game::Game;
+use crate::game_logic::Playfield;
 use crate::graphics::MockPlayfieldRenderer;
-use crate::playfield::Playfield;
 use crate::tetromino::{
     FixedTetrominoGenerator, TetrominoDefinitions, TetrominoInstance, TetrominoType,
 };

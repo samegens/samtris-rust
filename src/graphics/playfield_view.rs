@@ -1,5 +1,5 @@
 use crate::common::{Dimensions, Position};
-use crate::playfield::PlayfieldGrid;
+use crate::game_logic::PlayfieldGrid;
 use crate::tetromino::{TetrominoInstance, TetrominoType};
 
 pub struct PlayfieldView<'a> {

@@ -1,10 +1,10 @@
 use crate::animation::should_show_blinking_lines;
 use crate::constants::*;
+use crate::game_logic::Playfield;
 use crate::game_state::GameState;
 use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
-use crate::playfield::Playfield;
 use crate::tetromino::TetrominoGenerator;
 use std::time::Duration;
 
