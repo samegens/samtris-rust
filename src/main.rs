@@ -1,8 +1,8 @@
 use crate::constants::*;
 use crate::game::Game;
 use crate::game_logic::GameState;
+use crate::game_logic::GameTimer;
 use crate::game_logic::Playfield;
-use crate::game_timer::GameTimer;
 use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
@@ -18,7 +18,6 @@ mod common;
 mod constants;
 mod game;
 mod game_logic;
-mod game_timer;
 mod graphics;
 mod gravity_timer;
 mod gui;
