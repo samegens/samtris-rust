@@ -25,10 +25,6 @@ impl<T: TetrominoGenerator> Playfield<T> {
         }
     }
 
-    pub fn get_dimensions(&self) -> Dimensions {
-        self.dimensions
-    }
-
     pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {
         self.current_tetromino.as_ref()
     }
@@ -37,6 +33,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
         self.current_tetromino = tetromino;
     }
 
+    #[cfg(test)]
     pub fn get_tetromino_type_at(&self, position: Position) -> Option<TetrominoType> {
         if !self.dimensions.contains(position) {
             return None;
@@ -96,6 +93,8 @@ impl<T: TetrominoGenerator> Playfield<T> {
                 self.grid[y][x] = Some(tetromino_type);
             }
         }
+
+        self.current_tetromino = None;
     }
 
     pub fn can_place_tetromino(&self, tetromino: &TetrominoInstance) -> bool {
@@ -129,6 +128,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 mod tests {
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
+    use crate::test_helpers;
     use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
     use rstest::rstest;
 
@@ -141,7 +141,7 @@ mod tests {
         let sut = create_test_playfield(dimensions);
 
         // Assert
-        assert_eq!(sut.get_dimensions(), dimensions);
+        assert_eq!(sut.dimensions, dimensions);
     }
 
     #[rstest]
@@ -383,6 +383,19 @@ mod tests {
                 assert!(!sut.is_position_occupied(Position::new(x as i32, y as i32)));
             }
         }
+    }
+
+    #[test]
+    fn can_spawn_piece_in_new_playfield() {
+        // Arrange
+        let mut sut = test_helpers::create_test_playfield();
+
+        // Act
+        let result: bool = sut.spawn_tetromino();
+
+        // Assert
+        assert!(result);
+        assert!(sut.get_current_tetromino().is_some());
     }
 
     fn create_test_playfield(dimensions: Dimensions) -> Playfield<FixedTetrominoGenerator> {

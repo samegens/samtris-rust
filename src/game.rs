@@ -51,10 +51,6 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         true
     }
 
-    pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {
-        self.playfield.get_current_tetromino()
-    }
-
     /// Handle game input, returns true if the tetromino was moved successfully, false otherwise.
     pub fn handle_input(&mut self, input: GameInput) -> bool {
         match self.game_state {
@@ -136,10 +132,8 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         let filled_lines = self.get_full_lines();
         let show_blinking_lines = self.is_showing_blinking_lines();
 
-        let current_tetromino = self.get_current_tetromino();
         self.playfield_renderer.draw(
             &playfield_view,
-            current_tetromino,
             &filled_lines,
             show_blinking_lines,
             display,
@@ -267,7 +261,10 @@ mod tests {
         let sut = create_standard_test_game();
 
         // Act
-        let result: Option<&TetrominoInstance> = sut.get_current_tetromino();
+        let result: Option<&TetrominoInstance> = {
+            let this = &sut;
+            this.playfield.get_current_tetromino()
+        };
 
         // Assert
         assert!(result.is_none());
@@ -284,19 +281,6 @@ mod tests {
         // Assert
         let expected_game_state = GameState::Playing;
         assert_eq!(result, &expected_game_state);
-    }
-
-    #[test]
-    fn can_spawn_piece_in_new_game() {
-        // Arrange
-        let mut sut = create_standard_test_game();
-
-        // Act
-        let result: bool = sut.spawn_tetromino();
-
-        // Assert
-        assert!(result);
-        assert!(sut.get_current_tetromino().is_some());
     }
 
     #[test]
@@ -339,7 +323,11 @@ mod tests {
         // Assert
         assert!(result);
 
-        let new_position = sut.get_current_tetromino().unwrap().get_position();
+        let new_position = sut
+            .playfield
+            .get_current_tetromino()
+            .unwrap()
+            .get_position();
         let expected_position = Position::new(
             initial_position.x + expected_x_delta,
             initial_position.y + expected_y_delta,
@@ -347,6 +335,7 @@ mod tests {
         assert_eq!(new_position.x, expected_position.x);
 
         let new_rotation_index: usize = sut
+            .playfield
             .get_current_tetromino()
             .unwrap()
             .get_rotation_index()
@@ -386,13 +375,23 @@ mod tests {
         // Arrange
         let mut sut = create_test_game(TetrominoType::I);
         sut.spawn_tetromino();
-        let initial_position = sut.get_current_tetromino().unwrap().get_position();
+        let initial_position = {
+            let this = &sut;
+            this.playfield.get_current_tetromino()
+        }
+        .unwrap()
+        .get_position();
 
         // Act
         sut.update(Duration::from_millis(1000));
 
         // Assert
-        let new_position = sut.get_current_tetromino().unwrap().get_position();
+        let new_position = {
+            let this = &sut;
+            this.playfield.get_current_tetromino()
+        }
+        .unwrap()
+        .get_position();
         assert_eq!(new_position.y, initial_position.y + 1);
     }
 
@@ -401,13 +400,23 @@ mod tests {
         // Arrange
         let mut sut = create_test_game(TetrominoType::I);
         sut.spawn_tetromino();
-        let initial_position = sut.get_current_tetromino().unwrap().get_position();
+        let initial_position = {
+            let this = &sut;
+            this.playfield.get_current_tetromino()
+        }
+        .unwrap()
+        .get_position();
 
         // Act
         sut.update(Duration::from_millis(500));
 
         // Assert
-        let new_position = sut.get_current_tetromino().unwrap().get_position();
+        let new_position = {
+            let this = &sut;
+            this.playfield.get_current_tetromino()
+        }
+        .unwrap()
+        .get_position();
         assert_eq!(new_position.y, initial_position.y);
     }
 
@@ -433,7 +442,10 @@ mod tests {
         // Assert
         assert!(!result);
         assert_eq!(
-            sut.get_current_tetromino().unwrap().get_position(),
+            sut.playfield
+                .get_current_tetromino()
+                .unwrap()
+                .get_position(),
             Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
         );
 
@@ -454,7 +466,10 @@ mod tests {
         // Assert
         assert!(result);
         assert_eq!(
-            sut.get_current_tetromino().unwrap().get_position(),
+            sut.playfield
+                .get_current_tetromino()
+                .unwrap()
+                .get_position(),
             Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
         );
         let bottom_y = PLAYFIELD_HEIGHT as i32 - 1;
@@ -496,11 +511,6 @@ mod tests {
         sut.update(Duration::from_millis(1000)); // Trigger gravity
 
         // Assert
-        assert!(sut.get_current_tetromino().is_some());
-        assert_eq!(
-            sut.get_current_tetromino().unwrap().get_position(),
-            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y)
-        );
         assert!(sut
             .get_playfield()
             .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
@@ -627,7 +637,7 @@ mod tests {
                 ]
             }
         );
-        assert!(sut.get_current_tetromino().is_none());
+        assert!(sut.playfield.get_current_tetromino().is_none());
     }
 
     #[test]

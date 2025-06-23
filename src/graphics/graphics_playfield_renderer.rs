@@ -108,14 +108,13 @@ impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
     fn draw<D: Display>(
         &self,
         playfield_view: &PlayfieldView,
-        current_tetromino: Option<&TetrominoInstance>,
         blinking_lines: &[u32],
         show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), String> {
         self.draw_border(display)?;
         self.draw_playfield_blocks(playfield_view, blinking_lines, show_blinking_lines, display)?;
-        self.draw_current_tetromino(current_tetromino, display)?;
+        self.draw_current_tetromino(playfield_view.current_tetromino, display)?;
         Ok(())
     }
 }
@@ -139,7 +138,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -150,19 +149,13 @@ mod tests {
     #[test]
     fn draw_renders_current_tetromino_blocks() {
         // Arrange
-        let playfield = create_test_playfield();
+        let mut playfield = create_test_playfield();
+        playfield.spawn_tetromino();
         let sut = GraphicsPlayfieldRenderer::new();
-        let tetromino = create_tetromino_instance(TetrominoType::O);
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(
-            &playfield.get_view(),
-            Some(&tetromino),
-            &[],
-            true,
-            &mut display,
-        );
+        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -186,7 +179,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -201,7 +194,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -239,7 +232,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), None, &[5, 6], false, &mut display);
+        let result = sut.draw(&playfield.get_view(), &[5, 6], false, &mut display);
 
         // Assert
         assert!(result.is_ok());
