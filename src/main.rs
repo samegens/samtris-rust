@@ -1,5 +1,5 @@
 use crate::constants::*;
-use crate::game::Game;
+use crate::game_logic::Game;
 use crate::game_logic::GameState;
 use crate::game_logic::GameTimer;
 use crate::game_logic::Playfield;
@@ -16,7 +16,6 @@ use tetromino::RandomTetrominoGenerator;
 mod animation;
 mod common;
 mod constants;
-mod game;
 mod game_logic;
 mod graphics;
 mod gui;
