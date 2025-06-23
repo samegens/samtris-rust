@@ -58,6 +58,15 @@ impl Playfield {
         self.grid[y as usize][x as usize].is_some()
     }
 
+    pub fn spawn_tetromino(&mut self, tetromino: TetrominoInstance) -> bool {
+        if !self.can_place_tetromino(&tetromino) {
+            return false;
+        }
+
+        self.current_tetromino = Some(tetromino);
+        true
+    }
+
     pub fn lock_tetromino(&mut self) {
         let tetromino = self.current_tetromino.as_ref().unwrap();
         let tetromino_type: TetrominoType = tetromino.get_type();

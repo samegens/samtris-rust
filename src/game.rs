@@ -49,12 +49,11 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
         let tetromino = self.tetromino_generator.generate(position);
 
-        if !self.playfield.can_place_tetromino(&tetromino) {
+        if !self.playfield.spawn_tetromino(tetromino) {
             self.game_state = GameState::GameOver;
             return false;
         }
 
-        self.playfield.set_current_tetromino(Some(tetromino));
         true
     }
 
