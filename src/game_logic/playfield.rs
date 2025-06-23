@@ -1,9 +1,12 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::animation::should_show_blinking_lines;
 use crate::common::Dimensions;
 use crate::common::Position;
 use crate::constants::*;
+use crate::events::Event;
+use crate::events::EventBus;
 use crate::game_logic::GravityTimer;
 use crate::game_logic::PlayfieldGrid;
 use crate::graphics::PlayfieldView;
@@ -29,11 +32,12 @@ pub struct Playfield<T: TetrominoGenerator> {
     tetromino_generator: T,
     gravity_timer: GravityTimer,
     state: PlayfieldState,
+    event_bus: Arc<EventBus>,
 }
 
 impl<T: TetrominoGenerator> Playfield<T> {
-    pub fn new(dimensions: Dimensions, tetromino_generator: T) -> Self {
-        let level: usize = 0;
+    pub fn new(dimensions: Dimensions, tetromino_generator: T, event_bus: Arc<EventBus>) -> Self {
+        let level: u32 = 0;
         let gravity_timer = GravityTimer::new(level);
         let grid = PlayfieldGrid::new(dimensions);
         Self {
@@ -43,7 +47,13 @@ impl<T: TetrominoGenerator> Playfield<T> {
             tetromino_generator,
             gravity_timer,
             state: PlayfieldState::Playing,
+            event_bus,
         }
+    }
+
+    pub fn start_level(&mut self, level: u32) {
+        self.gravity_timer.set_level(level);
+        self.event_bus.publish(Event::LevelStarted(level));
     }
 
     pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {

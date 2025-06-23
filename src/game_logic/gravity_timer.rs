@@ -7,21 +7,21 @@ const FRAME_DURATION_MS: u64 = 16; // ~60 FPS
 
 pub struct GravityTimer {
     time_since_last_drop: Duration,
-    level: usize,
+    level: u32,
 }
 
 // TODO: remove allow dead code when all functions from GravityTimer are used by game.
 #[allow(dead_code)]
 impl GravityTimer {
-    pub fn new(level: usize) -> Self {
+    pub fn new(level: u32) -> Self {
         Self {
             time_since_last_drop: Duration::ZERO,
             level: Self::cap_level(level),
         }
     }
 
-    fn cap_level(level: usize) -> usize {
-        level.min(GRAVITY_FRAMES.len() - 1)
+    fn cap_level(level: u32) -> u32 {
+        level.min(GRAVITY_FRAMES.len() as u32 - 1)
     }
 
     /// Update with delta_time, returns true if the update should trigger moving the tetromino
@@ -38,11 +38,11 @@ impl GravityTimer {
         }
     }
 
-    pub fn set_level(&mut self, level: usize) {
+    pub fn set_level(&mut self, level: u32) {
         self.level = Self::cap_level(level);
     }
 
-    pub fn get_level(&self) -> usize {
+    pub fn get_level(&self) -> u32 {
         self.level
     }
 
@@ -51,7 +51,7 @@ impl GravityTimer {
     }
 
     fn get_interval(&self) -> Duration {
-        let frames = GRAVITY_FRAMES[self.level];
+        let frames = GRAVITY_FRAMES[self.level as usize];
         Duration::from_millis(frames * FRAME_DURATION_MS)
     }
 }
@@ -77,7 +77,7 @@ mod tests {
         let sut = GravityTimer::new(100); // Way above max
 
         // Assert
-        assert_eq!(sut.get_level(), GRAVITY_FRAMES.len() - 1);
+        assert_eq!(sut.get_level(), GRAVITY_FRAMES.len() as u32 - 1);
     }
 
     #[test]
@@ -172,7 +172,7 @@ mod tests {
         sut.set_level(100); // Way above max
 
         // Assert
-        assert_eq!(sut.get_level(), GRAVITY_FRAMES.len() - 1);
+        assert_eq!(sut.get_level(), GRAVITY_FRAMES.len() as u32 - 1);
     }
 
     #[test]

@@ -111,6 +111,10 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     pub fn set_game_state_game_over(&mut self) {
         self.game_state = GameState::GameOver;
     }
+
+    pub fn start_level(&mut self, level: u32) {
+        self.playfield.start_level(level);
+    }
 }
 
 #[cfg(test)]
@@ -120,7 +124,7 @@ mod tests {
     use crate::graphics::MockDisplay;
     use crate::gui::game_input::GameInput;
     use crate::test_helpers::*;
-    use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
+    use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::{TetrominoInstance, TetrominoType};
     use std::time::Duration;
 
@@ -205,10 +209,8 @@ mod tests {
     #[test]
     fn tetromino_locks_when_gravity_cannot_move_it_down() {
         // Arrange
-        let mut playfield = Playfield::new(
-            Dimensions::new(PLAYFIELD_WIDTH, 5),
-            FixedTetrominoGenerator::new(TetrominoType::O),
-        ); // Small playfield
+        let dimensions = Dimensions::new(PLAYFIELD_WIDTH, 5);
+        let mut playfield = create_test_playfield_with_dimensions(dimensions);
         let definitions = TetrominoDefinitions::new();
 
         // Place an O tetromino directly below spawn position to block movement

@@ -121,8 +121,11 @@ impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use super::*;
     use crate::common::Dimensions;
+    use crate::events::EventBus;
     use crate::game_logic::Playfield;
     use crate::graphics::MockDisplay;
     use crate::tetromino::FixedTetrominoGenerator;
@@ -242,7 +245,12 @@ mod tests {
 
     fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
         let dimensions = Dimensions::new(10, 20);
-        Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
+        let event_bus = Arc::new(EventBus::new());
+        Playfield::new(
+            dimensions,
+            FixedTetrominoGenerator::new(TetrominoType::O),
+            event_bus,
+        )
     }
 
     /// Creates a TetrominoInstance with the specified type and position (4, 4).
