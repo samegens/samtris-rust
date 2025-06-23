@@ -68,9 +68,6 @@ mod tests {
         }
 
         // Assert
-        assert!(
-            generated_types.len() > 1,
-            "Should generate more than one type over 100 attempts"
-        );
+        assert!(generated_types.len() > 1);
     }
 }
