@@ -44,10 +44,6 @@ pub fn lock_tetromino(game: &mut TestGame, tetromino_type: TetrominoType, positi
     game.get_playfield_mut().lock_tetromino();
 }
 
-pub fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
-    create_tetromino_instance_at(tetromino_type, get_tetromino_start_position())
-}
-
 pub fn create_tetromino_instance_at(
     tetromino_type: TetrominoType,
     position: Position,

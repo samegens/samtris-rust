@@ -80,6 +80,25 @@ impl<T: TetrominoGenerator> Playfield<T> {
         true
     }
 
+    /// Try to move the current tetromino. Returns true if the tetromino was moved successfully
+    /// (there were no obstacles), false otherwise.
+    pub fn try_move_current_tetromino<F>(&mut self, move_fn: F) -> bool
+    where
+        F: FnOnce(&mut TetrominoInstance),
+    {
+        if let Some(tetromino) = &self.current_tetromino {
+            let mut moved_tetromino = tetromino.clone();
+            move_fn(&mut moved_tetromino);
+
+            if self.can_place_tetromino(&moved_tetromino) {
+                self.set_current_tetromino(Some(moved_tetromino));
+                return true;
+            }
+        }
+
+        false
+    }
+
     pub fn lock_tetromino(&mut self) {
         let tetromino = self.current_tetromino.as_ref().unwrap();
         let tetromino_type: TetrominoType = tetromino.get_type();
@@ -128,7 +147,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 mod tests {
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
-    use crate::test_helpers;
+    use crate::test_helpers::{self};
     use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
     use rstest::rstest;
 
@@ -396,6 +415,20 @@ mod tests {
         // Assert
         assert!(result);
         assert!(sut.get_current_tetromino().is_some());
+    }
+
+    #[test]
+    fn cant_spawn_piece_on_top_of_occupied_blocks() {
+        // Arrange
+        let mut sut = test_helpers::create_test_playfield();
+        sut.spawn_tetromino();
+        sut.lock_tetromino();
+
+        // Act
+        let result: bool = sut.spawn_tetromino();
+
+        // Assert
+        assert!(!result);
     }
 
     fn create_test_playfield(dimensions: Dimensions) -> Playfield<FixedTetrominoGenerator> {

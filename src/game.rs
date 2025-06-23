@@ -6,7 +6,6 @@ use crate::gravity_timer::GravityTimer;
 use crate::gui::GameInput;
 use crate::playfield::Playfield;
 use crate::tetromino::TetrominoGenerator;
-use crate::tetromino::TetrominoInstance;
 use std::time::Duration;
 
 pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
@@ -65,10 +64,16 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 
     pub fn handle_playing_input(&mut self, input: GameInput) -> bool {
         match input {
-            GameInput::MoveLeft => self.try_move_piece(|tetromino| tetromino.move_left()),
-            GameInput::MoveRight => self.try_move_piece(|tetromino| tetromino.move_right()),
+            GameInput::MoveLeft => self
+                .playfield
+                .try_move_current_tetromino(|tetromino| tetromino.move_left()),
+            GameInput::MoveRight => self
+                .playfield
+                .try_move_current_tetromino(|tetromino| tetromino.move_right()),
             GameInput::MoveDown => {
-                let has_moved: bool = self.try_move_piece(|tetromino| tetromino.move_down());
+                let has_moved: bool = self
+                    .playfield
+                    .try_move_current_tetromino(|tetromino| tetromino.move_down());
                 if has_moved {
                     self.gravity_timer.reset();
                 } else {
@@ -76,12 +81,12 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
                 }
                 has_moved
             }
-            GameInput::RotateClockwise => {
-                self.try_move_piece(|tetromino| tetromino.rotate_clockwise())
-            }
-            GameInput::RotateCounterclockwise => {
-                self.try_move_piece(|tetromino| tetromino.rotate_counterclockwise())
-            }
+            GameInput::RotateClockwise => self
+                .playfield
+                .try_move_current_tetromino(|tetromino| tetromino.rotate_clockwise()),
+            GameInput::RotateCounterclockwise => self
+                .playfield
+                .try_move_current_tetromino(|tetromino| tetromino.rotate_counterclockwise()),
             GameInput::Drop => {
                 self.harddrop_tetromino();
                 true
@@ -102,27 +107,11 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     fn harddrop_tetromino(&mut self) {
-        while self.try_move_piece(|tetromino| tetromino.move_down()) {}
+        while self
+            .playfield
+            .try_move_current_tetromino(|tetromino| tetromino.move_down())
+        {}
         self.lock_tetromino();
-    }
-
-    /// Try to move the current tetromino. Returns true if the tetromino was moved successfully
-    /// (there were no obstacles), false otherwise.
-    fn try_move_piece<F>(&mut self, move_fn: F) -> bool
-    where
-        F: FnOnce(&mut TetrominoInstance),
-    {
-        if let Some(tetromino) = self.playfield.get_current_tetromino() {
-            let mut moved_tetromino = tetromino.clone();
-            move_fn(&mut moved_tetromino);
-
-            if self.playfield.can_place_tetromino(&moved_tetromino) {
-                self.playfield.set_current_tetromino(Some(moved_tetromino));
-                return true;
-            }
-        }
-
-        false
     }
 
     pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
@@ -206,7 +195,9 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     fn apply_gravity(&mut self) {
-        let moved = self.try_move_piece(|tetromino| tetromino.move_down());
+        let moved = self
+            .playfield
+            .try_move_current_tetromino(|tetromino| tetromino.move_down());
 
         if !moved {
             self.lock_tetromino();
@@ -247,11 +238,11 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 mod tests {
     use super::*;
     use crate::common::{Dimensions, Position};
-    use crate::graphics::{MockDisplay, MockPlayfieldRenderer};
+    use crate::graphics::MockDisplay;
     use crate::gui::game_input::GameInput;
     use crate::test_helpers::*;
-    use crate::tetromino::TetrominoType;
     use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
+    use crate::tetromino::{TetrominoInstance, TetrominoType};
     use rstest::rstest;
     use std::time::Duration;
 
@@ -281,22 +272,6 @@ mod tests {
         // Assert
         let expected_game_state = GameState::Playing;
         assert_eq!(result, &expected_game_state);
-    }
-
-    #[test]
-    fn cant_spawn_piece_on_top_of_occupied_blocks() {
-        // Arrange
-        let mut playfield = create_test_playfield();
-        let tetromino_instance = create_tetromino_instance(TetrominoType::O);
-        playfield.set_current_tetromino(Some(tetromino_instance));
-        playfield.lock_tetromino();
-        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new());
-
-        // Act
-        let result: bool = sut.spawn_tetromino();
-
-        // Assert
-        assert!(!result);
     }
 
     #[rstest]
