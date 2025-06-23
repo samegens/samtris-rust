@@ -109,9 +109,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let canvas = window.into_canvas().build()?;
 
     let texture_creator = canvas.texture_creator();
+    let png_data = include_bytes!("../assets/blocks.png");
     let tetrominos_texture = texture_creator
-        .load_texture("assets/blocks.png")
-        .expect("Failed to load tetrominos texture");
+        .load_texture_bytes(png_data)
+        .expect("Failed to load embedded tetrominos texture");
 
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
 
