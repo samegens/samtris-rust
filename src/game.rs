@@ -229,7 +229,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     #[cfg(test)]
-    pub(crate) fn set_game_state_game_over(&mut self) {
+    pub fn set_game_state_game_over(&mut self) {
         self.game_state = GameState::GameOver;
     }
 }
