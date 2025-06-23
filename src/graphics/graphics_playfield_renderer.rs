@@ -168,7 +168,8 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         let tetromino = create_tetromino_instance(TetrominoType::O);
-        playfield.lock_tetromino(&tetromino);
+        playfield.set_current_tetromino(Some(tetromino));
+        playfield.lock_tetromino();
 
         let sut = GraphicsPlayfieldRenderer::new();
         let mut display = MockDisplay::new();
@@ -221,7 +222,8 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         let tetromino = create_tetromino_instance(TetrominoType::O);
-        playfield.lock_tetromino(&tetromino);
+        playfield.set_current_tetromino(Some(tetromino));
+        playfield.lock_tetromino();
         let sut = GraphicsPlayfieldRenderer::new();
         let mut display = MockDisplay::new();
 

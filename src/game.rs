@@ -12,7 +12,6 @@ use std::time::Duration;
 
 pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
     playfield: Playfield,
-    current_tetromino: Option<TetrominoInstance>,
     gravity_timer: GravityTimer,
     playfield_renderer: R,
     tetromino_generator: T,
@@ -25,7 +24,6 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         let gravity_timer = GravityTimer::new(level);
         Self {
             playfield,
-            current_tetromino: None,
             gravity_timer,
             playfield_renderer,
             tetromino_generator,
@@ -56,12 +54,12 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
             return false;
         }
 
-        self.current_tetromino = Some(tetromino);
+        self.playfield.set_current_tetromino(Some(tetromino));
         true
     }
 
     pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {
-        self.current_tetromino.as_ref()
+        self.playfield.get_current_tetromino()
     }
 
     /// Handle game input, returns true if the tetromino was moved successfully, false otherwise.
@@ -125,12 +123,12 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     where
         F: FnOnce(&mut TetrominoInstance),
     {
-        if let Some(tetromino) = &self.current_tetromino {
+        if let Some(tetromino) = self.playfield.get_current_tetromino() {
             let mut moved_tetromino = tetromino.clone();
             move_fn(&mut moved_tetromino);
 
             if self.playfield.can_place_tetromino(&moved_tetromino) {
-                self.current_tetromino = Some(moved_tetromino);
+                self.playfield.set_current_tetromino(Some(moved_tetromino));
                 return true;
             }
         }
@@ -195,7 +193,9 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     pub fn update(&mut self, delta_time: Duration) {
         match self.game_state {
             GameState::Playing => {
-                if self.current_tetromino.is_some() && self.gravity_timer.update(delta_time) {
+                if self.playfield.get_current_tetromino().is_some()
+                    && self.gravity_timer.update(delta_time)
+                {
                     self.apply_gravity();
                 }
             }
@@ -228,8 +228,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     /// Locks the current tetromino in its current position and spawns a new tetromino in the
     /// start position. Resets the gravity timer.
     fn lock_tetromino(&mut self) {
-        self.playfield
-            .lock_tetromino(self.current_tetromino.as_ref().unwrap());
+        self.playfield.lock_tetromino();
         self.gravity_timer.reset();
 
         let full_lines = self.playfield.get_full_lines();
@@ -238,7 +237,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
                 full_lines,
             };
-            self.current_tetromino = None;
+            self.playfield.set_current_tetromino(None);
         } else {
             self.spawn_tetromino();
         }
@@ -311,7 +310,8 @@ mod tests {
         // Arrange
         let mut playfield = create_test_playfield();
         let tetromino_instance = create_tetromino_instance(TetrominoType::O);
-        playfield.lock_tetromino(&tetromino_instance);
+        playfield.set_current_tetromino(Some(tetromino_instance));
+        playfield.lock_tetromino();
         let mut sut = Game::new(
             playfield,
             FixedTetrominoGenerator::new(TetrominoType::O),
@@ -379,7 +379,8 @@ mod tests {
         let mut playfield = create_test_playfield();
         let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
         let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
-        playfield.lock_tetromino(&tetromino);
+        playfield.set_current_tetromino(Some(tetromino));
+        playfield.lock_tetromino();
         let mut sut = Game::new(
             playfield,
             FixedTetrominoGenerator::new(TetrominoType::I),
@@ -431,7 +432,8 @@ mod tests {
         // Place an O-tetromino 4 lines below the spawn line so the locked O will fit and a new O.
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4);
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);
-        playfield.lock_tetromino(&blocking_tetromino);
+        playfield.set_current_tetromino(Some(blocking_tetromino));
+        playfield.lock_tetromino();
 
         let mut sut = Game::new(
             playfield,
@@ -499,7 +501,8 @@ mod tests {
             Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 2),
             &definitions,
         );
-        playfield.lock_tetromino(&blocking_tetromino);
+        playfield.set_current_tetromino(Some(blocking_tetromino));
+        playfield.lock_tetromino();
 
         let mut sut = Game::new(
             playfield,
@@ -559,7 +562,7 @@ mod tests {
             .playfield
             .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
         assert_eq!(sut.game_state, GameState::Playing);
-        assert!(sut.current_tetromino.is_some());
+        assert!(sut.playfield.get_current_tetromino().is_some());
     }
 
     #[test]
@@ -585,14 +588,24 @@ mod tests {
         // Arrange
         let mut sut = create_test_game(TetrominoType::O);
         sut.spawn_tetromino();
-        let expected = sut.current_tetromino.as_ref().unwrap().get_position();
+        let expected = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         sut.set_game_state_game_over();
 
         // Act
         sut.update(Duration::from_millis(1000));
 
         // Assert
-        let actual = sut.current_tetromino.as_ref().unwrap().get_position();
+        let actual = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         assert_eq!(actual, expected);
     }
 
@@ -600,8 +613,6 @@ mod tests {
     fn lock_tetromino_with_full_line_sets_animating_state() {
         // Arrange
         let mut sut = create_test_game(TetrominoType::I);
-        sut.spawn_tetromino();
-
         let definitions = TetrominoDefinitions::new();
 
         // Fill the four bottom lines except for one space where I-piece will land
@@ -612,9 +623,12 @@ mod tests {
                     Position::new(x as i32 - 1, PLAYFIELD_HEIGHT as i32 - 4),
                     &definitions,
                 );
-                sut.playfield.lock_tetromino(&tetromino);
+                sut.playfield.set_current_tetromino(Some(tetromino));
+                sut.playfield.lock_tetromino();
             }
         }
+
+        sut.spawn_tetromino();
 
         // Act
         sut.handle_input(GameInput::Drop);
@@ -640,7 +654,12 @@ mod tests {
         // Arrange
         let mut sut = create_test_game(TetrominoType::O);
         sut.spawn_tetromino();
-        let expected_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        let expected_position = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         sut.game_state = GameState::AnimatingLines {
             countdown: Duration::ZERO,
             full_lines: vec![],
@@ -651,7 +670,12 @@ mod tests {
 
         // Assert
         assert!(!result);
-        let actual_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        let actual_position = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         assert_eq!(actual_position, expected_position);
     }
 
@@ -669,7 +693,7 @@ mod tests {
 
         // Assert
         assert_eq!(sut.game_state, GameState::Playing);
-        assert!(sut.current_tetromino.is_some()); // New piece spawned
+        assert!(sut.playfield.get_current_tetromino().is_some()); // New piece spawned
     }
 
     #[test]
@@ -728,7 +752,12 @@ mod tests {
         // Arrange
         let mut sut = create_test_game(TetrominoType::O);
         sut.spawn_tetromino();
-        let initial_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        let initial_position = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         sut.game_state = GameState::GameOver;
 
         // Act
@@ -736,7 +765,12 @@ mod tests {
 
         // Assert
         assert_eq!(sut.game_state, GameState::GameOver);
-        let current_position = sut.current_tetromino.as_ref().unwrap().get_position();
+        let current_position = sut
+            .playfield
+            .get_current_tetromino()
+            .as_ref()
+            .unwrap()
+            .get_position();
         assert_eq!(current_position, initial_position); // Tetromino didn't move
     }
 }

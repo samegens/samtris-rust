@@ -6,17 +6,30 @@ use crate::tetromino::TetrominoType;
 pub struct Playfield {
     dimensions: Dimensions,
     grid: Vec<Vec<Option<TetrominoType>>>,
+    current_tetromino: Option<TetrominoInstance>,
 }
 
 impl Playfield {
     pub fn new(dimensions: Dimensions) -> Self {
         let grid: Vec<Vec<Option<TetrominoType>>> =
             vec![vec![None; dimensions.width as usize]; dimensions.height as usize];
-        Self { dimensions, grid }
+        Self {
+            dimensions,
+            grid,
+            current_tetromino: None,
+        }
     }
 
     pub fn get_dimensions(&self) -> Dimensions {
         self.dimensions
+    }
+
+    pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {
+        self.current_tetromino.as_ref()
+    }
+
+    pub fn set_current_tetromino(&mut self, tetromino: Option<TetrominoInstance>) {
+        self.current_tetromino = tetromino;
     }
 
     pub fn get_tetromino_type_at(&self, position: Position) -> Option<TetrominoType> {
@@ -45,7 +58,8 @@ impl Playfield {
         self.grid[y as usize][x as usize].is_some()
     }
 
-    pub fn lock_tetromino(&mut self, tetromino: &TetrominoInstance) {
+    pub fn lock_tetromino(&mut self) {
+        let tetromino = self.current_tetromino.as_ref().unwrap();
         let tetromino_type: TetrominoType = tetromino.get_type();
         let world_blocks: Vec<Position> = tetromino.get_world_blocks();
 
@@ -148,7 +162,8 @@ mod tests {
         let spawn_position = Position::new(0, 0);
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, spawn_position, &definitions);
-        sut.lock_tetromino(&tetromino);
+        sut.set_current_tetromino(Some(tetromino));
+        sut.lock_tetromino();
 
         // Act
         let result: Option<TetrominoType> = sut.get_tetromino_type_at(position);
@@ -181,9 +196,10 @@ mod tests {
         let mut sut = Playfield::new(dimensions);
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(5, 5), &definitions);
+        sut.set_current_tetromino(Some(tetromino));
 
         // Act
-        sut.lock_tetromino(&tetromino);
+        sut.lock_tetromino();
 
         // Assert
         assert!(!sut.is_position_occupied(Position::new(5, 5)));
@@ -257,7 +273,8 @@ mod tests {
         let definitions = TetrominoDefinitions::new();
         let first_tetromino =
             TetrominoInstance::new(TetrominoType::O, first_position, &definitions);
-        sut.lock_tetromino(&first_tetromino);
+        sut.set_current_tetromino(Some(first_tetromino));
+        sut.lock_tetromino();
         let second_tetromino =
             TetrominoInstance::new(TetrominoType::O, second_position, &definitions);
 
@@ -291,7 +308,8 @@ mod tests {
             TetrominoInstance::new(TetrominoType::I, Position::new(0, -1), &definitions);
         tetromino.rotate_clockwise();
         // Place I-piece horizontally to fill the single row.
-        playfield.lock_tetromino(&tetromino);
+        playfield.set_current_tetromino(Some(tetromino));
+        playfield.lock_tetromino();
 
         // Act
         let full_lines = playfield.get_full_lines();
@@ -309,7 +327,8 @@ mod tests {
         let tetromino =
             TetrominoInstance::new(TetrominoType::I, Position::new(-1, 0), &definitions);
         // Place I-piece vertically to fill 4 rows.
-        playfield.lock_tetromino(&tetromino);
+        playfield.set_current_tetromino(Some(tetromino));
+        playfield.lock_tetromino();
 
         // Act
         let full_lines = playfield.get_full_lines();
@@ -327,7 +346,8 @@ mod tests {
 
         // Place several tetrominos on the playfield
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(2, 2), &definitions);
-        sut.lock_tetromino(&tetromino);
+        sut.set_current_tetromino(Some(tetromino));
+        sut.lock_tetromino();
 
         // Act
         sut.clear();

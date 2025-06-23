@@ -30,8 +30,10 @@ pub fn get_tetromino_start_position() -> Position {
 }
 
 pub fn lock_tetromino(game: &mut TestGame, tetromino_type: TetrominoType, position: Position) {
+    let tetromino_instance = create_tetromino_instance_at(tetromino_type, position);
     game.get_playfield_mut()
-        .lock_tetromino(&create_tetromino_instance_at(tetromino_type, position));
+        .set_current_tetromino(Some(tetromino_instance));
+    game.get_playfield_mut().lock_tetromino();
 }
 
 pub fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
