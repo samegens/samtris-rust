@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 
-use crate::graphics::{Display, PlayfieldRenderer};
-use crate::playfield::Playfield;
+use crate::graphics::{Display, PlayfieldRenderer, PlayfieldView};
 use crate::tetromino::TetrominoInstance;
 
 /// MockPlayfieldRenderer is a mock implementation of PlayfieldRenderer for testing purposes.
@@ -31,7 +30,7 @@ impl MockPlayfieldRenderer {
 impl PlayfieldRenderer for MockPlayfieldRenderer {
     fn draw<D: Display>(
         &self,
-        _playfield: &Playfield,
+        _playfield_view: &PlayfieldView,
         _current_tetromino: Option<&TetrominoInstance>,
         blinking_lines: &[u32],
         show_blinking_lines: bool,

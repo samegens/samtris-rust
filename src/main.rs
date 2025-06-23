@@ -127,12 +127,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
 
-    let playfield = Playfield::new(playfield_dimensions);
-    let mut game = Game::new(
-        playfield,
-        RandomTetrominoGenerator::new(),
-        GraphicsPlayfieldRenderer::new(),
-    );
+    let playfield = Playfield::new(playfield_dimensions, RandomTetrominoGenerator::new());
+    let mut game = Game::new(playfield, GraphicsPlayfieldRenderer::new());
     game.spawn_tetromino();
 
     let mut game_timer = GameTimer::new();

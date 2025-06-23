@@ -1,9 +1,10 @@
-use crate::{graphics::Display, playfield::Playfield, tetromino::TetrominoInstance};
+use crate::graphics::{Display, PlayfieldView};
+use crate::tetromino::TetrominoInstance;
 
 pub trait PlayfieldRenderer {
     fn draw<D: Display>(
         &self,
-        playfield: &Playfield,
+        playfield_view: &PlayfieldView,
         current_tetromino: Option<&TetrominoInstance>,
         blinking_lines: &[u32],
         show_blinking_lines: bool,

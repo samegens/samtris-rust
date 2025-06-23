@@ -1,7 +1,6 @@
 use crate::common::Position;
 use crate::constants::*;
-use crate::graphics::{Color, Display, PlayfieldRenderer};
-use crate::playfield::Playfield;
+use crate::graphics::{Color, Display, PlayfieldRenderer, PlayfieldView};
 use crate::tetromino::TetrominoInstance;
 
 pub struct GraphicsPlayfieldRenderer;
@@ -40,7 +39,7 @@ impl GraphicsPlayfieldRenderer {
 
     fn draw_playfield_blocks<D: Display>(
         &self,
-        playfield: &Playfield,
+        playfield_view: &PlayfieldView,
         blinking_lines: &[u32],
         show_blinking_lines: bool,
         display: &mut D,
@@ -49,13 +48,18 @@ impl GraphicsPlayfieldRenderer {
         let y = PLAYFIELD_OFFSET_Y as i32;
         let playfield_position = Position::new(x, y);
 
-        for y in 0..playfield.get_dimensions().height {
+        for y in 0..playfield_view.dimensions.height {
             if !show_blinking_lines && blinking_lines.contains(&y) {
                 continue; // Skip drawing this line if blinking lines are hidden
             }
-            for x in 0..playfield.get_dimensions().width {
+            for x in 0..playfield_view.dimensions.width {
                 let position = Position::new(x as i32, y as i32);
-                self.draw_playfield_position(playfield, display, playfield_position, position)?;
+                self.draw_playfield_position(
+                    playfield_view,
+                    display,
+                    playfield_position,
+                    position,
+                )?;
             }
         }
 
@@ -64,13 +68,13 @@ impl GraphicsPlayfieldRenderer {
 
     fn draw_playfield_position<D: Display>(
         &self,
-        playfield: &Playfield,
+        playfield_view: &PlayfieldView,
         display: &mut D,
         playfield_position: Position,
         position: Position,
     ) -> Result<(), String> {
-        if playfield.is_position_occupied(position) {
-            if let Some(tetromino_type) = playfield.get_tetromino_type_at(position) {
+        if playfield_view.is_position_occupied(position) {
+            if let Some(tetromino_type) = playfield_view.get_tetromino_type_at(position) {
                 let window_position = playfield_position + position.scale(BLOCK_SIZE as i32);
                 display.draw_block(window_position, tetromino_type)?;
             }
@@ -103,14 +107,14 @@ impl GraphicsPlayfieldRenderer {
 impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
     fn draw<D: Display>(
         &self,
-        playfield: &Playfield,
+        playfield_view: &PlayfieldView,
         current_tetromino: Option<&TetrominoInstance>,
         blinking_lines: &[u32],
         show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), String> {
         self.draw_border(display)?;
-        self.draw_playfield_blocks(playfield, blinking_lines, show_blinking_lines, display)?;
+        self.draw_playfield_blocks(playfield_view, blinking_lines, show_blinking_lines, display)?;
         self.draw_current_tetromino(current_tetromino, display)?;
         Ok(())
     }
@@ -122,6 +126,7 @@ mod tests {
     use crate::common::Dimensions;
     use crate::graphics::MockDisplay;
     use crate::playfield::Playfield;
+    use crate::tetromino::FixedTetrominoGenerator;
     use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::TetrominoInstance;
     use crate::tetromino::TetrominoType;
@@ -134,7 +139,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -151,7 +156,13 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, Some(&tetromino), &[], true, &mut display);
+        let result = sut.draw(
+            &playfield.get_view(),
+            Some(&tetromino),
+            &[],
+            true,
+            &mut display,
+        );
 
         // Assert
         assert!(result.is_ok());
@@ -175,7 +186,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -190,7 +201,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), None, &[], true, &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -228,16 +239,16 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield, None, &[5, 6], false, &mut display);
+        let result = sut.draw(&playfield.get_view(), None, &[5, 6], false, &mut display);
 
         // Assert
         assert!(result.is_ok());
         assert!(display.drawn_blocks.is_empty());
     }
 
-    fn create_test_playfield() -> Playfield {
+    fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
         let dimensions = Dimensions::new(10, 20);
-        Playfield::new(dimensions)
+        Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
     }
 
     fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {

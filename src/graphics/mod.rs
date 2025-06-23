@@ -7,6 +7,7 @@ mod mock_display;
 #[cfg(test)]
 mod mock_playfield_renderer;
 mod playfield_renderer;
+mod playfield_view;
 mod sdl_display;
 
 pub use color::Color;
@@ -17,4 +18,5 @@ pub use mock_display::MockDisplay;
 #[cfg(test)]
 pub use mock_playfield_renderer::MockPlayfieldRenderer;
 pub use playfield_renderer::PlayfieldRenderer;
+pub use playfield_view::PlayfieldView;
 pub use sdl_display::SdlDisplay;
