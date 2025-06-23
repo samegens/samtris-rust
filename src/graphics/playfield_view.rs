@@ -6,6 +6,8 @@ pub struct PlayfieldView<'a> {
     pub dimensions: Dimensions,
     pub grid: &'a PlayfieldGrid,
     pub current_tetromino: Option<&'a TetrominoInstance>,
+    pub full_lines: Vec<u32>,
+    pub show_blinking_lines: bool,
 }
 
 impl<'a> PlayfieldView<'a> {
@@ -37,6 +39,8 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            full_lines: vec![],
+            show_blinking_lines: false,
         };
 
         // Act
@@ -55,6 +59,8 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            full_lines: vec![],
+            show_blinking_lines: false,
         };
 
         // Act
@@ -74,6 +80,8 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            full_lines: vec![],
+            show_blinking_lines: false,
         };
 
         // Act
@@ -92,6 +100,8 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            full_lines: vec![],
+            show_blinking_lines: false,
         };
 
         // Act

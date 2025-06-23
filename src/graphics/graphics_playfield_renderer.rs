@@ -228,6 +228,7 @@ mod tests {
         let tetromino = create_tetromino_instance(TetrominoType::O);
         playfield.set_current_tetromino(Some(tetromino));
         playfield.lock_tetromino();
+        playfield.set_current_tetromino(None);
         let sut = GraphicsPlayfieldRenderer::new();
         let mut display = MockDisplay::new();
 
@@ -244,6 +245,7 @@ mod tests {
         Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
     }
 
+    /// Creates a TetrominoInstance with the specified type and position (4, 4).
     fn create_tetromino_instance(tetromino_type: TetrominoType) -> TetrominoInstance {
         let tetromino_definitions = TetrominoDefinitions::new();
         let position = Position::new(4, 4);
