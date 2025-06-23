@@ -19,7 +19,6 @@ mod constants;
 mod game;
 mod game_logic;
 mod graphics;
-mod gravity_timer;
 mod gui;
 #[cfg(test)]
 mod test_helpers;
