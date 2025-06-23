@@ -68,6 +68,27 @@ impl PlayfieldGrid {
     fn is_line_full(&self, y: u32) -> bool {
         (0..self.dimensions.width).all(|x| self.is_xy_occupied(x as i32, y as i32))
     }
+
+    pub fn remove_lines(&mut self, lines: &[u32]) {
+        // Remove lines from bottom to top to avoid index shifting issues
+        let mut sorted_lines = lines.to_vec();
+        sorted_lines.sort_by(|a, b| a.cmp(b)); // Descending order
+
+        for &line_y in &sorted_lines {
+            self.remove_line(line_y);
+        }
+    }
+
+    fn remove_line(&mut self, line_y: u32) {
+        if line_y >= self.dimensions.height {
+            return;
+        }
+
+        self.cells.remove(line_y as usize);
+
+        let empty_line = vec![None; self.dimensions.width as usize];
+        self.cells.insert(0, empty_line);
+    }
 }
 
 #[cfg(test)]
@@ -198,5 +219,41 @@ mod tests {
 
         // Assert
         assert_eq!(full_lines, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn remove_lines_removes_full_line_and_drops_blocks_above() {
+        // Arrange
+        let mut sut = PlayfieldGrid::new(Dimensions::new(1, 5));
+
+        // Setup:
+        // Row 0: [O]
+        // Row 1: [T]    <- full line to remove
+        // Row 2: [S]
+        // Row 3: [Z]    <- full line to remove
+        // Row 4: [I]
+
+        sut.set(Position::new(0, 0), Some(TetrominoType::O));
+        sut.set(Position::new(0, 1), Some(TetrominoType::T));
+        sut.set(Position::new(0, 2), Some(TetrominoType::S));
+        sut.set(Position::new(0, 3), Some(TetrominoType::Z));
+        sut.set(Position::new(0, 4), Some(TetrominoType::I));
+
+        // Act
+        sut.remove_lines(&[1, 3]);
+
+        // Assert
+        // Expected after removing line 1 and 3:
+        // Row 0: [ ]  <- new empty line
+        // Row 1: [ ]  <- new empty line
+        // Row 2: [O]  <- original row 0
+        // Row 3: [S]  <- original row 2
+        // Row 4: [I]  <- original row 4
+
+        assert_eq!(sut.get(Position::new(0, 0)), None);
+        assert_eq!(sut.get(Position::new(0, 1)), None);
+        assert_eq!(sut.get(Position::new(0, 2)), Some(&TetrominoType::O));
+        assert_eq!(sut.get(Position::new(0, 3)), Some(&TetrominoType::S));
+        assert_eq!(sut.get(Position::new(0, 4)), Some(&TetrominoType::I));
     }
 }

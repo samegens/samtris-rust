@@ -218,6 +218,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
                 ref full_lines,
             } => {
                 if delta_time >= countdown {
+                    self.grid.remove_lines(full_lines);
                     self.state = PlayfieldState::Playing;
                     return self.spawn_tetromino();
                 } else {
@@ -713,5 +714,26 @@ mod tests {
                 full_lines: vec![19],
             }
         );
+    }
+
+    #[test]
+    fn playfield_removes_full_lines_after_animation_timeout() {
+        // Arrange
+        let mut sut = create_test_playfield_with_specific_type(TetrominoType::I);
+        // Set up a full line and put playfield in animating state
+        sut.state = PlayfieldState::AnimatingLines {
+            countdown: Duration::from_millis(100),
+            full_lines: vec![19], // Bottom line
+        };
+        // Place some blocks in that line
+        sut.grid.set(Position::new(0, 19), Some(TetrominoType::I));
+        sut.grid.set(Position::new(1, 19), Some(TetrominoType::I));
+
+        // Act
+        sut.update(Duration::from_millis(200)); // Exceed countdown
+
+        // Assert
+        assert!(!sut.grid.is_position_occupied(Position::new(0, 19)));
+        assert!(!sut.grid.is_position_occupied(Position::new(1, 19)));
     }
 }
