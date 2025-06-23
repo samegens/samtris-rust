@@ -308,8 +308,6 @@ mod tests {
         let dimensions = Dimensions::new(10, 20);
         let mut sut = create_test_playfield(dimensions);
         let definitions = TetrominoDefinitions::new();
-
-        // Place several tetrominos on the playfield
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(2, 2), &definitions);
         sut.set_current_tetromino(Some(tetromino));
         sut.lock_tetromino();
