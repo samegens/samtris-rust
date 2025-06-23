@@ -1,13 +1,14 @@
 use crate::common::{Dimensions, Position};
+use crate::tetromino::TetrominoType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Grid<T: Clone> {
+pub struct PlayfieldGrid {
     dimensions: Dimensions,
-    cells: Vec<Vec<Option<T>>>,
+    cells: Vec<Vec<Option<TetrominoType>>>,
 }
 
 #[allow(dead_code)]
-impl<T: Clone> Grid<T> {
+impl PlayfieldGrid {
     pub fn new(dimensions: Dimensions) -> Self {
         let cells = vec![vec![None; dimensions.width as usize]; dimensions.height as usize];
         Self { dimensions, cells }
@@ -17,7 +18,7 @@ impl<T: Clone> Grid<T> {
         self.dimensions
     }
 
-    pub fn get(&self, position: Position) -> Option<&T> {
+    pub fn get(&self, position: Position) -> Option<&TetrominoType> {
         if !self.dimensions.contains(position) {
             return None;
         }
@@ -27,7 +28,7 @@ impl<T: Clone> Grid<T> {
         self.cells[y][x].as_ref()
     }
 
-    pub fn set(&mut self, position: Position, value: Option<T>) {
+    pub fn set(&mut self, position: Position, value: Option<TetrominoType>) {
         if !self.dimensions.contains(position) {
             return;
         }
@@ -69,7 +70,7 @@ mod tests {
         let dimensions = Dimensions::new(3, 2);
 
         // Act
-        let sut: Grid<i32> = Grid::new(dimensions);
+        let sut: PlayfieldGrid = PlayfieldGrid::new(dimensions);
 
         // Assert
         assert_eq!(sut.get_dimensions(), dimensions);
@@ -80,24 +81,24 @@ mod tests {
     #[test]
     fn set_and_get_stores_and_retrieves_value() {
         // Arrange
-        let mut sut: Grid<i32> = Grid::new(Dimensions::new(3, 3));
+        let mut sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(3, 3));
         let position = Position::new(1, 2);
 
         // Act
-        sut.set(position, Some(42));
+        sut.set(position, Some(TetrominoType::I));
         let result = sut.get(position);
 
         // Assert
-        assert_eq!(result, Some(&42));
+        assert_eq!(result, Some(&TetrominoType::I));
         assert!(sut.is_position_occupied(position));
     }
 
     #[test]
     fn set_with_none_clears_position() {
         // Arrange
-        let mut sut: Grid<i32> = Grid::new(Dimensions::new(3, 3));
+        let mut sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(3, 3));
         let position = Position::new(1, 1);
-        sut.set(position, Some(42));
+        sut.set(position, Some(TetrominoType::I));
 
         // Act
         sut.set(position, None);
@@ -110,7 +111,7 @@ mod tests {
     #[test]
     fn get_returns_none_for_out_of_bounds() {
         // Arrange
-        let sut: Grid<i32> = Grid::new(Dimensions::new(3, 3));
+        let sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(3, 3));
 
         // Act
         let result = sut.get(Position::new(-1, 0));
@@ -122,10 +123,10 @@ mod tests {
     #[test]
     fn set_ignores_out_of_bounds() {
         // Arrange
-        let mut sut: Grid<i32> = Grid::new(Dimensions::new(3, 3));
+        let mut sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(3, 3));
 
         // Act
-        sut.set(Position::new(-1, 0), Some(42));
+        sut.set(Position::new(-1, 0), Some(TetrominoType::I));
 
         // Assert (no panic, and grid unchanged)
         assert!(!sut.is_position_occupied(Position::new(0, 0)));
@@ -134,7 +135,7 @@ mod tests {
     #[test]
     fn is_position_occupied_returns_false_for_out_of_bounds() {
         // Arrange
-        let sut: Grid<i32> = Grid::new(Dimensions::new(3, 3));
+        let sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(3, 3));
 
         // Act
         let result = sut.is_position_occupied(Position::new(3, 0));
@@ -146,9 +147,9 @@ mod tests {
     #[test]
     fn clear_removes_all_values() {
         // Arrange
-        let mut sut: Grid<i32> = Grid::new(Dimensions::new(2, 2));
-        sut.set(Position::new(0, 0), Some(1));
-        sut.set(Position::new(1, 1), Some(2));
+        let mut sut: PlayfieldGrid = PlayfieldGrid::new(Dimensions::new(2, 2));
+        sut.set(Position::new(0, 0), Some(TetrominoType::I));
+        sut.set(Position::new(1, 1), Some(TetrominoType::O));
 
         // Act
         sut.clear();

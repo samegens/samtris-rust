@@ -1,13 +1,11 @@
 use crate::common::Dimensions;
 use crate::common::Position;
 use crate::constants::*;
-use crate::game_logic::Grid;
+use crate::game_logic::PlayfieldGrid;
 use crate::graphics::PlayfieldView;
 use crate::tetromino::TetrominoGenerator;
 use crate::tetromino::TetrominoInstance;
 use crate::tetromino::TetrominoType;
-
-pub type PlayfieldGrid = Grid<TetrominoType>;
 
 pub struct Playfield<T: TetrominoGenerator> {
     dimensions: Dimensions,

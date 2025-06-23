@@ -1,5 +1,5 @@
 mod grid;
 mod playfield;
 
-pub use grid::Grid;
+pub use grid::PlayfieldGrid;
 pub use playfield::*;
