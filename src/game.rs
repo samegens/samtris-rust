@@ -1,6 +1,6 @@
 use crate::constants::*;
+use crate::game_logic::GameState;
 use crate::game_logic::{Playfield, PlayfieldState};
-use crate::game_state::GameState;
 use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gui::GameInput;
 use crate::tetromino::TetrominoGenerator;

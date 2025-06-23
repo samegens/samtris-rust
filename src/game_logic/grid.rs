@@ -72,7 +72,7 @@ impl PlayfieldGrid {
     pub fn remove_lines(&mut self, lines: &[u32]) {
         // Remove lines from bottom to top to avoid index shifting issues
         let mut sorted_lines = lines.to_vec();
-        sorted_lines.sort_by(|a, b| a.cmp(b)); // Descending order
+        sorted_lines.sort();
 
         for &line_y in &sorted_lines {
             self.remove_line(line_y);
