@@ -13,6 +13,10 @@ impl<T: Clone> Grid<T> {
         Self { dimensions, cells }
     }
 
+    pub fn get_dimensions(&self) -> Dimensions {
+        self.dimensions
+    }
+
     pub fn get(&self, position: Position) -> Option<&T> {
         if !self.dimensions.contains(position) {
             return None;
@@ -34,13 +38,16 @@ impl<T: Clone> Grid<T> {
     }
 
     pub fn is_position_occupied(&self, position: Position) -> bool {
-        if !self.dimensions.contains(position) {
+        self.is_xy_occupied(position.x, position.y)
+    }
+
+    pub fn is_xy_occupied(&self, x: i32, y: i32) -> bool {
+        if x < 0 || x >= self.dimensions.width as i32 || y < 0 || y >= self.dimensions.height as i32
+        {
             return false;
         }
 
-        let x = position.x as usize;
-        let y = position.y as usize;
-        self.cells[y][x].is_some()
+        self.cells[y as usize][x as usize].is_some()
     }
 
     pub fn clear(&mut self) {
@@ -49,10 +56,6 @@ impl<T: Clone> Grid<T> {
                 *cell = None;
             }
         }
-    }
-
-    pub fn get_dimensions(&self) -> Dimensions {
-        self.dimensions
     }
 }
 

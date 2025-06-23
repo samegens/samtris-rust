@@ -1,4 +1,5 @@
 use crate::common::Dimensions;
+use crate::common::Grid;
 use crate::common::Position;
 use crate::constants::*;
 use crate::graphics::PlayfieldView;
@@ -6,17 +7,18 @@ use crate::tetromino::TetrominoGenerator;
 use crate::tetromino::TetrominoInstance;
 use crate::tetromino::TetrominoType;
 
+pub type PlayfieldGrid = Grid<TetrominoType>;
+
 pub struct Playfield<T: TetrominoGenerator> {
     dimensions: Dimensions,
-    grid: Vec<Vec<Option<TetrominoType>>>,
+    grid: PlayfieldGrid,
     current_tetromino: Option<TetrominoInstance>,
     tetromino_generator: T,
 }
 
 impl<T: TetrominoGenerator> Playfield<T> {
     pub fn new(dimensions: Dimensions, tetromino_generator: T) -> Self {
-        let grid: Vec<Vec<Option<TetrominoType>>> =
-            vec![vec![None; dimensions.width as usize]; dimensions.height as usize];
+        let grid = PlayfieldGrid::new(dimensions);
         Self {
             dimensions,
             grid,
@@ -35,14 +37,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
     #[cfg(test)]
     pub fn get_tetromino_type_at(&self, position: Position) -> Option<TetrominoType> {
-        if !self.dimensions.contains(position) {
-            return None;
-        }
-
-        let x = position.x as usize;
-        let y = position.y as usize;
-
-        self.grid[y][x]
+        self.grid.get(position).copied()
     }
 
     pub fn get_view(&self) -> PlayfieldView {
@@ -54,18 +49,11 @@ impl<T: TetrominoGenerator> Playfield<T> {
     }
 
     pub fn is_position_occupied(&self, position: Position) -> bool {
-        if !self.dimensions.contains(position) {
-            return false;
-        }
-
-        let x = position.x as u32;
-        let y = position.y as u32;
-
-        self.is_xy_occupied(x, y)
+        self.grid.is_position_occupied(position)
     }
 
-    fn is_xy_occupied(&self, x: u32, y: u32) -> bool {
-        self.grid[y as usize][x as usize].is_some()
+    fn is_xy_occupied(&self, x: i32, y: i32) -> bool {
+        self.grid.is_xy_occupied(x, y)
     }
 
     pub fn spawn_tetromino(&mut self) -> bool {
@@ -106,10 +94,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
         for position in world_blocks {
             if self.dimensions.contains(position) {
-                let x = position.x as usize;
-                let y = position.y as usize;
-
-                self.grid[y][x] = Some(tetromino_type);
+                self.grid.set(position, Some(tetromino_type));
             }
         }
 
@@ -134,12 +119,11 @@ impl<T: TetrominoGenerator> Playfield<T> {
     }
 
     fn is_line_full(&self, y: u32) -> bool {
-        (0..self.dimensions.width).all(|x| self.is_xy_occupied(x, y))
+        (0..self.dimensions.width).all(|x| self.is_xy_occupied(x as i32, y as i32))
     }
 
     pub fn clear(&mut self) {
-        self.grid =
-            vec![vec![None; self.dimensions.width as usize]; self.dimensions.height as usize];
+        self.grid.clear();
     }
 }
 

@@ -1,26 +1,16 @@
 use crate::common::{Dimensions, Position};
+use crate::playfield::PlayfieldGrid;
 use crate::tetromino::{TetrominoInstance, TetrominoType};
 
 pub struct PlayfieldView<'a> {
     pub dimensions: Dimensions,
-    pub grid: &'a Vec<Vec<Option<TetrominoType>>>,
+    pub grid: &'a PlayfieldGrid,
     pub current_tetromino: Option<&'a TetrominoInstance>,
 }
 
 impl<'a> PlayfieldView<'a> {
     pub fn is_position_occupied(&self, position: Position) -> bool {
-        if !self.dimensions.contains(position) {
-            return false;
-        }
-
-        let x = position.x as u32;
-        let y = position.y as u32;
-
-        self.is_xy_occupied(x, y)
-    }
-
-    fn is_xy_occupied(&self, x: u32, y: u32) -> bool {
-        self.grid[y as usize][x as usize].is_some()
+        self.grid.is_position_occupied(position)
     }
 
     pub fn get_tetromino_type_at(&self, position: Position) -> Option<TetrominoType> {
@@ -28,10 +18,7 @@ impl<'a> PlayfieldView<'a> {
             return None;
         }
 
-        let x = position.x as usize;
-        let y = position.y as usize;
-
-        self.grid[y][x]
+        self.grid.get(position).copied()
     }
 }
 
@@ -44,8 +31,8 @@ mod tests {
     fn is_position_occupied_returns_true_for_occupied_position() {
         // Arrange
         let dimensions = Dimensions::new(3, 3);
-        let mut grid = vec![vec![None; 3]; 3];
-        grid[1][1] = Some(TetrominoType::O);
+        let mut grid = PlayfieldGrid::new(dimensions);
+        grid.set(Position::new(1, 1), Some(TetrominoType::O));
         let sut = PlayfieldView {
             dimensions,
             grid: &grid,
@@ -63,7 +50,7 @@ mod tests {
     fn is_position_occupied_returns_false_for_out_of_bounds() {
         // Arrange
         let dimensions = Dimensions::new(3, 3);
-        let grid = vec![vec![None; 3]; 3];
+        let grid = PlayfieldGrid::new(dimensions);
         let sut = PlayfieldView {
             dimensions,
             grid: &grid,
@@ -81,8 +68,8 @@ mod tests {
     fn get_tetromino_type_at_returns_correct_type() {
         // Arrange
         let dimensions = Dimensions::new(3, 3);
-        let mut grid = vec![vec![None; 3]; 3];
-        grid[1][2] = Some(TetrominoType::T);
+        let mut grid = PlayfieldGrid::new(dimensions);
+        grid.set(Position::new(2, 1), Some(TetrominoType::T));
         let sut = PlayfieldView {
             dimensions,
             grid: &grid,
@@ -100,7 +87,7 @@ mod tests {
     fn get_tetromino_type_at_returns_none_for_out_of_bounds() {
         // Arrange
         let dimensions = Dimensions::new(3, 3);
-        let grid = vec![vec![None; 3]; 3];
+        let grid = PlayfieldGrid::new(dimensions);
         let sut = PlayfieldView {
             dimensions,
             grid: &grid,
