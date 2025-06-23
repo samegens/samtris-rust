@@ -58,6 +58,16 @@ impl PlayfieldGrid {
             }
         }
     }
+
+    pub fn get_full_lines(&self) -> Vec<u32> {
+        (0..self.dimensions.height)
+            .filter(|&y| self.is_line_full(y))
+            .collect()
+    }
+
+    fn is_line_full(&self, y: u32) -> bool {
+        (0..self.dimensions.width).all(|x| self.is_xy_occupied(x as i32, y as i32))
+    }
 }
 
 #[cfg(test)]
@@ -159,5 +169,34 @@ mod tests {
         assert!(!sut.is_position_occupied(Position::new(1, 1)));
         assert_eq!(sut.get(Position::new(0, 0)), None);
         assert_eq!(sut.get(Position::new(1, 1)), None);
+    }
+
+    #[test]
+    fn find_full_lines_returns_empty_for_empty_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(10, 20);
+        let sut = PlayfieldGrid::new(dimensions);
+
+        // Act
+        let full_lines = sut.get_full_lines();
+
+        // Assert
+        assert!(full_lines.is_empty());
+    }
+
+    #[test]
+    fn find_full_lines_detects_single_multiple_lines_in_small_playfield() {
+        // Arrange
+        let dimensions = Dimensions::new(1, 4);
+        let mut sut = PlayfieldGrid::new(dimensions);
+        for y in 0..4 {
+            sut.set(Position::new(0, y), Some(TetrominoType::I));
+        }
+
+        // Act
+        let full_lines = sut.get_full_lines();
+
+        // Assert
+        assert_eq!(full_lines, vec![0, 1, 2, 3]);
     }
 }
