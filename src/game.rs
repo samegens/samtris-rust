@@ -95,8 +95,9 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 
     pub fn update(&mut self, delta_time: Duration) {
         if let GameState::Playing = self.game_state {
-            self.playfield.update(delta_time);
-            // TODO: handle play state
+            if self.playfield.update(delta_time) == PlayfieldState::GameOver {
+                self.game_state = GameState::GameOver;
+            }
         }
     }
 
@@ -366,5 +367,19 @@ mod tests {
             .unwrap()
             .get_position();
         assert_eq!(current_position, initial_position); // Tetromino didn't move
+    }
+
+    #[test]
+    fn game_over_from_playfield_results_in_game_state_game_over() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.spawn_tetromino();
+        sut.playfield.set_state(PlayfieldState::GameOver);
+
+        // Act
+        sut.update(Duration::from_millis(1000));
+
+        // Assert
+        assert_eq!(sut.game_state, GameState::GameOver);
     }
 }
