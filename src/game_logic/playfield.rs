@@ -120,20 +120,18 @@ impl<T: TetrominoGenerator> Playfield<T> {
 mod tests {
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
-    use crate::test_helpers::{self};
-    use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
+    use crate::test_helpers::*;
+    use crate::tetromino::TetrominoDefinitions;
     use rstest::rstest;
 
     #[test]
     fn new_playfield_has_correct_dimensions() {
-        // Arrange
-        let dimensions = Dimensions::new(7, 11);
-
         // Act
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
 
         // Assert
-        assert_eq!(sut.dimensions, dimensions);
+        let expected_dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+        assert_eq!(sut.dimensions, expected_dimensions);
     }
 
     #[rstest]
@@ -143,8 +141,7 @@ mod tests {
     #[case(Position::new(0, 20))]
     fn get_tetromino_type_at_handles_out_of_bounds(#[case] position: Position) {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
 
         // Act
         let result: Option<TetrominoType> = sut.get_tetromino_type_at(position);
@@ -156,8 +153,7 @@ mod tests {
     #[test]
     fn get_tetromino_type_at_handles_unoccupied_position() {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y);
 
         // Act
@@ -175,7 +171,7 @@ mod tests {
     fn get_tetromino_type_at_handles_occupied_position(#[case] position: Position) {
         // Arrange
         let dimensions = Dimensions::new(4, 4);
-        let mut sut = create_test_playfield(dimensions);
+        let mut sut = create_test_playfield_with_dimensions(dimensions);
         let spawn_position = Position::new(0, 0);
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, spawn_position, &definitions);
@@ -196,8 +192,7 @@ mod tests {
     #[case(Position::new(0, 20))]
     fn is_position_occupied_handles_out_of_bounds(#[case] position: Position) {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
 
         // Act
         let result = sut.is_position_occupied(position);
@@ -209,8 +204,7 @@ mod tests {
     #[test]
     fn place_tetromino_marks_all_block_positions_occupied() {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let mut sut = create_test_playfield(dimensions);
+        let mut sut = create_test_playfield();
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(5, 5), &definitions);
         sut.set_current_tetromino(Some(tetromino));
@@ -230,8 +224,7 @@ mod tests {
     #[test]
     fn can_place_tetromino_returns_true_on_empty_playfield() {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(4, 4), &definitions);
 
@@ -257,8 +250,7 @@ mod tests {
         #[case] expected_can_place: bool,
     ) {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let sut = create_test_playfield(dimensions);
+        let sut = create_test_playfield();
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, position, &definitions);
 
@@ -285,8 +277,7 @@ mod tests {
         #[case] expected_can_place: bool,
     ) {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let mut sut = create_test_playfield(dimensions);
+        let mut sut = create_test_playfield();
         let definitions = TetrominoDefinitions::new();
         let first_tetromino =
             TetrominoInstance::new(TetrominoType::O, first_position, &definitions);
@@ -305,8 +296,7 @@ mod tests {
     #[test]
     fn clear_removes_all_placed_pieces() {
         // Arrange
-        let dimensions = Dimensions::new(10, 20);
-        let mut sut = create_test_playfield(dimensions);
+        let mut sut = create_test_playfield();
         let definitions = TetrominoDefinitions::new();
         let tetromino = TetrominoInstance::new(TetrominoType::O, Position::new(2, 2), &definitions);
         sut.set_current_tetromino(Some(tetromino));
@@ -316,8 +306,8 @@ mod tests {
         sut.clear();
 
         // Assert
-        for y in 0..dimensions.height {
-            for x in 0..dimensions.width {
+        for y in 0..sut.dimensions.height {
+            for x in 0..sut.dimensions.width {
                 assert!(!sut.is_position_occupied(Position::new(x as i32, y as i32)));
             }
         }
@@ -326,7 +316,7 @@ mod tests {
     #[test]
     fn can_spawn_piece_in_new_playfield() {
         // Arrange
-        let mut sut = test_helpers::create_test_playfield();
+        let mut sut = create_test_playfield();
 
         // Act
         let result: bool = sut.spawn_tetromino();
@@ -339,7 +329,7 @@ mod tests {
     #[test]
     fn cant_spawn_piece_on_top_of_occupied_blocks() {
         // Arrange
-        let mut sut = test_helpers::create_test_playfield();
+        let mut sut = create_test_playfield();
         sut.spawn_tetromino();
         sut.lock_tetromino();
 
@@ -350,7 +340,44 @@ mod tests {
         assert!(!result);
     }
 
-    fn create_test_playfield(dimensions: Dimensions) -> Playfield<FixedTetrominoGenerator> {
-        Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
+    #[rstest]
+    #[case(|t: &mut TetrominoInstance| t.move_left(), -1, 0, 0)]
+    #[case(|t: &mut TetrominoInstance| t.move_right(), 1, 0, 0)]
+    #[case(|t: &mut TetrominoInstance| t.move_down(), 0, 1, 0)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_clockwise(), 0, 0, 1)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_counterclockwise(), 0, 0, 3)]
+    fn can_move_tetromino_when_no_collision<F>(
+        #[case] move_fn: F,
+        #[case] expected_x_delta: i32,
+        #[case] expected_y_delta: i32,
+        #[case] expected_rotation_index: usize,
+    ) where
+        F: FnOnce(&mut TetrominoInstance),
+    {
+        // Arrange
+        let mut sut = create_test_playfield_with_specific_type(TetrominoType::T);
+        sut.spawn_tetromino();
+        let initial_position = get_tetromino_start_position();
+
+        // Act
+        let result = sut.try_move_current_tetromino(move_fn);
+
+        // Assert
+        assert!(result);
+
+        let current_tetromino = sut.get_current_tetromino().unwrap();
+        let new_position = current_tetromino.get_position();
+        let expected_position = Position::new(
+            initial_position.x + expected_x_delta,
+            initial_position.y + expected_y_delta,
+        );
+        assert_eq!(new_position, expected_position);
+
+        let new_rotation_index: usize = current_tetromino.get_rotation_index().into();
+        assert_eq!(new_rotation_index, expected_rotation_index);
     }
+
+    // fn create_test_playfield(dimensions: Dimensions) -> Playfield<FixedTetrominoGenerator> {
+    //     Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
+    // }
 }

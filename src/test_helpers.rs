@@ -26,6 +26,12 @@ pub fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
     create_test_playfield_with_specific_type(TetrominoType::O)
 }
 
+pub fn create_test_playfield_with_dimensions(
+    dimensions: Dimensions,
+) -> Playfield<FixedTetrominoGenerator> {
+    Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
+}
+
 pub fn create_test_playfield_with_specific_type(
     tetromino_type: TetrominoType,
 ) -> Playfield<FixedTetrominoGenerator> {
