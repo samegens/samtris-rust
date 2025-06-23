@@ -486,29 +486,27 @@ mod tests {
     }
 
     #[rstest]
-    #[case(|t: &mut TetrominoInstance| t.move_left(), -1, 0, 0)]
-    #[case(|t: &mut TetrominoInstance| t.move_right(), 1, 0, 0)]
-    #[case(|t: &mut TetrominoInstance| t.move_down(), 0, 1, 0)]
-    #[case(|t: &mut TetrominoInstance| t.rotate_clockwise(), 0, 0, 1)]
-    #[case(|t: &mut TetrominoInstance| t.rotate_counterclockwise(), 0, 0, 3)]
-    fn can_move_tetromino_when_no_collision<F>(
-        #[case] move_fn: F,
+    #[case(GameInput::MoveLeft, -1, 0, 0)]
+    #[case(GameInput::MoveRight, 1, 0, 0)]
+    #[case(GameInput::MoveDown, 0, 1, 0)]
+    #[case(GameInput::RotateClockwise, 0, 0, 1)]
+    #[case(GameInput::RotateCounterclockwise, 0, 0, 3)]
+    fn can_move_tetromino_when_no_collision(
+        #[case] move_input: GameInput,
         #[case] expected_x_delta: i32,
         #[case] expected_y_delta: i32,
         #[case] expected_rotation_index: usize,
-    ) where
-        F: FnOnce(&mut TetrominoInstance),
-    {
+    ) {
         // Arrange
         let mut sut = create_test_playfield_with_specific_type(TetrominoType::T);
         sut.spawn_tetromino();
         let initial_position = get_tetromino_start_position();
 
         // Act
-        let result = sut.try_move_current_tetromino(move_fn);
+        let result = sut.handle_input(move_input);
 
         // Assert
-        assert!(result);
+        assert_eq!(result, PlayfieldState::Playing);
 
         let current_tetromino = sut.get_current_tetromino().unwrap();
         let new_position = current_tetromino.get_position();
