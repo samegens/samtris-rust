@@ -242,7 +242,6 @@ mod tests {
     use crate::test_helpers::*;
     use crate::tetromino::{FixedTetrominoGenerator, TetrominoDefinitions};
     use crate::tetromino::{TetrominoInstance, TetrominoType};
-    use rstest::rstest;
     use std::time::Duration;
 
     #[test]
@@ -271,33 +270,6 @@ mod tests {
         // Assert
         let expected_game_state = GameState::Playing;
         assert_eq!(result, &expected_game_state);
-    }
-
-    #[rstest]
-    #[case(GameInput::MoveLeft, TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
-    #[case(GameInput::MoveRight, TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
-    #[case(GameInput::MoveDown, TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4)]
-    #[case(GameInput::RotateClockwise, TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
-    #[case(GameInput::RotateCounterclockwise, TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
-    fn cant_move_tetromino_when_blocks_are_in_the_way(
-        #[case] game_input: GameInput,
-        #[case] x_of_blocking_tetromino: i32,
-        #[case] y_of_blocking_tetromino: i32,
-    ) {
-        // Arrange
-        let mut playfield = create_test_playfield_with_specific_type(TetrominoType::I);
-        let position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
-        let tetromino = create_tetromino_instance_at(TetrominoType::I, position);
-        playfield.set_current_tetromino(Some(tetromino));
-        playfield.lock_tetromino();
-        let mut sut = create_test_game_with_playfield(playfield);
-        sut.spawn_tetromino();
-
-        // Act
-        let result = sut.handle_input(game_input);
-
-        // Assert
-        assert!(!result);
     }
 
     #[test]

@@ -377,7 +377,40 @@ mod tests {
         assert_eq!(new_rotation_index, expected_rotation_index);
     }
 
-    // fn create_test_playfield(dimensions: Dimensions) -> Playfield<FixedTetrominoGenerator> {
-    //     Playfield::new(dimensions, FixedTetrominoGenerator::new(TetrominoType::O))
-    // }
+    #[rstest]
+    #[case(|t: &mut TetrominoInstance| t.move_left(), TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.move_right(), TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.move_down(), TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_clockwise(), TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_counterclockwise(), TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
+    fn cant_move_tetromino_when_blocks_are_in_the_way<F>(
+        #[case] move_fn: F,
+        #[case] x_of_blocking_tetromino: i32,
+        #[case] y_of_blocking_tetromino: i32,
+    ) where
+        F: FnOnce(&mut TetrominoInstance),
+    {
+        // Arrange
+        let mut sut = create_test_playfield_with_specific_type(TetrominoType::I);
+
+        // Place blocking tetromino
+        let blocking_position = Position::new(x_of_blocking_tetromino, y_of_blocking_tetromino);
+        let blocking_tetromino = create_tetromino_instance_at(TetrominoType::I, blocking_position);
+        sut.set_current_tetromino(Some(blocking_tetromino));
+        sut.lock_tetromino();
+
+        // Spawn new tetromino
+        sut.spawn_tetromino();
+        let initial_position = sut.get_current_tetromino().unwrap().get_position();
+
+        // Act
+        let result = sut.try_move_current_tetromino(move_fn);
+
+        // Assert
+        assert!(!result);
+
+        // Verify tetromino didn't move
+        let final_position = sut.get_current_tetromino().unwrap().get_position();
+        assert_eq!(final_position, initial_position);
+    }
 }
