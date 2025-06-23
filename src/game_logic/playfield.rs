@@ -1,7 +1,7 @@
 use crate::common::Dimensions;
-use crate::common::Grid;
 use crate::common::Position;
 use crate::constants::*;
+use crate::game_logic::Grid;
 use crate::graphics::PlayfieldView;
 use crate::tetromino::TetrominoGenerator;
 use crate::tetromino::TetrominoInstance;
