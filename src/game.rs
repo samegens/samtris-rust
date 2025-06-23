@@ -216,7 +216,6 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
                 full_lines,
             };
-            self.playfield.set_current_tetromino(None);
         } else {
             self.spawn_tetromino();
         }
