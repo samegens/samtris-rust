@@ -43,6 +43,7 @@ impl EventBus {
     fn get_event_type(&self, event: &Event) -> EventType {
         match event {
             Event::LevelStarted(_) => EventType::LevelStarted,
+            Event::LinesCleared(_) => EventType::LinesCleared,
         }
     }
 }
@@ -88,8 +89,9 @@ mod tests {
         let received_clone = received_level.clone();
 
         sut.subscribe(EventType::LevelStarted, move |event| {
-            let Event::LevelStarted(level) = event;
-            *received_clone.lock().unwrap() = Some(*level);
+            if let Event::LevelStarted(level) = event {
+                *received_clone.lock().unwrap() = Some(*level);
+            }
         });
 
         // Act

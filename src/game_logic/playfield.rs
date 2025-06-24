@@ -149,10 +149,12 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
         let full_lines = self.grid.get_full_lines();
         if !full_lines.is_empty() {
+            let nr_full_lines = full_lines.len() as u32;
             self.state = PlayfieldState::AnimatingLines {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
                 full_lines,
             };
+            self.event_bus.publish(Event::LinesCleared(nr_full_lines));
         } else {
             return self.spawn_tetromino();
         }
@@ -271,12 +273,21 @@ impl<T: TetrominoGenerator> Playfield<T> {
     pub fn set_state(&mut self, state: PlayfieldState) {
         self.state = state;
     }
+
+    #[cfg(test)]
+    fn fill_row(&mut self, y: i32, tetromino_type: TetrominoType) {
+        for x in 0..self.dimensions.width {
+            let position = Position::new(x as i32, y);
+            self.grid.set(position, Some(tetromino_type));
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
+    use crate::events::TestEventBusWrapper;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use rstest::rstest;
@@ -746,5 +757,20 @@ mod tests {
         // Assert
         assert!(!sut.grid.is_position_occupied(Position::new(0, 19)));
         assert!(!sut.grid.is_position_occupied(Position::new(1, 19)));
+    }
+
+    #[test]
+    fn lock_tetromino_publishes_lines_cleared_event_when_lines_are_full() {
+        // Arrange
+        let test_event_bus_wrapper = TestEventBusWrapper::new();
+        let mut sut = create_test_playfield_with_event_bus(test_event_bus_wrapper.get_event_bus());
+        sut.fill_row(PLAYFIELD_HEIGHT as i32 - 1, TetrominoType::I);
+        sut.spawn_tetromino();
+
+        // Act
+        sut.harddrop_tetromino();
+
+        // Assert
+        test_event_bus_wrapper.assert_event_published(Event::LinesCleared(1));
     }
 }

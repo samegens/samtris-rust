@@ -13,22 +13,33 @@ pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
     playfield_renderer: R,
     game_state: GameState,
     level: Arc<Mutex<u32>>,
+    total_lines_cleared: Arc<Mutex<u32>>,
 }
 
 impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     pub fn new(playfield: Playfield<T>, playfield_renderer: R, event_bus: Arc<EventBus>) -> Self {
         let level = Arc::new(Mutex::new(0u32));
         let level_clone = level.clone();
-
         event_bus.subscribe(EventType::LevelStarted, move |event| {
-            let Event::LevelStarted(level) = event;
-            *level_clone.lock().unwrap() = *level;
+            if let Event::LevelStarted(level) = event {
+                *level_clone.lock().unwrap() = *level;
+            }
         });
+
+        let total_lines_cleared = Arc::new(Mutex::new(0u32));
+        let lines_clone = total_lines_cleared.clone();
+        event_bus.subscribe(EventType::LinesCleared, move |event| {
+            if let Event::LinesCleared(lines) = event {
+                *lines_clone.lock().unwrap() += *lines;
+            }
+        });
+
         Self {
             playfield,
             playfield_renderer,
             game_state: GameState::Playing,
             level,
+            total_lines_cleared,
         }
     }
 
@@ -85,6 +96,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         )?;
 
         self.draw_level(display)?;
+        self.draw_total_lines_cleared(display)?;
 
         if self.game_state == GameState::GameOver {
             self.draw_game_over(display)?;
@@ -98,6 +110,12 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     fn draw_level<D: Display>(&self, display: &mut D) -> Result<(), String> {
         let level = *self.level.lock().unwrap() + 1;
         display.draw_text(&format!("Level: {}", level), 10, 10, Color::WHITE)?;
+        Ok(())
+    }
+
+    fn draw_total_lines_cleared<D: Display>(&self, display: &mut D) -> Result<(), String> {
+        let total_lines = *self.total_lines_cleared.lock().unwrap();
+        display.draw_text(&format!("Lines: {}", total_lines), 10, 30, Color::WHITE)?;
         Ok(())
     }
 
@@ -140,7 +158,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 mod tests {
     use super::*;
     use crate::common::{Dimensions, Position};
-    use crate::graphics::MockDisplay;
+    use crate::graphics::{MockDisplay, MockPlayfieldRenderer};
     use crate::gui::game_input::GameInput;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
@@ -402,5 +420,52 @@ mod tests {
 
         // Assert
         assert_eq!(sut.game_state, GameState::GameOver);
+    }
+
+    #[test]
+    fn game_accumulates_total_lines_cleared_across_multiple_events() {
+        // Arrange
+        let event_bus = Arc::new(EventBus::new());
+        let playfield = create_test_playfield_with_event_bus(event_bus.clone());
+        let sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_bus.clone());
+
+        // Act
+        event_bus.publish(Event::LinesCleared(2));
+        event_bus.publish(Event::LinesCleared(1));
+        event_bus.publish(Event::LinesCleared(4));
+
+        // Assert
+        assert_eq!(*sut.total_lines_cleared.lock().unwrap(), 2 + 1 + 4);
+    }
+
+    #[test]
+    fn draw_displays_current_level_and_lines_cleared() {
+        // Arrange
+        let event_bus = Arc::new(EventBus::new());
+        let playfield = create_test_playfield_with_event_bus(event_bus.clone());
+        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_bus.clone());
+        let mut display = MockDisplay::new();
+
+        // Simulate some events
+        event_bus.publish(Event::LevelStarted(2));
+        event_bus.publish(Event::LinesCleared(5));
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+
+        let level_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "Level: 3");
+        assert!(level_text_drawn, "Level text not found in drawn text");
+
+        let lines_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "Lines: 5");
+        assert!(lines_text_drawn, "Lines text not found in drawn text");
     }
 }
