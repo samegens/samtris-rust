@@ -1,23 +1,34 @@
 use crate::constants::*;
+use crate::events::{Event, EventBus, EventType};
 use crate::game_logic::GameState;
 use crate::game_logic::{Playfield, PlayfieldState};
 use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gui::GameInput;
 use crate::tetromino::TetrominoGenerator;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
     playfield: Playfield<T>,
     playfield_renderer: R,
     game_state: GameState,
+    level: Arc<Mutex<u32>>,
 }
 
 impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
-    pub fn new(playfield: Playfield<T>, playfield_renderer: R) -> Self {
+    pub fn new(playfield: Playfield<T>, playfield_renderer: R, event_bus: Arc<EventBus>) -> Self {
+        let level = Arc::new(Mutex::new(0u32));
+        let level_clone = level.clone();
+
+        event_bus.subscribe(EventType::LevelStarted, move |event| {
+            let Event::LevelStarted(level) = event;
+            *level_clone.lock().unwrap() = *level;
+        });
         Self {
             playfield,
             playfield_renderer,
             game_state: GameState::Playing,
+            level,
         }
     }
 
@@ -73,6 +84,8 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
             display,
         )?;
 
+        self.draw_level(display)?;
+
         if self.game_state == GameState::GameOver {
             self.draw_game_over(display)?;
         }
@@ -80,6 +93,10 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
         display.present()?;
 
         Ok(())
+    }
+
+    fn draw_level<D: Display>(&self, display: &mut D) -> Result<(), String> {
+        
     }
 
     pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {

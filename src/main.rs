@@ -125,7 +125,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         RandomTetrominoGenerator::new(),
         event_bus.clone(),
     );
-    let mut game = Game::new(playfield, GraphicsPlayfieldRenderer::new());
+    let mut game = Game::new(
+        playfield,
+        GraphicsPlayfieldRenderer::new(),
+        event_bus.clone(),
+    );
     game.start_level(0);
 
     let mut game_timer = GameTimer::new();

@@ -22,7 +22,7 @@ pub fn create_test_game(tetromino_type: TetrominoType) -> TestGame {
 }
 
 pub fn create_test_game_with_playfield(playfield: Playfield<FixedTetrominoGenerator>) -> TestGame {
-    Game::new(playfield, MockPlayfieldRenderer::new())
+    Game::new(playfield, MockPlayfieldRenderer::new(), Arc::new(EventBus::new()))
 }
 
 pub fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
