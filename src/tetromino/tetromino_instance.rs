@@ -12,8 +12,6 @@ pub struct TetrominoInstance {
     rotation_index: RotationIndex,
 }
 
-//TODO: remove allow dead_code when TetrominoDefinition is used by application code
-#[allow(dead_code)]
 impl TetrominoInstance {
     pub fn new(
         tetromino_type: TetrominoType,
@@ -34,10 +32,12 @@ impl TetrominoInstance {
         self.tetromino_type
     }
 
+    #[cfg(test)]
     pub fn get_position(&self) -> Position {
         self.position
     }
 
+    #[cfg(test)]
     pub fn get_rotation_index(&self) -> RotationIndex {
         self.rotation_index
     }

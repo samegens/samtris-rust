@@ -10,8 +10,6 @@ pub struct GravityTimer {
     level: u32,
 }
 
-// TODO: remove allow dead code when all functions from GravityTimer are used by game.
-#[allow(dead_code)]
 impl GravityTimer {
     pub fn new(level: u32) -> Self {
         Self {
@@ -42,6 +40,7 @@ impl GravityTimer {
         self.level = Self::cap_level(level);
     }
 
+    #[cfg(test)]
     pub fn get_level(&self) -> u32 {
         self.level
     }

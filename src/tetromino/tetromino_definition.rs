@@ -8,8 +8,6 @@ pub struct TetrominoDefinition {
     rotations: Vec<Vec<Vec<u8>>>,
 }
 
-//TODO: remove allow dead_code when TetrominoDefinition is used by application code
-#[allow(dead_code)]
 impl TetrominoDefinition {
     pub fn new(tetromino_type: TetrominoType, rotations: Vec<Vec<Vec<u8>>>) -> Self {
         Self {
@@ -18,6 +16,7 @@ impl TetrominoDefinition {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_type(&self) -> TetrominoType {
         self.tetromino_type
     }
@@ -194,6 +193,7 @@ impl TetrominoDefinition {
         )
     }
 
+    #[cfg(test)]
     pub fn has_block_at(&self, position: Position, rotation_index: RotationIndex) -> bool {
         if usize::from(rotation_index) >= self.rotations.len() {
             return false;
