@@ -1,5 +1,5 @@
 mod event;
-mod event_bus;
+mod event_queue;
 
 pub use event::*;
-pub use event_bus::*;
+pub use event_queue::*;

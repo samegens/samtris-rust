@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::common::{Dimensions, Position};
 use crate::constants::*;
-use crate::events::EventBus;
+use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::Playfield;
 use crate::graphics::MockPlayfieldRenderer;
@@ -25,7 +25,7 @@ pub fn create_test_game_with_playfield(playfield: Playfield<FixedTetrominoGenera
     Game::new(
         playfield,
         MockPlayfieldRenderer::new(),
-        Arc::new(EventBus::new()),
+        Arc::new(EventQueue::new()),
     )
 }
 
@@ -33,21 +33,21 @@ pub fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
     create_test_playfield_with_specific_type(TetrominoType::O)
 }
 
-pub fn create_test_playfield_with_event_bus(
-    event_bus: Arc<EventBus>,
+pub fn create_test_playfield_with_event_queue(
+    event_queue: Arc<EventQueue>,
 ) -> Playfield<FixedTetrominoGenerator> {
     let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
     Playfield::new(
         dimensions,
         FixedTetrominoGenerator::new(TetrominoType::O),
-        event_bus,
+        event_queue,
     )
 }
 
 pub fn create_test_playfield_with_dimensions(
     dimensions: Dimensions,
 ) -> Playfield<FixedTetrominoGenerator> {
-    let event_bus = Arc::new(EventBus::new());
+    let event_bus = Arc::new(EventQueue::new());
     Playfield::new(
         dimensions,
         FixedTetrominoGenerator::new(TetrominoType::O),
@@ -59,7 +59,7 @@ pub fn create_test_playfield_with_specific_type(
     tetromino_type: TetrominoType,
 ) -> Playfield<FixedTetrominoGenerator> {
     let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-    let event_bus = Arc::new(EventBus::new());
+    let event_bus = Arc::new(EventQueue::new());
     Playfield::new(
         dimensions,
         FixedTetrominoGenerator::new(tetromino_type),

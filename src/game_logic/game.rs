@@ -1,45 +1,35 @@
 use crate::constants::*;
-use crate::events::{Event, EventBus, EventType};
-use crate::game_logic::GameState;
+use crate::events::{Event, EventQueue};
+use crate::game_logic::{GameState, LevelManager};
 use crate::game_logic::{Playfield, PlayfieldState};
 use crate::graphics::{Color, Display, PlayfieldRenderer};
 use crate::gui::GameInput;
 use crate::tetromino::TetrominoGenerator;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 
 pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
+    event_queue: Arc<EventQueue>,
     playfield: Playfield<T>,
     playfield_renderer: R,
     game_state: GameState,
-    level: Arc<Mutex<u32>>,
-    total_lines_cleared: Arc<Mutex<u32>>,
+    level_manager: LevelManager,
 }
 
 impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
-    pub fn new(playfield: Playfield<T>, playfield_renderer: R, event_bus: Arc<EventBus>) -> Self {
-        let level = Arc::new(Mutex::new(0u32));
-        let level_clone = level.clone();
-        event_bus.subscribe(EventType::LevelStarted, move |event| {
-            if let Event::LevelStarted(level) = event {
-                *level_clone.lock().unwrap() = *level;
-            }
-        });
-
-        let total_lines_cleared = Arc::new(Mutex::new(0u32));
-        let lines_clone = total_lines_cleared.clone();
-        event_bus.subscribe(EventType::LinesCleared, move |event| {
-            if let Event::LinesCleared(lines) = event {
-                *lines_clone.lock().unwrap() += *lines;
-            }
-        });
+    pub fn new(
+        playfield: Playfield<T>,
+        playfield_renderer: R,
+        event_queue: Arc<EventQueue>,
+    ) -> Self {
+        let level_manager = LevelManager::new(event_queue.clone());
 
         Self {
+            event_queue,
             playfield,
             playfield_renderer,
             game_state: GameState::Playing,
-            level,
-            total_lines_cleared,
+            level_manager,
         }
     }
 
@@ -108,13 +98,13 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     fn draw_level<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let level = *self.level.lock().unwrap() + 1;
+        let level = self.level_manager.get_current_level() + 1;
         display.draw_text(&format!("Level: {}", level), 10, 10, Color::WHITE)?;
         Ok(())
     }
 
     fn draw_total_lines_cleared<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let total_lines = *self.total_lines_cleared.lock().unwrap();
+        let total_lines = self.level_manager.get_total_lines_cleared();
         display.draw_text(&format!("Lines: {}", total_lines), 10, 30, Color::WHITE)?;
         Ok(())
     }
@@ -131,10 +121,19 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     pub fn update(&mut self, delta_time: Duration) {
+        self.process_event_queue();
+
         if let GameState::Playing = self.game_state {
             if self.playfield.update(delta_time) == PlayfieldState::GameOver {
                 self.game_state = GameState::GameOver;
             }
+        }
+    }
+
+    fn process_event_queue(&mut self) {
+        let events = self.event_queue.drain();
+        for event in events {
+            self.handle_event(event);
         }
     }
 
@@ -150,7 +149,19 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     pub fn start_level(&mut self, level: u32) {
+        self.level_manager.start_level(level);
         self.playfield.start_level(level);
+    }
+
+    fn handle_event(&mut self, event: crate::events::Event) {
+        match event {
+            Event::LinesCleared(nr_lines) => {
+                self.level_manager.handle_lines_cleared(nr_lines);
+            }
+            Event::LevelStarted(level) => {
+                self.playfield.start_level(level);
+            }
+        }
     }
 }
 
@@ -423,34 +434,15 @@ mod tests {
     }
 
     #[test]
-    fn game_accumulates_total_lines_cleared_across_multiple_events() {
-        // Arrange
-        let event_bus = Arc::new(EventBus::new());
-        let playfield = create_test_playfield_with_event_bus(event_bus.clone());
-        let sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_bus.clone());
-
-        // Act
-        event_bus.publish(Event::LinesCleared(2));
-        event_bus.publish(Event::LinesCleared(1));
-        event_bus.publish(Event::LinesCleared(4));
-        event_bus.process_events();
-
-        // Assert
-        assert_eq!(*sut.total_lines_cleared.lock().unwrap(), 2 + 1 + 4);
-    }
-
-    #[test]
     fn draw_displays_current_level_and_lines_cleared() {
         // Arrange
-        let event_bus = Arc::new(EventBus::new());
-        let playfield = create_test_playfield_with_event_bus(event_bus.clone());
-        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_bus.clone());
+        let event_queue = Arc::new(EventQueue::new());
+        let playfield = create_test_playfield_with_event_queue(event_queue.clone());
+        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
         let mut display = MockDisplay::new();
 
-        // Simulate some events
-        event_bus.publish(Event::LevelStarted(2));
-        event_bus.publish(Event::LinesCleared(5));
-        event_bus.process_events(); // Process the events to update the game state
+        sut.start_level(2);
+        sut.level_manager.handle_lines_cleared(5);
 
         // Act
         let result = sut.draw(&mut display);

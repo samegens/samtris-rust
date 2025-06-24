@@ -6,7 +6,7 @@ use crate::common::Dimensions;
 use crate::common::Position;
 use crate::constants::*;
 use crate::events::Event;
-use crate::events::EventBus;
+use crate::events::EventQueue;
 use crate::game_logic::GravityTimer;
 use crate::game_logic::PlayfieldGrid;
 use crate::graphics::PlayfieldView;
@@ -32,20 +32,19 @@ pub struct Playfield<T: TetrominoGenerator> {
     tetromino_generator: T,
     gravity_timer: GravityTimer,
     state: PlayfieldState,
-    event_bus: Arc<EventBus>,
+    event_bus: Arc<EventQueue>,
 }
 
 impl<T: TetrominoGenerator> Playfield<T> {
-    pub fn new(dimensions: Dimensions, tetromino_generator: T, event_bus: Arc<EventBus>) -> Self {
-        let level: u32 = 0;
-        let gravity_timer = GravityTimer::new(level);
+    pub fn new(dimensions: Dimensions, tetromino_generator: T, event_bus: Arc<EventQueue>) -> Self {
         let grid = PlayfieldGrid::new(dimensions);
+
         Self {
             dimensions,
             grid,
             current_tetromino: None,
             tetromino_generator,
-            gravity_timer,
+            gravity_timer: GravityTimer::new(0),
             state: PlayfieldState::Playing,
             event_bus,
         }
@@ -53,8 +52,9 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
     pub fn start_level(&mut self, level: u32) {
         self.gravity_timer.set_level(level);
-        self.event_bus.publish(Event::LevelStarted(level));
-        self.spawn_tetromino();
+        if self.current_tetromino.is_none() {
+            self.spawn_tetromino();
+        }
     }
 
     pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {
@@ -154,7 +154,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
                 countdown: Duration::from_millis(FILLED_LINES_ANIMATION_DURATION_MS),
                 full_lines,
             };
-            self.event_bus.publish(Event::LinesCleared(nr_full_lines));
+            self.event_bus.push_back(Event::LinesCleared(nr_full_lines));
         } else {
             return self.spawn_tetromino();
         }
@@ -285,11 +285,8 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Mutex;
-
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
-    use crate::events::EventType;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use rstest::rstest;
@@ -764,26 +761,16 @@ mod tests {
     #[test]
     fn lock_tetromino_publishes_lines_cleared_event_when_lines_are_full() {
         // Arrange
-        let event_bus = Arc::new(EventBus::new());
-        let mut sut = create_test_playfield_with_event_bus(event_bus.clone());
-
-        // Set up a "spy" to capture the LinesCleared event
-        let lines_cleared = Arc::new(Mutex::new(None));
-        let lines_spy = lines_cleared.clone();
-        event_bus.subscribe(EventType::LinesCleared, move |event| {
-            if let Event::LinesCleared(lines) = event {
-                *lines_spy.lock().unwrap() = Some(*lines);
-            }
-        });
+        let event_bus = Arc::new(EventQueue::new());
+        let mut sut = create_test_playfield_with_event_queue(event_bus.clone());
 
         sut.fill_row(PLAYFIELD_HEIGHT as i32 - 1, TetrominoType::I);
         sut.spawn_tetromino();
 
         // Act
         sut.harddrop_tetromino();
-        event_bus.process_events(); // Process the LinesCleared event
 
-        // Assert - verify the spy received the LinesCleared event
-        assert_eq!(*lines_cleared.lock().unwrap(), Some(1));
+        // Assert
+        event_bus.assert_contains(Event::LinesCleared(1));
     }
 }

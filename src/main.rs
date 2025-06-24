@@ -1,5 +1,5 @@
 use crate::constants::*;
-use crate::events::EventBus;
+use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::GameState;
 use crate::game_logic::GameTimer;
@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture, font);
 
-    let event_bus = Arc::new(EventBus::new());
+    let event_bus = Arc::new(EventQueue::new());
     let playfield = Playfield::new(
         playfield_dimensions,
         RandomTetrominoGenerator::new(),
@@ -150,8 +150,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-
-        event_bus.process_events();
 
         game.draw(&mut display)?;
 
