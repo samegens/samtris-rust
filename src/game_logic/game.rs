@@ -77,13 +77,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 
         let playfield_view = self.playfield.get_view();
 
-        self.playfield_renderer.draw(
-            &playfield_view,
-            &playfield_view.full_lines,
-            playfield_view.show_blinking_lines,
-            // TODO: remove blinking_lines and playfield_view, retrieve them from the view
-            display,
-        )?;
+        self.playfield_renderer.draw(&playfield_view, display)?;
 
         self.draw_level(display)?;
         self.draw_total_lines_cleared(display)?;

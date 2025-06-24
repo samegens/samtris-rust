@@ -40,8 +40,6 @@ impl GraphicsPlayfieldRenderer {
     fn draw_playfield_blocks<D: Display>(
         &self,
         playfield_view: &PlayfieldView,
-        blinking_lines: &[u32],
-        show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), String> {
         let x = PLAYFIELD_OFFSET_X as i32;
@@ -49,7 +47,7 @@ impl GraphicsPlayfieldRenderer {
         let playfield_position = Position::new(x, y);
 
         for y in 0..playfield_view.dimensions.height {
-            if !show_blinking_lines && blinking_lines.contains(&y) {
+            if !playfield_view.show_blinking_lines && playfield_view.full_lines.contains(&y) {
                 continue; // Skip drawing this line if blinking lines are hidden
             }
             for x in 0..playfield_view.dimensions.width {
@@ -108,12 +106,10 @@ impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
     fn draw<D: Display>(
         &self,
         playfield_view: &PlayfieldView,
-        blinking_lines: &[u32],
-        show_blinking_lines: bool,
         display: &mut D,
     ) -> Result<(), String> {
         self.draw_border(display)?;
-        self.draw_playfield_blocks(playfield_view, blinking_lines, show_blinking_lines, display)?;
+        self.draw_playfield_blocks(playfield_view, display)?;
         self.draw_current_tetromino(playfield_view.current_tetromino, display)?;
         Ok(())
     }
@@ -141,7 +137,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -158,7 +154,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -182,7 +178,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -197,7 +193,7 @@ mod tests {
         let mut display = MockDisplay::new();
 
         // Act
-        let result = sut.draw(&playfield.get_view(), &[], true, &mut display);
+        let result = sut.draw(&playfield.get_view(), &mut display);
 
         // Assert
         assert!(result.is_ok());
@@ -234,9 +230,13 @@ mod tests {
         playfield.set_current_tetromino(None);
         let sut = GraphicsPlayfieldRenderer::new();
         let mut display = MockDisplay::new();
+        let mut playfield_view = playfield.get_view();
+        playfield_view.show_blinking_lines = false;
+        playfield_view.full_lines.push(5);
+        playfield_view.full_lines.push(6);
 
         // Act
-        let result = sut.draw(&playfield.get_view(), &[5, 6], false, &mut display);
+        let result = sut.draw(&playfield_view, &mut display);
 
         // Assert
         assert!(result.is_ok());

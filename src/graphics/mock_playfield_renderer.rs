@@ -29,14 +29,12 @@ impl MockPlayfieldRenderer {
 impl PlayfieldRenderer for MockPlayfieldRenderer {
     fn draw<D: Display>(
         &self,
-        _playfield_view: &PlayfieldView,
-        blinking_lines: &[u32],
-        show_blinking_lines: bool,
+        playfield_view: &PlayfieldView,
         _display: &mut D,
     ) -> Result<(), String> {
         self.draw_calls.borrow_mut().push(DrawCall {
-            blinking_lines: blinking_lines.to_vec(),
-            show_blinking_lines,
+            blinking_lines: playfield_view.full_lines.to_vec(),
+            show_blinking_lines: playfield_view.show_blinking_lines,
         });
         Ok(())
     }
