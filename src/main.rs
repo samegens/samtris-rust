@@ -117,7 +117,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .load_texture_bytes(png_data)
         .expect("Failed to load embedded tetrominos texture");
 
-    let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture);
+    let ttf_context = sdl2::ttf::init().unwrap();
+    let font_data = include_bytes!("../assets/font.woff");
+    let font = ttf_context.load_font_from_rwops(sdl2::rwops::RWops::from_bytes(font_data)?, 16)?;
+
+    let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture, font);
 
     let event_bus = Arc::new(EventBus::new());
     let playfield = Playfield::new(

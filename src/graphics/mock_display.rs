@@ -8,6 +8,7 @@ pub struct MockDisplay {
     pub cleared: bool,
     pub drawn_blocks: Vec<(Position, TetrominoType)>,
     pub drawn_rectangles: Vec<(u32, u32, u32, u32, Color)>,
+    pub drawn_text: Vec<(String, u32, u32, Color)>,
     pub presented: bool,
 }
 
@@ -20,6 +21,7 @@ impl MockDisplay {
         self.cleared = false;
         self.drawn_blocks.clear();
         self.drawn_rectangles.clear();
+        self.drawn_text.clear();
         self.presented = false;
     }
 }
@@ -29,6 +31,7 @@ impl Display for MockDisplay {
         self.cleared = true;
         self.drawn_blocks.clear();
         self.drawn_rectangles.clear();
+        self.drawn_text.clear();
         Ok(())
     }
 
@@ -50,6 +53,11 @@ impl Display for MockDisplay {
         color: Color,
     ) -> Result<(), String> {
         self.drawn_rectangles.push((x, y, width, height, color));
+        Ok(())
+    }
+
+    fn draw_text(&mut self, text: &str, x: u32, y: u32, color: Color) -> Result<(), String> {
+        self.drawn_text.push((text.to_string(), x, y, color));
         Ok(())
     }
 

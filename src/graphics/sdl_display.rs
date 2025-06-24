@@ -6,12 +6,14 @@ use crate::tetromino::TetrominoType;
 use sdl2::pixels::Color as SdlColor;
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas, Texture};
+use sdl2::ttf::Font;
 use sdl2::video::Window;
 
 pub struct SdlDisplay<'a> {
     canvas: Canvas<Window>,
     block_size_in_pixels: u32,
     tetrominos_texture: Texture<'a>,
+    font: Font<'a, 'a>,
 }
 
 impl<'a> SdlDisplay<'a> {
@@ -19,11 +21,13 @@ impl<'a> SdlDisplay<'a> {
         canvas: Canvas<Window>,
         block_size_in_pixels: u32,
         tetrominos_texture: Texture<'a>,
+        font: Font<'a, 'a>,
     ) -> Self {
         Self {
             canvas,
             block_size_in_pixels,
             tetrominos_texture,
+            font,
         }
     }
 
@@ -84,6 +88,27 @@ impl<'a> Display for SdlDisplay<'a> {
 
         let rect = Rect::new(x as i32, y as i32, width, height);
         self.canvas.fill_rect(rect).map_err(|e| e.to_string())?;
+
+        Ok(())
+    }
+
+    fn draw_text(&mut self, text: &str, x: u32, y: u32, color: Color) -> Result<(), String> {
+        let sdl_color = self.convert_color(color);
+        let surface = self
+            .font
+            .render(text)
+            .blended(sdl_color)
+            .map_err(|e| e.to_string())?;
+
+        let texture_creator = self.canvas.texture_creator();
+        let texture = texture_creator
+            .create_texture_from_surface(&surface)
+            .map_err(|e| e.to_string())?;
+
+        let target = Rect::new(x as i32, y as i32, surface.width(), surface.height());
+        self.canvas
+            .copy(&texture, None, Some(target))
+            .map_err(|e| e.to_string())?;
 
         Ok(())
     }

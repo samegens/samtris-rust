@@ -54,6 +54,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
     pub fn start_level(&mut self, level: u32) {
         self.gravity_timer.set_level(level);
         self.event_bus.publish(Event::LevelStarted(level));
+        self.spawn_tetromino();
     }
 
     pub fn get_current_tetromino(&self) -> Option<&TetrominoInstance> {

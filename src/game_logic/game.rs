@@ -96,7 +96,9 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
     }
 
     fn draw_level<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        
+        let level = *self.level.lock().unwrap() + 1;
+        display.draw_text(&format!("Level: {}", level), 10, 10, Color::WHITE)?;
+        Ok(())
     }
 
     pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {

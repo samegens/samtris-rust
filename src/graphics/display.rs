@@ -21,5 +21,7 @@ pub trait Display {
         color: Color,
     ) -> Result<(), String>;
 
+    fn draw_text(&mut self, text: &str, x: u32, y: u32, color: Color) -> Result<(), String>;
+
     fn present(&mut self) -> Result<(), String>;
 }
