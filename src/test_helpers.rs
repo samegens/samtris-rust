@@ -22,14 +22,20 @@ pub fn create_test_game(tetromino_type: TetrominoType) -> TestGame {
 }
 
 pub fn create_test_game_with_playfield(playfield: Playfield<FixedTetrominoGenerator>) -> TestGame {
-    Game::new(playfield, MockPlayfieldRenderer::new(), Arc::new(EventBus::new()))
+    Game::new(
+        playfield,
+        MockPlayfieldRenderer::new(),
+        Arc::new(EventBus::new()),
+    )
 }
 
 pub fn create_test_playfield() -> Playfield<FixedTetrominoGenerator> {
     create_test_playfield_with_specific_type(TetrominoType::O)
 }
 
-pub fn create_test_playfield_with_event_bus(event_bus: Arc<EventBus>) -> Playfield<FixedTetrominoGenerator> {
+pub fn create_test_playfield_with_event_bus(
+    event_bus: Arc<EventBus>,
+) -> Playfield<FixedTetrominoGenerator> {
     let dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
     Playfield::new(
         dimensions,
