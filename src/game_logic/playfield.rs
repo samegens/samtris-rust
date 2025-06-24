@@ -285,9 +285,11 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Mutex;
+
     use super::*;
     use crate::constants::{TETRIS_SPAWN_X, TETRIS_SPAWN_Y};
-    use crate::events::TestEventBusWrapper;
+    use crate::events::EventType;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use rstest::rstest;
@@ -762,15 +764,26 @@ mod tests {
     #[test]
     fn lock_tetromino_publishes_lines_cleared_event_when_lines_are_full() {
         // Arrange
-        let test_event_bus_wrapper = TestEventBusWrapper::new();
-        let mut sut = create_test_playfield_with_event_bus(test_event_bus_wrapper.get_event_bus());
+        let event_bus = Arc::new(EventBus::new());
+        let mut sut = create_test_playfield_with_event_bus(event_bus.clone());
+
+        // Set up a "spy" to capture the LinesCleared event
+        let lines_cleared = Arc::new(Mutex::new(None));
+        let lines_spy = lines_cleared.clone();
+        event_bus.subscribe(EventType::LinesCleared, move |event| {
+            if let Event::LinesCleared(lines) = event {
+                *lines_spy.lock().unwrap() = Some(*lines);
+            }
+        });
+
         sut.fill_row(PLAYFIELD_HEIGHT as i32 - 1, TetrominoType::I);
         sut.spawn_tetromino();
 
         // Act
         sut.harddrop_tetromino();
+        event_bus.process_events(); // Process the LinesCleared event
 
-        // Assert
-        test_event_bus_wrapper.assert_event_published(Event::LinesCleared(1));
+        // Assert - verify the spy received the LinesCleared event
+        assert_eq!(*lines_cleared.lock().unwrap(), Some(1));
     }
 }

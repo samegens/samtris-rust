@@ -433,6 +433,7 @@ mod tests {
         event_bus.publish(Event::LinesCleared(2));
         event_bus.publish(Event::LinesCleared(1));
         event_bus.publish(Event::LinesCleared(4));
+        event_bus.process_events();
 
         // Assert
         assert_eq!(*sut.total_lines_cleared.lock().unwrap(), 2 + 1 + 4);
@@ -449,6 +450,7 @@ mod tests {
         // Simulate some events
         event_bus.publish(Event::LevelStarted(2));
         event_bus.publish(Event::LinesCleared(5));
+        event_bus.process_events(); // Process the events to update the game state
 
         // Act
         let result = sut.draw(&mut display);

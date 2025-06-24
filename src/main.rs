@@ -151,8 +151,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        event_bus.process_events();
+
         game.draw(&mut display)?;
 
+        // This is not completely accurate, but it helps to keep the game running at a reasonably consistent frame rate.
+        // It doesn't account for the time taken to process events or draw the frame. For Tetris it's good enough.
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
