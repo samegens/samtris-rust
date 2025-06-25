@@ -52,7 +52,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
     pub fn start_level(&mut self, level: u32) {
         self.gravity_timer.set_level(level);
-        if self.current_tetromino.is_none() {
+        if self.current_tetromino.is_none() && self.state == PlayfieldState::Playing {
             self.spawn_tetromino();
         }
     }
@@ -772,5 +772,22 @@ mod tests {
 
         // Assert
         event_bus.assert_contains(Event::LinesCleared(1));
+    }
+
+    #[test]
+    fn start_level_during_line_animation_should_not_spawn_tetromino() {
+        // Arrange
+        let mut sut = create_test_playfield();
+        sut.state = PlayfieldState::AnimatingLines {
+            countdown: Duration::from_millis(500),
+            full_lines: vec![19],
+        };
+        assert!(sut.get_current_tetromino().is_none());
+
+        // Act - This should not spawn a tetromino during animation
+        sut.start_level(1);
+
+        // Assert - No tetromino should be spawned
+        assert!(sut.get_current_tetromino().is_none());
     }
 }

@@ -18,7 +18,6 @@ sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 
 ## TODO
 
-- Bug where the current tetromino changes quickly after filling a line and going to the next level
 - Add next block
 - Add score/number of lines/level
 - Add start screen
