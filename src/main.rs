@@ -4,6 +4,7 @@ use crate::game_logic::Game;
 use crate::game_logic::GameState;
 use crate::game_logic::GameTimer;
 use crate::game_logic::Playfield;
+use crate::graphics::GraphicsHudRenderer;
 use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
@@ -132,6 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut game = Game::new(
         playfield,
         GraphicsPlayfieldRenderer::new(),
+        GraphicsHudRenderer::new(),
         event_bus.clone(),
     );
     game.start_level(0);

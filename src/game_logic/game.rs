@@ -2,24 +2,26 @@ use crate::constants::*;
 use crate::events::{Event, EventQueue};
 use crate::game_logic::{GameState, LevelManager};
 use crate::game_logic::{Playfield, PlayfieldState};
-use crate::graphics::{Color, Display, PlayfieldRenderer};
+use crate::graphics::{Color, Display, HudRenderer, HudView, PlayfieldRenderer};
 use crate::gui::GameInput;
 use crate::tetromino::TetrominoGenerator;
 use std::sync::Arc;
 use std::time::Duration;
 
-pub struct Game<R: PlayfieldRenderer, T: TetrominoGenerator> {
+pub struct Game<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> {
     event_queue: Arc<EventQueue>,
     playfield: Playfield<T>,
     playfield_renderer: R,
+    hud_renderer: H,
     game_state: GameState,
     level_manager: LevelManager,
 }
 
-impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
+impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> {
     pub fn new(
         playfield: Playfield<T>,
         playfield_renderer: R,
+        hud_renderer: H,
         event_queue: Arc<EventQueue>,
     ) -> Self {
         let level_manager = LevelManager::new(event_queue.clone());
@@ -28,6 +30,7 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
             event_queue,
             playfield,
             playfield_renderer,
+            hud_renderer,
             game_state: GameState::Playing,
             level_manager,
         }
@@ -79,6 +82,10 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
 
         self.playfield_renderer.draw(&playfield_view, display)?;
 
+        let hud_view = self.get_hud_view();
+        self.hud_renderer.draw(&hud_view, display)?;
+
+        // TODO: move these to the HUD renderer
         self.draw_level(display)?;
         self.draw_total_lines_cleared(display)?;
 
@@ -157,13 +164,20 @@ impl<R: PlayfieldRenderer, T: TetrominoGenerator> Game<R, T> {
             }
         }
     }
+
+    fn get_hud_view(&self) -> crate::graphics::HudView {
+        let playfield_view = self.playfield.get_view();
+        HudView {
+            next_tetromino_type: playfield_view.next_tetromino_type,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::common::{Dimensions, Position};
-    use crate::graphics::{MockDisplay, MockPlayfieldRenderer};
+    use crate::graphics::{MockDisplay, MockHudRenderer, MockPlayfieldRenderer};
     use crate::gui::game_input::GameInput;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
@@ -432,7 +446,12 @@ mod tests {
         // Arrange
         let event_queue = Arc::new(EventQueue::new());
         let playfield = create_test_playfield_with_event_queue(event_queue.clone());
-        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
+        let mut sut = Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            event_queue.clone(),
+        );
         let mut display = MockDisplay::new();
 
         sut.start_level(2);
@@ -486,7 +505,12 @@ mod tests {
         // Arrange
         let event_queue = Arc::new(EventQueue::new());
         let playfield = create_test_playfield_with_event_queue(event_queue.clone());
-        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
+        let mut sut = Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            event_queue.clone(),
+        );
 
         event_queue.push_back(Event::LinesCleared(4));
         let initial_lines = sut.level_manager.get_total_lines_cleared();
@@ -506,7 +530,12 @@ mod tests {
         // Arrange
         let event_queue = Arc::new(EventQueue::new());
         let playfield = create_test_playfield_with_event_queue(event_queue.clone());
-        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
+        let mut sut = Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            event_queue.clone(),
+        );
         sut.spawn_tetromino();
 
         event_queue.push_back(Event::LevelStarted(3));
@@ -516,5 +545,19 @@ mod tests {
 
         // Assert
         assert_eq!(sut.playfield.get_gravity_timer().get_level(), 3);
+    }
+
+    #[test]
+    fn draw_calls_hud_renderer() {
+        // Arrange
+        let mut sut = create_standard_test_game();
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        assert_eq!(sut.hud_renderer.get_draw_calls().len(), 1);
     }
 }

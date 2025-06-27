@@ -5,12 +5,12 @@ use crate::constants::*;
 use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::Playfield;
-use crate::graphics::MockPlayfieldRenderer;
+use crate::graphics::{MockHudRenderer, MockPlayfieldRenderer};
 use crate::tetromino::{
     FixedTetrominoGenerator, TetrominoDefinitions, TetrominoInstance, TetrominoType,
 };
 
-pub type TestGame = Game<MockPlayfieldRenderer, FixedTetrominoGenerator>;
+pub type TestGame = Game<MockPlayfieldRenderer, MockHudRenderer, FixedTetrominoGenerator>;
 
 pub fn create_standard_test_game() -> TestGame {
     create_test_game(TetrominoType::O)
@@ -25,6 +25,7 @@ pub fn create_test_game_with_playfield(playfield: Playfield<FixedTetrominoGenera
     Game::new(
         playfield,
         MockPlayfieldRenderer::new(),
+        MockHudRenderer::new(),
         Arc::new(EventQueue::new()),
     )
 }
