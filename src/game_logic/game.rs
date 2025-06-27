@@ -456,4 +456,65 @@ mod tests {
             .any(|(text, _, _, _)| text == "Lines: 5");
         assert!(lines_text_drawn, "Lines text not found in drawn text");
     }
+
+    #[test]
+    fn handle_input_when_playing_forwards_to_playfield() {
+        // Arrange
+        let mut sut = create_test_game(TetrominoType::O);
+        sut.spawn_tetromino();
+        let initial_position = sut
+            .get_playfield()
+            .get_current_tetromino()
+            .unwrap()
+            .get_position();
+
+        // Act
+        sut.handle_input(GameInput::MoveLeft);
+
+        // Assert
+        let new_position = sut
+            .get_playfield()
+            .get_current_tetromino()
+            .unwrap()
+            .get_position();
+        assert_eq!(new_position.x, initial_position.x - 1);
+        assert_eq!(new_position.y, initial_position.y);
+    }
+
+    #[test]
+    fn process_event_queue_handles_lines_cleared_event() {
+        // Arrange
+        let event_queue = Arc::new(EventQueue::new());
+        let playfield = create_test_playfield_with_event_queue(event_queue.clone());
+        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
+
+        event_queue.push_back(Event::LinesCleared(4));
+        let initial_lines = sut.level_manager.get_total_lines_cleared();
+
+        // Act
+        sut.update(Duration::from_millis(1));
+
+        // Assert
+        assert_eq!(
+            sut.level_manager.get_total_lines_cleared(),
+            initial_lines + 4
+        );
+    }
+
+    #[test]
+    fn process_event_queue_handles_level_started_event() {
+        // Arrange
+        let event_queue = Arc::new(EventQueue::new());
+        let playfield = create_test_playfield_with_event_queue(event_queue.clone());
+        let mut sut = Game::new(playfield, MockPlayfieldRenderer::new(), event_queue.clone());
+        sut.spawn_tetromino();
+
+        event_queue.push_back(Event::LevelStarted(3));
+
+        // Act
+        sut.update(Duration::from_millis(1));
+
+        // Assert
+        assert_eq!(sut.playfield.get_gravity_timer().get_level(), 3);
+    }
 }

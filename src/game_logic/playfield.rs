@@ -275,6 +275,11 @@ impl<T: TetrominoGenerator> Playfield<T> {
     }
 
     #[cfg(test)]
+    pub fn get_gravity_timer(&self) -> &GravityTimer {
+        &self.gravity_timer
+    }
+
+    #[cfg(test)]
     fn fill_row(&mut self, y: i32, tetromino_type: TetrominoType) {
         for x in 0..self.dimensions.width {
             let position = Position::new(x as i32, y);
