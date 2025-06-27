@@ -8,26 +8,43 @@ use strum::IntoEnumIterator;
 pub struct RandomTetrominoGenerator {
     rng: rand::rngs::ThreadRng,
     tetromino_definitions: TetrominoDefinitions,
+    next_tetromino_type: TetrominoType,
 }
 
 impl RandomTetrominoGenerator {
     pub fn new() -> Self {
+        let mut rng = rand::rng();
+        let next_tetromino_type = Self::select_random_type_from_rnd(&mut rng);
         Self {
-            rng: rand::rng(),
+            rng,
             tetromino_definitions: TetrominoDefinitions::new(),
+            next_tetromino_type,
         }
     }
 
     fn select_random_type(&mut self) -> TetrominoType {
+        Self::select_random_type_from_rnd(&mut self.rng)
+    }
+
+    fn select_random_type_from_rnd(rand: &mut rand::rngs::ThreadRng) -> TetrominoType {
         let types: Vec<TetrominoType> = TetrominoType::iter().collect();
-        types[self.rng.random_range(0..types.len())]
+        types[rand.random_range(0..types.len())]
     }
 }
 
 impl TetrominoGenerator for RandomTetrominoGenerator {
     fn generate(&mut self, position: Position) -> TetrominoInstance {
-        let tetromino_type = self.select_random_type();
+        let tetromino_type = self.next_tetromino_type;
+        self.next_tetromino_type = self.select_random_type();
         TetrominoInstance::new(tetromino_type, position, &self.tetromino_definitions)
+    }
+
+    fn peek_next(&self) -> TetrominoInstance {
+        TetrominoInstance::new(
+            self.next_tetromino_type,
+            Position::new(0, 0),
+            &self.tetromino_definitions,
+        )
     }
 }
 
@@ -69,5 +86,20 @@ mod tests {
 
         // Assert
         assert!(generated_types.len() > 1);
+    }
+
+    #[test]
+    fn next_returns_peeked_tetromino_type() {
+        // Arrange
+        let mut sut = RandomTetrominoGenerator::new();
+        let position = Position::new(5, 10);
+
+        // Act
+        let peeked_type = sut.peek_next().get_type();
+        let generated = sut.generate(position);
+
+        // Assert
+        assert_eq!(generated.get_type(), peeked_type);
+        assert_eq!(generated.get_position(), position);
     }
 }
