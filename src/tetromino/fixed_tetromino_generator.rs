@@ -22,12 +22,8 @@ impl TetrominoGenerator for FixedTetrominoGenerator {
         TetrominoInstance::new(self.tetromino_type, position, &self.tetromino_definitions)
     }
 
-    fn peek_next(&self) -> TetrominoInstance {
-        TetrominoInstance::new(
-            self.tetromino_type,
-            Position::new(0, 0),
-            &self.tetromino_definitions,
-        )
+    fn peek_next_type(&self) -> TetrominoType {
+        self.tetromino_type
     }
 }
 
@@ -43,7 +39,7 @@ mod tests {
         let sut = FixedTetrominoGenerator::new(TetrominoType::T);
 
         // Act
-        let result = sut.peek_next().get_type();
+        let result = sut.peek_next_type();
 
         // Assert
         assert_eq!(result, TetrominoType::T);
@@ -73,11 +69,11 @@ mod tests {
         // Arrange
         let mut sut = FixedTetrominoGenerator::new(TetrominoType::Z);
         let position = Position::new(0, 0);
-        let first_peek = sut.peek_next().get_type();
+        let first_peek = sut.peek_next_type();
         sut.generate(position);
 
         // Act
-        let second_peek = sut.peek_next().get_type();
+        let second_peek = sut.peek_next_type();
 
         // Assert
         assert_eq!(first_peek, TetrominoType::Z);

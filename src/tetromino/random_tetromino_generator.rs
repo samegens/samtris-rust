@@ -39,12 +39,8 @@ impl TetrominoGenerator for RandomTetrominoGenerator {
         TetrominoInstance::new(tetromino_type, position, &self.tetromino_definitions)
     }
 
-    fn peek_next(&self) -> TetrominoInstance {
-        TetrominoInstance::new(
-            self.next_tetromino_type,
-            Position::new(0, 0),
-            &self.tetromino_definitions,
-        )
+    fn peek_next_type(&self) -> TetrominoType {
+        self.next_tetromino_type
     }
 }
 
@@ -95,7 +91,7 @@ mod tests {
         let position = Position::new(5, 10);
 
         // Act
-        let peeked_type = sut.peek_next().get_type();
+        let peeked_type = sut.peek_next_type();
         let generated = sut.generate(position);
 
         // Assert
