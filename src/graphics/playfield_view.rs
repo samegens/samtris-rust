@@ -6,6 +6,7 @@ pub struct PlayfieldView<'a> {
     pub dimensions: Dimensions,
     pub grid: &'a PlayfieldGrid,
     pub current_tetromino: Option<&'a TetrominoInstance>,
+    pub next_tetromino_type: TetrominoType,
     pub full_lines: Vec<u32>,
     pub show_blinking_lines: bool,
 }
@@ -39,6 +40,7 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            next_tetromino_type: TetrominoType::T,
             full_lines: vec![],
             show_blinking_lines: false,
         };
@@ -59,6 +61,7 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            next_tetromino_type: TetrominoType::T,
             full_lines: vec![],
             show_blinking_lines: false,
         };
@@ -80,6 +83,7 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            next_tetromino_type: TetrominoType::T,
             full_lines: vec![],
             show_blinking_lines: false,
         };
@@ -100,6 +104,7 @@ mod tests {
             dimensions,
             grid: &grid,
             current_tetromino: None,
+            next_tetromino_type: TetrominoType::T,
             full_lines: vec![],
             show_blinking_lines: false,
         };
@@ -109,5 +114,25 @@ mod tests {
 
         // Assert
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn playfield_view_includes_next_tetromino_type() {
+        // Arrange
+        let dimensions = Dimensions::new(3, 3);
+        let grid = PlayfieldGrid::new(dimensions);
+
+        // Act
+        let sut = PlayfieldView {
+            dimensions,
+            grid: &grid,
+            current_tetromino: None,
+            full_lines: vec![],
+            show_blinking_lines: false,
+            next_tetromino_type: TetrominoType::T,
+        };
+
+        // Assert
+        assert_eq!(sut.next_tetromino_type, TetrominoType::T);
     }
 }

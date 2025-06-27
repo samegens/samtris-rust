@@ -77,6 +77,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
             dimensions: self.dimensions,
             grid: &self.grid,
             current_tetromino: self.current_tetromino.as_ref(),
+            next_tetromino_type: self.tetromino_generator.peek_next_type(),
             full_lines,
             show_blinking_lines: self.is_showing_blinking_lines(),
         }
@@ -794,5 +795,17 @@ mod tests {
 
         // Assert - No tetromino should be spawned
         assert!(sut.get_current_tetromino().is_none());
+    }
+
+    #[test]
+    fn get_view_returns_correct_next_tetromino_type() {
+        // Arrange
+        let sut = create_test_playfield_with_specific_type(TetrominoType::Z);
+
+        // Act
+        let view = sut.get_view();
+
+        // Assert
+        assert_eq!(view.next_tetromino_type, TetrominoType::Z);
     }
 }
