@@ -61,4 +61,14 @@ mod tests {
         let queue = sut.queue.lock().unwrap();
         assert_eq!(queue.len(), 1);
     }
+
+    #[test]
+    #[should_panic(expected = "Event LevelStarted(5) not found in queued events")]
+    fn assert_contains_panics_when_event_not_found() {
+        // Arrange
+        let sut = EventQueue::new();
+
+        // Act & Assert - should panic
+        sut.assert_contains(Event::LevelStarted(5));
+    }
 }
