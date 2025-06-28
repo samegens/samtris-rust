@@ -42,16 +42,16 @@ impl TetrominoDefinition {
             TetrominoType::I,
             vec![
                 vec![
-                    vec![0, 1, 0, 0],
-                    vec![0, 1, 0, 0],
-                    vec![0, 1, 0, 0],
-                    vec![0, 1, 0, 0],
-                ],
-                vec![
                     vec![0, 0, 0, 0],
                     vec![1, 1, 1, 1],
                     vec![0, 0, 0, 0],
                     vec![0, 0, 0, 0],
+                ],
+                vec![
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
+                    vec![0, 1, 0, 0],
                 ],
             ],
         )
