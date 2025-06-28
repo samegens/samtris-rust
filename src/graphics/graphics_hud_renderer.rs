@@ -34,8 +34,12 @@ impl GraphicsHudRenderer {
     }
 
     fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let x: u32 = (PLAYFIELD_OFFSET_X as i32 + (PLAYFIELD_WIDTH as i32 * BLOCK_SIZE as i32 - GAME_OVER_WIDTH as i32) / 2) as u32;
-        let y: u32 = (PLAYFIELD_OFFSET_Y as i32 + (PLAYFIELD_HEIGHT as i32 * BLOCK_SIZE as i32 - GAME_OVER_HEIGHT as i32) / 2) as u32;
+        let x: u32 = (PLAYFIELD_OFFSET_X as i32
+            + (PLAYFIELD_WIDTH as i32 * BLOCK_SIZE as i32 - GAME_OVER_WIDTH as i32) / 2)
+            as u32;
+        let y: u32 = (PLAYFIELD_OFFSET_Y as i32
+            + (PLAYFIELD_HEIGHT as i32 * BLOCK_SIZE as i32 - GAME_OVER_HEIGHT as i32) / 2)
+            as u32;
 
         // Draw red background rectangle
         display.draw_rectangle(x, y, GAME_OVER_WIDTH, GAME_OVER_HEIGHT, Color::RED)?;
@@ -49,66 +53,17 @@ impl GraphicsHudRenderer {
         display.draw_text(text, text_x, text_y, Color::WHITE)
     }
 
-    fn draw_next_tetromino_area<D: Display>(
+    fn draw_container_for_next_tetromino<D: Display>(
         &self,
         hud_view: &HudView,
         display: &mut D,
     ) -> Result<(), String> {
-        const NEXT_TEXT_OFFSET_X: u32 = 12;
-        const NEXT_TEXT_OFFSET_Y: u32 = 20;
-        display.draw_text(
-            "NEXT",
-            NEXT_TETROMINO_OFFSET_X + NEXT_TEXT_OFFSET_X,
-            NEXT_TETROMINO_OFFSET_Y - NEXT_TEXT_OFFSET_Y,
-            Color::WHITE,
-        )?;
-
-        // Draw border around next tetromino area
-        let border_color = Color::WHITE;
-
-        // Top border
-        display.draw_rectangle(
-            NEXT_TETROMINO_OFFSET_X - 1,
-            NEXT_TETROMINO_OFFSET_Y - 1,
-            NEXT_TETROMINO_AREA_WIDTH + 2,
-            1,
-            border_color,
-        )?;
-
-        // Bottom border
-        display.draw_rectangle(
-            NEXT_TETROMINO_OFFSET_X - 1,
-            NEXT_TETROMINO_OFFSET_Y + NEXT_TETROMINO_AREA_HEIGHT,
-            NEXT_TETROMINO_AREA_WIDTH + 2,
-            1,
-            border_color,
-        )?;
-
-        // Left border
-        display.draw_rectangle(
-            NEXT_TETROMINO_OFFSET_X - 1,
-            NEXT_TETROMINO_OFFSET_Y - 1,
-            1,
-            NEXT_TETROMINO_AREA_HEIGHT + 2,
-            border_color,
-        )?;
-
-        // Right border
-        display.draw_rectangle(
-            NEXT_TETROMINO_OFFSET_X + NEXT_TETROMINO_AREA_WIDTH,
-            NEXT_TETROMINO_OFFSET_Y - 1,
-            1,
-            NEXT_TETROMINO_AREA_HEIGHT + 2,
-            border_color,
-        )?;
-
-        // Draw the next tetromino
-        self.draw_next_tetromino_preview(hud_view, display)?;
-
-        Ok(())
+        draw_label_for_next_tetromino(display)?;
+        draw_border_for_next_tetromino(display)?;
+        self.draw_tetromino_for_next_tetromino(hud_view, display)
     }
 
-    fn draw_next_tetromino_preview<D: Display>(
+    fn draw_tetromino_for_next_tetromino<D: Display>(
         &self,
         hud_view: &HudView,
         display: &mut D,
@@ -155,12 +110,52 @@ impl GraphicsHudRenderer {
     }
 }
 
+fn draw_label_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), String> {
+    const TEXT: &str = "NEXT";
+    const TEXT_WIDTH: u32 = TEXT.len() as u32 * CHAR_WIDTH;
+    let x = NEXT_TETROMINO_OFFSET_X + (NEXT_TETROMINO_AREA_WIDTH - TEXT_WIDTH) / 2;
+    let y = NEXT_TETROMINO_OFFSET_Y - CHAR_HEIGHT;
+    display.draw_text(TEXT, x, y, Color::WHITE)
+}
+
+fn draw_border_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), String> {
+    let border_color = Color::WHITE;
+    display.draw_rectangle(
+        NEXT_TETROMINO_OFFSET_X - 1,
+        NEXT_TETROMINO_OFFSET_Y - 1,
+        NEXT_TETROMINO_AREA_WIDTH + 2,
+        1,
+        border_color,
+    )?;
+    display.draw_rectangle(
+        NEXT_TETROMINO_OFFSET_X - 1,
+        NEXT_TETROMINO_OFFSET_Y + NEXT_TETROMINO_AREA_HEIGHT,
+        NEXT_TETROMINO_AREA_WIDTH + 2,
+        1,
+        border_color,
+    )?;
+    display.draw_rectangle(
+        NEXT_TETROMINO_OFFSET_X - 1,
+        NEXT_TETROMINO_OFFSET_Y - 1,
+        1,
+        NEXT_TETROMINO_AREA_HEIGHT + 2,
+        border_color,
+    )?;
+    display.draw_rectangle(
+        NEXT_TETROMINO_OFFSET_X + NEXT_TETROMINO_AREA_WIDTH,
+        NEXT_TETROMINO_OFFSET_Y - 1,
+        1,
+        NEXT_TETROMINO_AREA_HEIGHT + 2,
+        border_color,
+    )
+}
+
 impl HudRenderer for GraphicsHudRenderer {
     fn draw<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
         self.draw_score(hud_view, display)?;
         self.draw_lines_cleared(hud_view, display)?;
         self.draw_level(hud_view, display)?;
-        self.draw_next_tetromino_area(hud_view, display)?;
+        self.draw_container_for_next_tetromino(hud_view, display)?;
 
         if hud_view.show_game_over {
             self.draw_game_over(display)?;
