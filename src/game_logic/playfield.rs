@@ -176,6 +176,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
 
     pub fn clear(&mut self) {
         self.grid.clear();
+        self.state = PlayfieldState::Playing;
     }
 
     pub fn handle_input(&mut self, input: GameInput) -> PlayfieldState {
@@ -809,5 +810,20 @@ mod tests {
 
         // Assert
         assert_eq!(view.next_tetromino_type, TetrominoType::Z);
+    }
+
+    #[test]
+    fn spawn_tetromino_after_clear_in_game_over_state_should_work() {
+        // Arrange
+        let mut sut = create_test_playfield();
+        sut.state = PlayfieldState::GameOver; // Set to game over state
+
+        // Act
+        sut.clear(); // This is what start_game() calls
+        let result = sut.spawn_tetromino(); // Then this is called
+
+        // Assert
+        assert_eq!(result, PlayfieldState::Playing);
+        assert!(sut.get_current_tetromino().is_some());
     }
 }
