@@ -71,7 +71,7 @@ impl GraphicsHudRenderer {
         if hud_view.show_game_over {
             return Ok(());
         }
-        
+
         let tetromino_definitions = TetrominoDefinitions::new();
         let definition = tetromino_definitions.get(hud_view.next_tetromino_type);
         let rotation = RotationIndex::new(0, definition.get_nr_rotations());
@@ -285,6 +285,7 @@ mod tests {
             .any(|(text, _, _, _)| text == "GAME OVER");
         assert!(game_over_text_drawn, "GAME OVER text should be drawn");
     }
+    
     #[test]
     fn hud_renderer_draws_score_text() {
         // Arrange
