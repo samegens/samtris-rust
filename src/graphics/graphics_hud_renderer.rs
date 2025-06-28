@@ -53,7 +53,7 @@ impl GraphicsHudRenderer {
         display.draw_text(text, text_x, text_y, Color::WHITE)
     }
 
-    fn draw_container_for_next_tetromino<D: Display>(
+    fn draw_widget_for_next_tetromino<D: Display>(
         &self,
         hud_view: &HudView,
         display: &mut D,
@@ -68,6 +68,10 @@ impl GraphicsHudRenderer {
         hud_view: &HudView,
         display: &mut D,
     ) -> Result<(), String> {
+        if hud_view.show_game_over {
+            return Ok(());
+        }
+        
         let tetromino_definitions = TetrominoDefinitions::new();
         let definition = tetromino_definitions.get(hud_view.next_tetromino_type);
         let rotation = RotationIndex::new(0, definition.get_nr_rotations());
@@ -155,7 +159,7 @@ impl HudRenderer for GraphicsHudRenderer {
         self.draw_score(hud_view, display)?;
         self.draw_lines_cleared(hud_view, display)?;
         self.draw_level(hud_view, display)?;
-        self.draw_container_for_next_tetromino(hud_view, display)?;
+        self.draw_widget_for_next_tetromino(hud_view, display)?;
 
         if hud_view.show_game_over {
             self.draw_game_over(display)?;
@@ -304,5 +308,34 @@ mod tests {
             .iter()
             .any(|(text, _, _, _)| text == "Score: 1240");
         assert!(score_text_drawn, "Score text should be drawn");
+    }
+
+    #[test]
+    fn draw_does_not_draw_next_area_during_game_over() {
+        // Arrange
+        let sut = GraphicsHudRenderer::new();
+        let hud_view = HudView {
+            next_tetromino_type: TetrominoType::T,
+            current_level: 1,
+            total_lines_cleared: 5,
+            score: 200,
+            show_game_over: true,
+        };
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&hud_view, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+
+        let tetromino_blocks_drawn = display
+            .drawn_blocks
+            .iter()
+            .any(|(_, tetromino_type)| *tetromino_type == TetrominoType::T);
+        assert!(
+            !tetromino_blocks_drawn,
+            "Tetromino blocks should not be drawn during game over"
+        );
     }
 }
