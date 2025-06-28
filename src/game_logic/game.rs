@@ -1,8 +1,7 @@
-use crate::constants::*;
 use crate::events::{Event, EventQueue};
 use crate::game_logic::{GameState, LevelManager};
 use crate::game_logic::{Playfield, PlayfieldState};
-use crate::graphics::{Color, Display, HudRenderer, HudView, PlayfieldRenderer};
+use crate::graphics::{Display, HudRenderer, HudView, PlayfieldRenderer};
 use crate::gui::GameInput;
 use crate::tetromino::TetrominoGenerator;
 use std::sync::Arc;
@@ -149,6 +148,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
 mod tests {
     use super::*;
     use crate::common::{Dimensions, Position};
+    use crate::constants::*;
     use crate::graphics::{MockDisplay, MockHudRenderer, MockPlayfieldRenderer};
     use crate::gui::game_input::GameInput;
     use crate::test_helpers::*;

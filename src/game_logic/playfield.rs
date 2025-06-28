@@ -549,11 +549,11 @@ mod tests {
     }
 
     #[rstest]
-    #[case(|t: &mut TetrominoInstance| t.move_left(), TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
-    #[case(|t: &mut TetrominoInstance| t.move_right(), TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
-    #[case(|t: &mut TetrominoInstance| t.move_down(), TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4)]
-    #[case(|t: &mut TetrominoInstance| t.rotate_clockwise(), TETRIS_SPAWN_X - 1, TETRIS_SPAWN_Y)]
-    #[case(|t: &mut TetrominoInstance| t.rotate_counterclockwise(), TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.move_left(), TETRIS_SPAWN_X - 4, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.move_right(), TETRIS_SPAWN_X + 4, TETRIS_SPAWN_Y)]
+    #[case(|t: &mut TetrominoInstance| t.move_down(), TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 1)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_clockwise(), TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 1)]
+    #[case(|t: &mut TetrominoInstance| t.rotate_counterclockwise(), TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 1)]
     fn cant_move_tetromino_when_blocks_are_in_the_way<F>(
         #[case] move_fn: F,
         #[case] x_of_blocking_tetromino: i32,
@@ -647,17 +647,19 @@ mod tests {
         // Fill the four bottom lines except for one space where I-piece will land
         for x in 0..PLAYFIELD_WIDTH {
             if x != 4 {
-                let tetromino = TetrominoInstance::new(
+                let mut tetromino = TetrominoInstance::new(
                     TetrominoType::I,
                     Position::new(x as i32 - 1, PLAYFIELD_HEIGHT as i32 - 4),
                     &definitions,
                 );
+                tetromino.rotate_clockwise();
                 sut.set_current_tetromino(Some(tetromino));
                 sut.lock_tetromino();
             }
         }
 
         sut.spawn_tetromino();
+        sut.handle_input(GameInput::RotateClockwise);
 
         // Act
         sut.handle_input(GameInput::Drop);
