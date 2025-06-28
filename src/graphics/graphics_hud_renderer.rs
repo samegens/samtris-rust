@@ -135,12 +135,22 @@ impl GraphicsHudRenderer {
         }
         Ok(())
     }
+
+    fn draw_score<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+        display.draw_text(
+            &format!("Score: {}", hud_view.score),
+            SCORE_OFFSET_X,
+            SCORE_OFFSET_Y,
+            Color::WHITE,
+        )
+    }
 }
 
 impl HudRenderer for GraphicsHudRenderer {
     fn draw<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
-        self.draw_level(hud_view, display)?;
+        self.draw_score(hud_view, display)?;
         self.draw_lines_cleared(hud_view, display)?;
+        self.draw_level(hud_view, display)?;
         self.draw_next_tetromino_area(hud_view, display)?;
 
         if hud_view.show_game_over {
@@ -166,6 +176,7 @@ mod tests {
             next_tetromino_type: TetrominoType::J,
             current_level: 1,
             total_lines_cleared: 0,
+            score: 0,
             show_game_over: false,
         };
         let mut display = MockDisplay::new();
@@ -190,6 +201,7 @@ mod tests {
             next_tetromino_type: TetrominoType::T,
             current_level: 3,
             total_lines_cleared: 25,
+            score: 0,
             show_game_over: false,
         };
         let mut display = MockDisplay::new();
@@ -214,6 +226,7 @@ mod tests {
             next_tetromino_type: TetrominoType::J,
             current_level: 1,
             total_lines_cleared: 15,
+            score: 0,
             show_game_over: false,
         };
         let mut display = MockDisplay::new();
@@ -238,6 +251,7 @@ mod tests {
             next_tetromino_type: TetrominoType::O,
             current_level: 2,
             total_lines_cleared: 8,
+            score: 0,
             show_game_over: true,
         };
         let mut display = MockDisplay::new();
@@ -252,5 +266,30 @@ mod tests {
             .iter()
             .any(|(_, _, _, _, color)| *color == Color::RED);
         assert!(game_over_drawn, "Game over rectangle should be drawn");
+    }
+
+    #[test]
+    fn hud_renderer_draws_score_text() {
+        // Arrange
+        let sut = GraphicsHudRenderer::new();
+        let hud_view = HudView {
+            next_tetromino_type: TetrominoType::I,
+            current_level: 2,
+            total_lines_cleared: 8,
+            score: 1240,
+            show_game_over: false,
+        };
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&hud_view, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        let score_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "Score: 1240");
+        assert!(score_text_drawn, "Score text should be drawn");
     }
 }

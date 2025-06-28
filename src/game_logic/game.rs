@@ -139,6 +139,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
             next_tetromino_type: playfield_view.next_tetromino_type,
             current_level: self.level_manager.get_current_level(),
             total_lines_cleared: self.level_manager.get_total_lines_cleared(),
+            score: self.level_manager.get_score(),
             show_game_over: self.game_state == GameState::GameOver,
         }
     }
