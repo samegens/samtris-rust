@@ -85,38 +85,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         let hud_view = self.get_hud_view();
         self.hud_renderer.draw(&hud_view, display)?;
 
-        // TODO: move these to the HUD renderer
-        self.draw_level(display)?;
-        self.draw_total_lines_cleared(display)?;
-
-        if self.game_state == GameState::GameOver {
-            self.draw_game_over(display)?;
-        }
-
         display.present()?;
-
-        Ok(())
-    }
-
-    fn draw_level<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let level = self.level_manager.get_current_level() + 1;
-        display.draw_text(&format!("Level: {}", level), 10, 10, Color::WHITE)?;
-        Ok(())
-    }
-
-    fn draw_total_lines_cleared<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let total_lines = self.level_manager.get_total_lines_cleared();
-        display.draw_text(&format!("Lines: {}", total_lines), 10, 30, Color::WHITE)?;
-        Ok(())
-    }
-
-    pub fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let width = 100;
-        let height = 50;
-        let x = PLAYFIELD_OFFSET_X + (PLAYFIELD_WIDTH * BLOCK_SIZE - width) / 2;
-        let y = PLAYFIELD_OFFSET_Y + (PLAYFIELD_HEIGHT * BLOCK_SIZE - height) / 2;
-
-        display.draw_rectangle(x, y, width, height, Color::RED)?;
 
         Ok(())
     }
@@ -169,6 +138,9 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         let playfield_view = self.playfield.get_view();
         HudView {
             next_tetromino_type: playfield_view.next_tetromino_type,
+            current_level: self.level_manager.get_current_level(),
+            total_lines_cleared: self.level_manager.get_total_lines_cleared(),
+            show_game_over: self.game_state == GameState::GameOver,
         }
     }
 }
@@ -331,24 +303,6 @@ mod tests {
     }
 
     #[test]
-    fn draw_when_game_over_draws_game_over_rectangle() {
-        // Arrange
-        let mut sut = create_test_game(TetrominoType::O);
-        sut.set_game_state_game_over();
-        let mut display = MockDisplay::new();
-
-        // Act
-        let result = sut.draw(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-        assert!(display
-            .drawn_rectangles
-            .iter()
-            .any(|(_, _, _, _, color)| *color == Color::RED));
-    }
-
-    #[test]
     fn update_when_game_over_does_not_apply_gravity() {
         // Arrange
         let mut sut = create_test_game(TetrominoType::O);
@@ -439,41 +393,6 @@ mod tests {
 
         // Assert
         assert_eq!(sut.game_state, GameState::GameOver);
-    }
-
-    #[test]
-    fn draw_displays_current_level_and_lines_cleared() {
-        // Arrange
-        let event_queue = Arc::new(EventQueue::new());
-        let playfield = create_test_playfield_with_event_queue(event_queue.clone());
-        let mut sut = Game::new(
-            playfield,
-            MockPlayfieldRenderer::new(),
-            MockHudRenderer::new(),
-            event_queue.clone(),
-        );
-        let mut display = MockDisplay::new();
-
-        sut.start_level(2);
-        sut.level_manager.handle_lines_cleared(5);
-
-        // Act
-        let result = sut.draw(&mut display);
-
-        // Assert
-        assert!(result.is_ok());
-
-        let level_text_drawn = display
-            .drawn_text
-            .iter()
-            .any(|(text, _, _, _)| text == "Level: 3");
-        assert!(level_text_drawn, "Level text not found in drawn text");
-
-        let lines_text_drawn = display
-            .drawn_text
-            .iter()
-            .any(|(text, _, _, _)| text == "Lines: 5");
-        assert!(lines_text_drawn, "Lines text not found in drawn text");
     }
 
     #[test]

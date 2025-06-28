@@ -10,6 +10,36 @@ impl GraphicsHudRenderer {
         Self
     }
 
+    fn draw_level<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+        let level = hud_view.current_level + 1; // Display as 1-based
+        display.draw_text(
+            &format!("Level: {}", level),
+            LEVEL_OFFSET_X,
+            LEVEL_OFFSET_Y,
+            Color::WHITE,
+        )
+    }
+
+    fn draw_lines_cleared<D: Display>(
+        &self,
+        hud_view: &HudView,
+        display: &mut D,
+    ) -> Result<(), String> {
+        display.draw_text(
+            &format!("Lines: {}", hud_view.total_lines_cleared),
+            LINES_OFFSET_X,
+            LINES_OFFSET_Y,
+            Color::WHITE,
+        )
+    }
+
+    fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
+        let x = PLAYFIELD_OFFSET_X + (PLAYFIELD_WIDTH * BLOCK_SIZE - GAME_OVER_WIDTH) / 2;
+        let y = PLAYFIELD_OFFSET_Y + (PLAYFIELD_HEIGHT * BLOCK_SIZE - GAME_OVER_HEIGHT) / 2;
+
+        display.draw_rectangle(x, y, GAME_OVER_WIDTH, GAME_OVER_HEIGHT, Color::RED)
+    }
+
     fn draw_next_tetromino_area<D: Display>(
         &self,
         hud_view: &HudView,
@@ -108,14 +138,13 @@ impl GraphicsHudRenderer {
 
 impl HudRenderer for GraphicsHudRenderer {
     fn draw<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+        self.draw_level(hud_view, display)?;
+        self.draw_lines_cleared(hud_view, display)?;
         self.draw_next_tetromino_area(hud_view, display)?;
 
-        //TODO
-        // self.draw_level_and_lines(hud_view, display)?;
-
-        // if hud_view.show_game_over {
-        //     self.draw_game_over(display)?;
-        // }
+        if hud_view.show_game_over {
+            self.draw_game_over(display)?;
+        }
 
         Ok(())
     }
@@ -134,6 +163,9 @@ mod tests {
         let sut = GraphicsHudRenderer::new();
         let hud_view = HudView {
             next_tetromino_type: TetrominoType::J,
+            current_level: 1,
+            total_lines_cleared: 0,
+            show_game_over: false,
         };
         let mut display = MockDisplay::new();
 
@@ -147,5 +179,77 @@ mod tests {
             .iter()
             .any(|(text, _, _, _)| text == "NEXT");
         assert!(next_text_drawn, "NEXT text should be drawn");
+    }
+
+    #[test]
+    fn hud_renderer_draws_level_text() {
+        // Arrange
+        let sut = GraphicsHudRenderer::new();
+        let hud_view = HudView {
+            next_tetromino_type: TetrominoType::T,
+            current_level: 3,
+            total_lines_cleared: 25,
+            show_game_over: false,
+        };
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&hud_view, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        let level_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "Level: 4"); // current_level + 1
+        assert!(level_text_drawn, "Level text should be drawn");
+    }
+
+    #[test]
+    fn hud_renderer_draws_lines_text() {
+        // Arrange
+        let sut = GraphicsHudRenderer::new();
+        let hud_view = HudView {
+            next_tetromino_type: TetrominoType::J,
+            current_level: 1,
+            total_lines_cleared: 15,
+            show_game_over: false,
+        };
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&hud_view, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        let lines_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "Lines: 15");
+        assert!(lines_text_drawn, "Lines text should be drawn");
+    }
+
+    #[test]
+    fn hud_renderer_draws_game_over_when_flag_set() {
+        // Arrange
+        let sut = GraphicsHudRenderer::new();
+        let hud_view = HudView {
+            next_tetromino_type: TetrominoType::O,
+            current_level: 2,
+            total_lines_cleared: 8,
+            show_game_over: true,
+        };
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&hud_view, &mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        let game_over_drawn = display
+            .drawn_rectangles
+            .iter()
+            .any(|(_, _, _, _, color)| *color == Color::RED);
+        assert!(game_over_drawn, "Game over rectangle should be drawn");
     }
 }
