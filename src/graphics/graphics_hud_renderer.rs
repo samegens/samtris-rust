@@ -45,11 +45,12 @@ impl GraphicsHudRenderer {
         hud_view: &HudView,
         display: &mut D,
     ) -> Result<(), String> {
-        // Draw "NEXT" label
+        const NEXT_TEXT_OFFSET_X: u32 = 12;
+        const NEXT_TEXT_OFFSET_Y: u32 = 20;
         display.draw_text(
             "NEXT",
-            NEXT_TETROMINO_OFFSET_X,
-            NEXT_TETROMINO_OFFSET_Y - 20,
+            NEXT_TETROMINO_OFFSET_X + NEXT_TEXT_OFFSET_X,
+            NEXT_TETROMINO_OFFSET_Y - NEXT_TEXT_OFFSET_Y,
             Color::WHITE,
         )?;
 
