@@ -34,10 +34,19 @@ impl GraphicsHudRenderer {
     }
 
     fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        let x = PLAYFIELD_OFFSET_X + (PLAYFIELD_WIDTH * BLOCK_SIZE - GAME_OVER_WIDTH) / 2;
-        let y = PLAYFIELD_OFFSET_Y + (PLAYFIELD_HEIGHT * BLOCK_SIZE - GAME_OVER_HEIGHT) / 2;
+        let x: u32 = (PLAYFIELD_OFFSET_X as i32 + (PLAYFIELD_WIDTH as i32 * BLOCK_SIZE as i32 - GAME_OVER_WIDTH as i32) / 2) as u32;
+        let y: u32 = (PLAYFIELD_OFFSET_Y as i32 + (PLAYFIELD_HEIGHT as i32 * BLOCK_SIZE as i32 - GAME_OVER_HEIGHT as i32) / 2) as u32;
 
-        display.draw_rectangle(x, y, GAME_OVER_WIDTH, GAME_OVER_HEIGHT, Color::RED)
+        // Draw red background rectangle
+        display.draw_rectangle(x, y, GAME_OVER_WIDTH, GAME_OVER_HEIGHT, Color::RED)?;
+
+        // Calculate text position based on string length and character width
+        let text = "GAME OVER";
+        let text_width = text.len() as u32 * CHAR_WIDTH;
+        let text_x = x + (GAME_OVER_WIDTH - text_width) / 2;
+        let text_y = y + (GAME_OVER_HEIGHT - CHAR_HEIGHT) / 2;
+
+        display.draw_text(text, text_x, text_y, Color::WHITE)
     }
 
     fn draw_next_tetromino_area<D: Display>(
@@ -251,7 +260,7 @@ mod tests {
             next_tetromino_type: TetrominoType::O,
             current_level: 2,
             total_lines_cleared: 8,
-            score: 0,
+            score: 500,
             show_game_over: true,
         };
         let mut display = MockDisplay::new();
@@ -261,13 +270,22 @@ mod tests {
 
         // Assert
         assert!(result.is_ok());
-        let game_over_drawn = display
+
+        let game_over_rectangle_drawn = display
             .drawn_rectangles
             .iter()
             .any(|(_, _, _, _, color)| *color == Color::RED);
-        assert!(game_over_drawn, "Game over rectangle should be drawn");
-    }
+        assert!(
+            game_over_rectangle_drawn,
+            "Game over rectangle should be drawn"
+        );
 
+        let game_over_text_drawn = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text == "GAME OVER");
+        assert!(game_over_text_drawn, "GAME OVER text should be drawn");
+    }
     #[test]
     fn hud_renderer_draws_score_text() {
         // Arrange
