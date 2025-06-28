@@ -13,7 +13,7 @@ impl GraphicsHudRenderer {
     fn draw_level<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
         let level = hud_view.current_level + 1; // Display as 1-based
         display.draw_text(
-            &format!("Level: {}", level),
+            &format!("Level: {level}"),
             LEVEL_OFFSET_X,
             LEVEL_OFFSET_Y,
             Color::WHITE,
