@@ -25,14 +25,12 @@ impl GraphicsHudRenderer {
 
         // Draw border around next tetromino area
         let border_color = Color::WHITE;
-        let area_width = NEXT_TETROMINO_AREA_WIDTH * BLOCK_SIZE;
-        let area_height = NEXT_TETROMINO_AREA_HEIGHT * BLOCK_SIZE;
 
         // Top border
         display.draw_rectangle(
             NEXT_TETROMINO_OFFSET_X - 1,
             NEXT_TETROMINO_OFFSET_Y - 1,
-            area_width + 2,
+            NEXT_TETROMINO_AREA_WIDTH + 2,
             1,
             border_color,
         )?;
@@ -40,8 +38,8 @@ impl GraphicsHudRenderer {
         // Bottom border
         display.draw_rectangle(
             NEXT_TETROMINO_OFFSET_X - 1,
-            NEXT_TETROMINO_OFFSET_Y + area_height,
-            area_width + 2,
+            NEXT_TETROMINO_OFFSET_Y + NEXT_TETROMINO_AREA_HEIGHT,
+            NEXT_TETROMINO_AREA_WIDTH + 2,
             1,
             border_color,
         )?;
@@ -51,16 +49,16 @@ impl GraphicsHudRenderer {
             NEXT_TETROMINO_OFFSET_X - 1,
             NEXT_TETROMINO_OFFSET_Y - 1,
             1,
-            area_height + 2,
+            NEXT_TETROMINO_AREA_HEIGHT + 2,
             border_color,
         )?;
 
         // Right border
         display.draw_rectangle(
-            NEXT_TETROMINO_OFFSET_X + area_width,
+            NEXT_TETROMINO_OFFSET_X + NEXT_TETROMINO_AREA_WIDTH,
             NEXT_TETROMINO_OFFSET_Y - 1,
             1,
-            area_height + 2,
+            NEXT_TETROMINO_AREA_HEIGHT + 2,
             border_color,
         )?;
 
@@ -80,23 +78,30 @@ impl GraphicsHudRenderer {
         let rotation = RotationIndex::new(0, definition.get_nr_rotations());
         let block_positions = definition.get_block_positions(rotation);
 
-        let area_center_x = NEXT_TETROMINO_OFFSET_X + (NEXT_TETROMINO_AREA_WIDTH * BLOCK_SIZE) / 2;
-        let area_center_y = NEXT_TETROMINO_OFFSET_Y + (NEXT_TETROMINO_AREA_HEIGHT * BLOCK_SIZE) / 2;
+        let min_x = block_positions.iter().map(|pos| pos.x).min().unwrap_or(0);
+        let max_x = block_positions.iter().map(|pos| pos.x).max().unwrap_or(0);
+        let min_y = block_positions.iter().map(|pos| pos.y).min().unwrap_or(0);
+        let max_y = block_positions.iter().map(|pos| pos.y).max().unwrap_or(0);
 
-        // Offset to center the tetromino in the preview area (assuming 4x4 tetromino grid)
-        let tetromino_center_offset_x = 2 * BLOCK_SIZE as i32;
-        let tetromino_center_offset_y = 2 * BLOCK_SIZE as i32;
+        let tetromino_width_px = (max_x - min_x + 1) * BLOCK_SIZE as i32;
+        let tetromino_height_px = (max_y - min_y + 1) * BLOCK_SIZE as i32;
+
+        // Center the tetromino within the total area
+        let offset_x_px = (NEXT_TETROMINO_AREA_WIDTH as i32 - tetromino_width_px) / 2
+            - (min_x * BLOCK_SIZE as i32);
+        let offset_y_px = (NEXT_TETROMINO_AREA_HEIGHT as i32 - tetromino_height_px) / 2
+            - (min_y * BLOCK_SIZE as i32);
 
         let preview_base_position = Position::new(
-            area_center_x as i32 - tetromino_center_offset_x,
-            area_center_y as i32 - tetromino_center_offset_y,
+            NEXT_TETROMINO_OFFSET_X as i32 + offset_x_px,
+            NEXT_TETROMINO_OFFSET_Y as i32 + offset_y_px,
         );
 
+        // Draw each block of the tetromino
         for block_position in block_positions {
             let window_position = preview_base_position + block_position.scale(BLOCK_SIZE as i32);
             display.draw_block(window_position, hud_view.next_tetromino_type)?;
         }
-
         Ok(())
     }
 }
