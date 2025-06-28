@@ -479,4 +479,17 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(sut.hud_renderer.get_draw_calls().len(), 1);
     }
+
+    #[test]
+    fn start_level_sets_level_in_level_manager_and_playfield() {
+        // Arrange
+        let mut sut = create_standard_test_game();
+
+        // Act
+        sut.start_level(5);
+
+        // Assert
+        assert_eq!(sut.level_manager.get_current_level(), 5);
+        assert_eq!(sut.get_playfield().get_gravity_timer().get_level(), 5);
+    }
 }
