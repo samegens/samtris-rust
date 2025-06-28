@@ -285,7 +285,7 @@ mod tests {
             .any(|(text, _, _, _)| text == "GAME OVER");
         assert!(game_over_text_drawn, "GAME OVER text should be drawn");
     }
-    
+
     #[test]
     fn hud_renderer_draws_score_text() {
         // Arrange
