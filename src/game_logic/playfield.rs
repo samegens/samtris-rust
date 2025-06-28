@@ -816,11 +816,11 @@ mod tests {
     fn spawn_tetromino_after_clear_in_game_over_state_should_work() {
         // Arrange
         let mut sut = create_test_playfield();
-        sut.state = PlayfieldState::GameOver; // Set to game over state
+        sut.state = PlayfieldState::GameOver;
 
         // Act
-        sut.clear(); // This is what start_game() calls
-        let result = sut.spawn_tetromino(); // Then this is called
+        sut.clear();
+        let result = sut.spawn_tetromino();
 
         // Assert
         assert_eq!(result, PlayfieldState::Playing);
