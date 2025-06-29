@@ -4,13 +4,13 @@ use crate::graphics::Display;
 use crate::tetromino::TetrominoType;
 
 // Constants for tetromino types - makes patterns much more readable
-const I: i8 = 0;
-const O: i8 = 1;
-const T: i8 = 2;
-const Z: i8 = 3;
-const S: i8 = 4;
-const J: i8 = 5;
-const L: i8 = 6;
+pub const I: i8 = 0;
+pub const O: i8 = 1;
+pub const T: i8 = 2;
+pub const Z: i8 = 3;
+pub const S: i8 = 4;
+pub const J: i8 = 5;
+pub const L: i8 = 6;
 
 pub struct TetrominoPattern {
     pattern: Vec<Vec<i8>>,
