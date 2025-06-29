@@ -22,7 +22,7 @@ mod tests {
 
     #[rstest]
     #[case(MenuItem::StartGame, "START GAME")]
-    #[case(MenuItem::HighScores, "High Scores")]
+    #[case(MenuItem::HighScores, "HIGH SCORES")]
     #[case(MenuItem::Quit, "QUIT")]
     fn display_text_returns_correct_string(
         #[case] menu_item: MenuItem,
