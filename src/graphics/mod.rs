@@ -14,6 +14,7 @@ mod mock_playfield_renderer;
 mod playfield_renderer;
 mod playfield_view;
 mod sdl_display;
+mod tetromino_pattern;
 
 pub use color::Color;
 pub use display::Display;
@@ -30,3 +31,4 @@ pub use mock_playfield_renderer::MockPlayfieldRenderer;
 pub use playfield_renderer::PlayfieldRenderer;
 pub use playfield_view::PlayfieldView;
 pub use sdl_display::SdlDisplay;
+pub use tetromino_pattern::TetrominoPattern;
