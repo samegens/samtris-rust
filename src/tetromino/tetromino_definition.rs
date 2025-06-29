@@ -135,9 +135,9 @@ impl TetrominoDefinition {
             vec![
                 vec![
                     vec![0, 0, 0, 0],
-                    vec![0, 1, 0, 0],
-                    vec![0, 1, 0, 0],
-                    vec![1, 1, 0, 0],
+                    vec![0, 0, 1, 0],
+                    vec![0, 0, 1, 0],
+                    vec![0, 1, 1, 0],
                 ],
                 vec![
                     vec![0, 0, 0, 0],
@@ -153,9 +153,9 @@ impl TetrominoDefinition {
                 ],
                 vec![
                     vec![0, 0, 0, 0],
-                    vec![0, 0, 0, 0],
                     vec![1, 1, 1, 0],
                     vec![0, 0, 1, 0],
+                    vec![0, 0, 0, 0],
                 ],
             ],
         )
@@ -173,15 +173,15 @@ impl TetrominoDefinition {
                 ],
                 vec![
                     vec![0, 0, 0, 0],
-                    vec![0, 0, 0, 0],
                     vec![1, 1, 1, 0],
                     vec![1, 0, 0, 0],
+                    vec![0, 0, 0, 0],
                 ],
                 vec![
                     vec![0, 0, 0, 0],
-                    vec![1, 1, 0, 0],
-                    vec![0, 1, 0, 0],
-                    vec![0, 1, 0, 0],
+                    vec![0, 1, 1, 0],
+                    vec![0, 0, 1, 0],
+                    vec![0, 0, 1, 0],
                 ],
                 vec![
                     vec![0, 0, 0, 0],
