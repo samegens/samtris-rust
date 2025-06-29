@@ -1,5 +1,5 @@
 mod menu_item;
-mod menu_state;
+mod main_menu;
 
 pub use menu_item::MenuItem;
-pub use menu_state::MenuState;
+pub use main_menu::Menu;

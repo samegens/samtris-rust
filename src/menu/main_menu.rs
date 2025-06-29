@@ -1,11 +1,11 @@
 use crate::menu::MenuItem;
 
-pub struct MenuState {
+pub struct Menu {
     items: Vec<MenuItem>,
     selected_index: usize,
 }
 
-impl MenuState {
+impl Menu {
     pub fn new() -> Self {
         Self {
             items: vec![
@@ -29,7 +29,7 @@ impl MenuState {
         &self.items[self.selected_index]
     }
 
-    pub fn move_up(&mut self) {
+    pub fn select_previous_item(&mut self) {
         if self.selected_index > 0 {
             self.selected_index -= 1;
         } else {
@@ -37,7 +37,7 @@ impl MenuState {
         }
     }
 
-    pub fn move_down(&mut self) {
+    pub fn select_next_item(&mut self) {
         if self.selected_index < self.items.len() - 1 {
             self.selected_index += 1;
         } else {
@@ -52,9 +52,9 @@ mod tests {
     use rstest::rstest;
 
     #[test]
-    fn new_menu_state_starts_with_first_item_selected() {
+    fn new_menu_starts_with_first_item_selected() {
         // Act
-        let sut = MenuState::new();
+        let sut = Menu::new();
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
@@ -62,12 +62,12 @@ mod tests {
     }
 
     #[test]
-    fn move_down_advances_selection() {
+    fn select_next_item_advances_selection() {
         // Arrange
-        let mut sut = MenuState::new();
+        let mut sut = Menu::new();
 
         // Act
-        sut.move_down();
+        sut.select_next_item();
 
         // Assert
         assert_eq!(sut.get_selected_index(), 1);
@@ -75,13 +75,13 @@ mod tests {
     }
 
     #[test]
-    fn move_down_at_end_wraps_to_beginning() {
+    fn select_next_item_at_end_wraps_to_beginning() {
         // Arrange
-        let mut sut = MenuState::new();
+        let mut sut = Menu::new();
         sut.selected_index = 2; // Last item
 
         // Act
-        sut.move_down();
+        sut.select_next_item();
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
@@ -89,13 +89,13 @@ mod tests {
     }
 
     #[test]
-    fn move_up_decreases_selection() {
+    fn select_previous_item_decreases_selection() {
         // Arrange
-        let mut sut = MenuState::new();
+        let mut sut = Menu::new();
         sut.selected_index = 1;
 
         // Act
-        sut.move_up();
+        sut.select_previous_item();
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
@@ -103,12 +103,12 @@ mod tests {
     }
 
     #[test]
-    fn move_up_at_beginning_wraps_to_end() {
+    fn select_previous_item_at_beginning_wraps_to_end() {
         // Arrange
-        let mut sut = MenuState::new();
+        let mut sut = Menu::new();
 
         // Act
-        sut.move_up();
+        sut.select_previous_item();
 
         // Assert
         assert_eq!(sut.get_selected_index(), 2);
@@ -124,7 +124,7 @@ mod tests {
         #[case] expected_item: MenuItem,
     ) {
         // Arrange
-        let mut sut = MenuState::new();
+        let mut sut = Menu::new();
         sut.selected_index = index;
 
         // Act
