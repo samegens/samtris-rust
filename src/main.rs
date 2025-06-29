@@ -1,20 +1,16 @@
 use crate::constants::*;
-use crate::events::EventQueue;
-use crate::game_logic::Game;
 use crate::game_logic::GameState;
 use crate::game_logic::GameTimer;
-use crate::game_logic::Playfield;
-use crate::graphics::GraphicsHudRenderer;
-use crate::graphics::GraphicsPlayfieldRenderer;
+use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
 use crate::gui::Event;
 use crate::gui::GameInput;
+use crate::screens::GameScreen;
+use crate::screens::ScreenResult;
 use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
-use std::sync::Arc;
 use std::time::Duration;
-use tetromino::RandomTetrominoGenerator;
 
 mod animation;
 mod common;
@@ -24,6 +20,7 @@ mod game_logic;
 mod graphics;
 mod gui;
 mod menu;
+mod screens;
 #[cfg(test)]
 mod test_helpers;
 mod tetromino;
@@ -125,36 +122,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture, font);
 
-    let event_bus = Arc::new(EventQueue::new());
-    let playfield = Playfield::new(
-        playfield_dimensions,
-        RandomTetrominoGenerator::new(),
-        event_bus.clone(),
-    );
-    let mut game = Game::new(
-        playfield,
-        GraphicsPlayfieldRenderer::new(),
-        GraphicsHudRenderer::new(),
-        event_bus.clone(),
-    );
-    game.start_level(0);
-
+    let mut current_screen = GameScreen::new();
     let mut game_timer = GameTimer::new();
 
     'running: loop {
-        game.update(game_timer.delta());
+        let result = current_screen.handle_events(&mut event_pump);
 
-        let events = poll_events(&mut event_pump, game.get_game_state());
-        for event in events {
-            match event {
-                Event::Quit => break 'running,
-                Event::GameInput(game_input) => {
-                    game.handle_input(game_input);
-                }
-            }
+        match result {
+            ScreenResult::Continue => {}
+            ScreenResult::Quit => break 'running,
+            // TODO: Handle other screen transitions later
+            _ => break 'running, // For now, treat others as quit
         }
 
-        game.draw(&mut display)?;
+        current_screen.update(game_timer.delta());
+        display.clear()?;
+        current_screen.draw(&mut display)?;
+        display.present()?;
 
         // This is not completely accurate, but it helps to keep the game running at a reasonably consistent frame rate.
         // It doesn't account for the time taken to process events or draw the frame. For Tetris it's good enough.
