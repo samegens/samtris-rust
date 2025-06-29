@@ -43,11 +43,10 @@ impl TetrominoPattern {
     }
 
     pub fn get_width(&self) -> u32 {
-        self.pattern.first().map(|row| row.len() as u32).unwrap_or(0)
-    }
-
-    pub fn get_height(&self) -> u32 {
-        self.pattern.len() as u32
+        self.pattern
+            .first()
+            .map(|row| row.len() as u32)
+            .unwrap_or(0)
     }
 
     fn number_to_tetromino_type(&self, number: i8) -> TetrominoType {
@@ -96,18 +95,6 @@ mod tests {
         assert_eq!(result, 3);
     }
 
-    #[test]
-    fn get_height_returns_correct_height() {
-        // Arrange
-        let sut = TetrominoPattern::new(create_test_pattern());
-
-        // Act
-        let result = sut.get_height();
-
-        // Assert
-        assert_eq!(result, 2);
-    }
-
     #[rstest]
     #[case(I, TetrominoType::I)]
     #[case(O, TetrominoType::O)]
@@ -131,9 +118,6 @@ mod tests {
     }
 
     fn create_test_pattern() -> Vec<Vec<i8>> {
-        vec![
-            vec![I, O, -1],
-            vec![T, -1, Z],
-        ]
+        vec![vec![I, O, -1], vec![T, -1, Z]]
     }
 }

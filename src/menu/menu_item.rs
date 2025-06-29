@@ -1,3 +1,5 @@
+//TODO remove once use from main
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuItem {
     Play,
@@ -9,7 +11,7 @@ impl MenuItem {
     pub fn display_text(&self) -> &'static str {
         match self {
             MenuItem::Play => "PLAY",
-            MenuItem::HighScores => "HIGH SCORES", 
+            MenuItem::HighScores => "HIGH SCORES",
             MenuItem::Quit => "QUIT",
         }
     }
@@ -24,10 +26,7 @@ mod tests {
     #[case(MenuItem::Play, "PLAY")]
     #[case(MenuItem::HighScores, "HIGH SCORES")]
     #[case(MenuItem::Quit, "QUIT")]
-    fn display_text_returns_correct_string(
-        #[case] menu_item: MenuItem,
-        #[case] expected: &str,
-    ) {
+    fn display_text_returns_correct_string(#[case] menu_item: MenuItem, #[case] expected: &str) {
         // Act
         let result = menu_item.display_text();
 

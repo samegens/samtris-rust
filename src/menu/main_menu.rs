@@ -5,14 +5,12 @@ pub struct Menu {
     selected_index: usize,
 }
 
+//TODO remove once used from main
+#[allow(dead_code)]
 impl Menu {
     pub fn new() -> Self {
         Self {
-            items: vec![
-                MenuItem::Play,
-                MenuItem::HighScores,
-                MenuItem::Quit,
-            ],
+            items: vec![MenuItem::Play, MenuItem::HighScores, MenuItem::Quit],
             selected_index: 0,
         }
     }
