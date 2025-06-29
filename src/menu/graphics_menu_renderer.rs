@@ -1,25 +1,20 @@
 use crate::constants::*;
 use crate::graphics::{Color, Display};
-use crate::menu::{Menu, MenuRenderer};
+use crate::menu::{Menu, MenuRenderer, MenuTitle};
 
-pub struct GraphicsMenuRenderer;
+pub struct GraphicsMenuRenderer {
+    title: MenuTitle,
+}
 
 impl GraphicsMenuRenderer {
     pub fn new() -> Self {
-        Self
-    }
-
-    fn draw_title<D: Display>(&self, display: &mut D) -> Result<(), String> {
-        const TITLE: &str = "SAMTris";
-        const TITLE_WIDTH: u32 = TITLE.len() as u32 * CHAR_WIDTH * 2; // Double size for title
-        let title_x = (WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE - TITLE_WIDTH) / 2;
-        let title_y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE / 4;
-
-        display.draw_text(TITLE, title_x, title_y, Color::CYAN)
+        Self {
+            title: MenuTitle::new(),
+        }
     }
 
     fn draw_menu_items<D: Display>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
-        let menu_start_y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE / 2;
+        let menu_start_y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE * 3 / 5; // Lower to make room for tetromino title
         let line_height = CHAR_HEIGHT * 2;
 
         for (index, item) in menu.get_items().iter().enumerate() {
@@ -49,7 +44,7 @@ impl GraphicsMenuRenderer {
 
 impl MenuRenderer for GraphicsMenuRenderer {
     fn draw<D: Display>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
-        self.draw_title(display)?;
+        self.title.draw(display)?;
         self.draw_menu_items(menu, display)?;
         Ok(())
     }
@@ -61,7 +56,7 @@ mod tests {
     use crate::graphics::MockDisplay;
 
     #[test]
-    fn graphics_menu_renderer_draws_title() {
+    fn graphics_menu_renderer_draws_tetromino_title() {
         // Arrange
         let sut = GraphicsMenuRenderer::new();
         let menu = Menu::new();
@@ -72,11 +67,10 @@ mod tests {
 
         // Assert
         assert!(result.is_ok());
-        let title_drawn = display
-            .drawn_text
-            .iter()
-            .any(|(text, _, _, _)| text == "SAMTris");
-        assert!(title_drawn);
+        assert!(
+            !display.drawn_blocks.is_empty(),
+            "Should draw tetromino blocks for title"
+        );
     }
 
     #[test]
