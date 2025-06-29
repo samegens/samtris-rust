@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuItem {
-    StartGame,
+    Play,
     HighScores,
     Quit,
 }
@@ -8,7 +8,7 @@ pub enum MenuItem {
 impl MenuItem {
     pub fn display_text(&self) -> &'static str {
         match self {
-            MenuItem::StartGame => "START GAME",
+            MenuItem::Play => "PLAY",
             MenuItem::HighScores => "HIGH SCORES", 
             MenuItem::Quit => "QUIT",
         }
@@ -21,7 +21,7 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case(MenuItem::StartGame, "START GAME")]
+    #[case(MenuItem::Play, "PLAY")]
     #[case(MenuItem::HighScores, "HIGH SCORES")]
     #[case(MenuItem::Quit, "QUIT")]
     fn display_text_returns_correct_string(

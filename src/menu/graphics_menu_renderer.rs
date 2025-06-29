@@ -1,6 +1,8 @@
+use crate::common::Position;
 use crate::constants::*;
 use crate::graphics::{Color, Display};
 use crate::menu::{Menu, MenuRenderer, MenuTitle};
+use crate::tetromino::TetrominoType;
 
 pub struct GraphicsMenuRenderer {
     title: MenuTitle,
@@ -19,32 +21,36 @@ impl GraphicsMenuRenderer {
 
         for (index, item) in menu.get_items().iter().enumerate() {
             let is_selected = index == menu.get_selected_index();
-            let color = if is_selected {
-                Color::YELLOW
-            } else {
-                Color::WHITE
-            };
+            let color = Color::WHITE;
 
-            let text = if is_selected {
-                format!("> {}", item.display_text())
-            } else {
-                format!("  {}", item.display_text())
-            };
-
-            let text_width = text.len() as u32 * CHAR_WIDTH;
-            let text_x = (WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE - text_width) / 2;
+            let text_x = WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE / 3;
             let text_y = menu_start_y + (index as u32 * line_height);
 
-            display.draw_text(&text, text_x, text_y, color)?;
+            if is_selected {
+                let block_pos = Position::new((text_x - BLOCK_SIZE * 2) as i32, text_y as i32);
+                display.draw_block(block_pos, TetrominoType::O)?;
+            }
+
+            display.draw_text(&item.display_text(), text_x, text_y, color)?;
         }
 
         Ok(())
+    }
+
+    fn draw_subtitle<D: Display>(&self, display: &mut D) -> Result<(), String> {
+        const SUBTITLE: &str = "- RUST EDITION -";
+        let subtitle_width = SUBTITLE.len() as u32 * CHAR_WIDTH;
+        let subtitle_x = (WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE - subtitle_width) / 2;
+        let subtitle_y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE / 6 + (7 * BLOCK_SIZE);
+
+        display.draw_text(SUBTITLE, subtitle_x, subtitle_y, Color::WHITE)
     }
 }
 
 impl MenuRenderer for GraphicsMenuRenderer {
     fn draw<D: Display>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
         self.title.draw(display)?;
+        self.draw_subtitle(display)?;
         self.draw_menu_items(menu, display)?;
         Ok(())
     }
@@ -89,7 +95,7 @@ mod tests {
         let start_game_drawn = display
             .drawn_text
             .iter()
-            .any(|(text, _, _, _)| text.contains("START GAME"));
+            .any(|(text, _, _, _)| text.contains("PLAY"));
         assert!(start_game_drawn);
 
         let high_scores_drawn = display

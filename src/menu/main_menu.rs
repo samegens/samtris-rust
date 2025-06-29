@@ -9,7 +9,7 @@ impl Menu {
     pub fn new() -> Self {
         Self {
             items: vec![
-                MenuItem::StartGame,
+                MenuItem::Play,
                 MenuItem::HighScores,
                 MenuItem::Quit,
             ],
@@ -58,7 +58,7 @@ mod tests {
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
-        assert_eq!(sut.get_selected_item(), &MenuItem::StartGame);
+        assert_eq!(sut.get_selected_item(), &MenuItem::Play);
     }
 
     #[test]
@@ -85,7 +85,7 @@ mod tests {
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
-        assert_eq!(sut.get_selected_item(), &MenuItem::StartGame);
+        assert_eq!(sut.get_selected_item(), &MenuItem::Play);
     }
 
     #[test]
@@ -99,7 +99,7 @@ mod tests {
 
         // Assert
         assert_eq!(sut.get_selected_index(), 0);
-        assert_eq!(sut.get_selected_item(), &MenuItem::StartGame);
+        assert_eq!(sut.get_selected_item(), &MenuItem::Play);
     }
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case(0, MenuItem::StartGame)]
+    #[case(0, MenuItem::Play)]
     #[case(1, MenuItem::HighScores)]
     #[case(2, MenuItem::Quit)]
     fn get_selected_item_returns_correct_item_for_index(
