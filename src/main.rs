@@ -1,13 +1,11 @@
 use crate::constants::*;
-use crate::game_logic::GameState;
 use crate::game_logic::GameTimer;
 use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
-use crate::gui::Event;
-use crate::gui::GameInput;
+use crate::input::translate_sdl_event;
+use crate::input::InputEvent;
 use crate::screens::GameScreen;
 use crate::screens::ScreenResult;
-use common::Dimensions;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
 use std::time::Duration;
@@ -19,11 +17,25 @@ mod events;
 mod game_logic;
 mod graphics;
 mod gui;
+mod input;
 mod menu;
 mod screens;
 #[cfg(test)]
 mod test_helpers;
 mod tetromino;
+
+/// Poll SDL2 events and translate them into platform-independent input events.
+fn poll_events(event_pump: &mut EventPump) -> Vec<InputEvent> {
+    let mut events = Vec::new();
+    
+    for sdl_event in event_pump.poll_iter() {
+        if let Some(input_event) = translate_sdl_event(sdl_event) {
+            events.push(input_event);
+        }
+    }
+    
+    events
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sdl_context = sdl2::init()?;
@@ -57,7 +69,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut game_timer = GameTimer::new();
 
     'running: loop {
-        let result = current_screen.handle_events(&mut event_pump);
+        let input_events = poll_events(&mut event_pump);
+        let result = current_screen.handle_input(&input_events);
 
         match result {
             ScreenResult::Continue => {}

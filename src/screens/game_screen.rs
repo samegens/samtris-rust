@@ -8,131 +8,89 @@ use crate::game_logic::Playfield;
 use crate::graphics::Display;
 use crate::graphics::GraphicsHudRenderer;
 use crate::graphics::GraphicsPlayfieldRenderer;
-use crate::gui::Event;
 use crate::gui::GameInput;
+use crate::input::InputEvent;
+use crate::input::Key;
 use crate::screens::ScreenResult;
 use crate::tetromino::RandomTetrominoGenerator;
-use sdl2::EventPump;
 use std::sync::Arc;
 use std::time::Duration;
 
 pub struct GameScreen {
     game: Game<GraphicsPlayfieldRenderer, GraphicsHudRenderer, RandomTetrominoGenerator>,
-    game_timer: GameTimer,
 }
 
 impl GameScreen {
     pub fn new() -> Self {
         let playfield_dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
-        let event_bus = Arc::new(EventQueue::new());
+        let event_queue = Arc::new(EventQueue::new());
         let playfield = Playfield::new(
             playfield_dimensions,
             RandomTetrominoGenerator::new(),
-            event_bus.clone(),
+            event_queue.clone(),
         );
         let mut game = Game::new(
             playfield,
             GraphicsPlayfieldRenderer::new(),
             GraphicsHudRenderer::new(),
-            event_bus.clone(),
+            event_queue.clone(),
         );
         game.start_level(0);
 
         Self {
             game,
-            game_timer: GameTimer::new(),
         }
     }
 
-    pub fn update(&mut self, _delta_time: Duration) {
-        self.game.update(self.game_timer.delta());
-    }
-
-    pub fn handle_events(&mut self, event_pump: &mut EventPump) -> ScreenResult {
-        let events = self.poll_events(event_pump);
-        for event in events {
-            match event {
-                Event::Quit => return ScreenResult::Quit,
-                Event::GameInput(game_input) => {
-                    self.game.handle_input(game_input);
-                }
-            }
-        }
-        ScreenResult::Continue
+    pub fn update(&mut self, delta_time: Duration) {
+        self.game.update(delta_time);
     }
 
     pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
         self.game.draw(display)
     }
 
-    fn poll_events(&self, event_pump: &mut EventPump) -> Vec<Event> {
-        let mut events = Vec::new();
-
-        for sdl_event in event_pump.poll_iter() {
-            match self.game.get_game_state() {
-                GameState::Playing => {
-                    self.handle_playing_events(&mut events, sdl_event);
+    pub fn handle_input(&mut self, input_events: &[InputEvent]) -> ScreenResult {
+        for event in input_events {
+            match event {
+                InputEvent::Quit => return ScreenResult::Quit,
+                InputEvent::KeyPressed(key) => {
+                    if let Some(game_input) = self.translate_key_to_game_input(*key) {
+                        self.game.handle_input(game_input);
+                    }
                 }
-                GameState::GameOver => {
-                    self.handle_game_over_events(&mut events, sdl_event);
+                InputEvent::KeyReleased(_) => {
+                    // Game doesn't currently need key release events
                 }
             }
         }
-
-        events
+        ScreenResult::Continue
     }
 
-    fn handle_playing_events(&self, events: &mut Vec<Event>, sdl_event: sdl2::event::Event) {
-        match sdl_event {
-            sdl2::event::Event::Quit { .. } => {
-                events.push(Event::Quit);
+    fn translate_key_to_game_input(&self, key: Key) -> Option<GameInput> {
+        match self.game.get_game_state() {
+            GameState::Playing => {
+                match key {
+                    Key::Left => Some(GameInput::MoveLeft),
+                    Key::Right => Some(GameInput::MoveRight),
+                    Key::Down => Some(GameInput::MoveDown),
+                    Key::Up | Key::X => Some(GameInput::RotateClockwise),
+                    Key::Z => Some(GameInput::RotateCounterclockwise),
+                    Key::Space => Some(GameInput::Drop),
+                    Key::Escape => return Some(GameInput::StartGame), // TODO: Should go back to menu
+                    _ => None,
+                }
             }
-            sdl2::event::Event::KeyDown {
-                keycode: Some(keycode),
-                ..
-            } => match keycode {
-                sdl2::keyboard::Keycode::Left => events.push(Event::GameInput(GameInput::MoveLeft)),
-                sdl2::keyboard::Keycode::Right => {
-                    events.push(Event::GameInput(GameInput::MoveRight))
+            GameState::GameOver => {
+                match key {
+                    Key::Space | Key::Enter => Some(GameInput::StartGame),
+                    Key::Escape => return Some(GameInput::StartGame), // TODO: Should go back to menu
+                    _ => None,
                 }
-                sdl2::keyboard::Keycode::Up | sdl2::keyboard::Keycode::X => {
-                    events.push(Event::GameInput(GameInput::RotateClockwise))
-                }
-                sdl2::keyboard::Keycode::Down => events.push(Event::GameInput(GameInput::MoveDown)),
-                sdl2::keyboard::Keycode::Z => {
-                    events.push(Event::GameInput(GameInput::RotateCounterclockwise))
-                }
-                sdl2::keyboard::Keycode::Space => {
-                    events.push(Event::GameInput(GameInput::Drop));
-                }
-                sdl2::keyboard::Keycode::Escape => {
-                    events.push(Event::Quit);
-                }
-                _ => {}
-            },
-            _ => {}
+            }
         }
     }
 
-    fn handle_game_over_events(&self, events: &mut Vec<Event>, sdl_event: sdl2::event::Event) {
-        match sdl_event {
-            sdl2::event::Event::Quit { .. } => {
-                events.push(Event::Quit);
-            }
-            sdl2::event::Event::KeyDown {
-                keycode:
-                    Some(
-                        sdl2::keyboard::Keycode::Space
-                        | sdl2::keyboard::Keycode::Return
-                        | sdl2::keyboard::Keycode::Escape,
-                    ),
-                ..
-            } => {
-                events.push(Event::GameInput(GameInput::StartGame));
-            }
-            _ => {}
-        }
-    }
 }
 
 #[cfg(test)]
