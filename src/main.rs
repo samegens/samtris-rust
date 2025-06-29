@@ -23,6 +23,7 @@ mod events;
 mod game_logic;
 mod graphics;
 mod gui;
+mod menu;
 #[cfg(test)]
 mod test_helpers;
 mod tetromino;
