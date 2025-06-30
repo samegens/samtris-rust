@@ -87,12 +87,21 @@ impl GameScreen {
             }
         }
     }
+
+    #[cfg(test)]
+    pub fn get_game(
+        &self,
+    ) -> &Game<GraphicsPlayfieldRenderer, GraphicsHudRenderer, RandomTetrominoGenerator> {
+        &self.game
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
-    use crate::graphics::MockDisplay;
+    use crate::{graphics::MockDisplay, test_helpers::get_tetromino_position_from_gamescreen};
 
     #[test]
     fn game_screen_can_be_created() {
@@ -116,5 +125,117 @@ mod tests {
         assert!(result.is_ok());
         assert!(display.cleared);
         assert!(display.presented);
+    }
+
+    #[test]
+    fn update_advances_game_time() {
+        // Arrange
+        let mut sut = GameScreen::new();
+        sut.game.spawn_tetromino();
+        let initial_position = get_tetromino_position_from_gamescreen(&sut);
+
+        // Act
+        sut.update(Duration::from_millis(1000));
+
+        // Assert
+        let new_position = get_tetromino_position_from_gamescreen(&sut);
+        assert_eq!(new_position.y, initial_position.y + 1);
+    }
+
+    #[test]
+    fn handle_input_moves_tetromino_left() {
+        // Arrange
+        let mut sut = GameScreen::new();
+        sut.game.spawn_tetromino();
+        let initial_position = get_tetromino_position_from_gamescreen(&sut);
+        let input_events = vec![InputEvent::KeyPressed(Key::Left)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
+        let new_position = get_tetromino_position_from_gamescreen(&sut);
+        assert_eq!(new_position.x, initial_position.x - 1);
+        assert_eq!(new_position.y, initial_position.y);
+    }
+
+    #[test]
+    fn handle_input_quit_returns_quit_screen_result() {
+        // Arrange
+        let mut sut = GameScreen::new();
+        let input_events = vec![InputEvent::Quit];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Quit);
+    }
+
+    #[test]
+    fn handle_input_key_released_does_nothing() {
+        // Arrange
+        let mut sut = GameScreen::new();
+        sut.game.spawn_tetromino();
+        let initial_position = get_tetromino_position_from_gamescreen(&sut);
+        let input_events = vec![InputEvent::KeyReleased(Key::Left)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
+        let final_position = get_tetromino_position_from_gamescreen(&sut);
+        assert_eq!(final_position, initial_position); // Position unchanged
+    }
+
+    #[rstest]
+    #[case(Key::Left, Some(GameInput::MoveLeft))]
+    #[case(Key::Right, Some(GameInput::MoveRight))]
+    #[case(Key::Down, Some(GameInput::MoveDown))]
+    #[case(Key::Up, Some(GameInput::RotateClockwise))]
+    #[case(Key::X, Some(GameInput::RotateClockwise))]
+    #[case(Key::Z, Some(GameInput::RotateCounterclockwise))]
+    #[case(Key::Space, Some(GameInput::Drop))]
+    #[case(Key::Enter, None)] // Enter does nothing when playing
+    #[case(Key::Escape, Some(GameInput::StartGame))] // TODO: Will change to ReturnToMainMenu
+    fn translate_key_to_game_input_when_playing(
+        #[case] key: Key,
+        #[case] expected: Option<GameInput>,
+    ) {
+        // Arrange
+        let sut = GameScreen::new(); // Starts in Playing state
+
+        // Act
+        let result = sut.translate_key_to_game_input(key);
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(Key::Space, Some(GameInput::StartGame))]
+    #[case(Key::Enter, Some(GameInput::StartGame))]
+    #[case(Key::Escape, Some(GameInput::StartGame))]
+    #[case(Key::Left, None)]
+    #[case(Key::Right, None)]
+    #[case(Key::Down, None)]
+    #[case(Key::Up, None)]
+    #[case(Key::X, None)]
+    #[case(Key::Z, None)]
+    fn translate_key_to_game_input_when_game_over(
+        #[case] key: Key,
+        #[case] expected: Option<GameInput>,
+    ) {
+        // Arrange
+        let mut sut = GameScreen::new();
+        sut.game.set_game_state_game_over();
+
+        // Act
+        let result = sut.translate_key_to_game_input(key);
+
+        // Assert
+        assert_eq!(result, expected);
     }
 }

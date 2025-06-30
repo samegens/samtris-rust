@@ -93,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn translate_unknown_key_returns_none() {
+    fn translate_unknown_key_down_returns_none() {
         // Arrange
         let sdl_event = sdl2::event::Event::KeyDown {
             timestamp: 0,
@@ -102,6 +102,76 @@ mod tests {
             scancode: None,
             keymod: sdl2::keyboard::Mod::empty(),
             repeat: false,
+        };
+
+        // Act
+        let result = translate_sdl_event(sdl_event);
+
+        // Assert
+        assert_eq!(result, None);
+    }
+
+    #[rstest]
+    #[case(sdl2::keyboard::Keycode::Up, Key::Up)]
+    #[case(sdl2::keyboard::Keycode::Down, Key::Down)]
+    #[case(sdl2::keyboard::Keycode::Left, Key::Left)]
+    #[case(sdl2::keyboard::Keycode::Right, Key::Right)]
+    #[case(sdl2::keyboard::Keycode::Space, Key::Space)]
+    #[case(sdl2::keyboard::Keycode::Return, Key::Enter)]
+    #[case(sdl2::keyboard::Keycode::Escape, Key::Escape)]
+    #[case(sdl2::keyboard::Keycode::X, Key::X)]
+    #[case(sdl2::keyboard::Keycode::Z, Key::Z)]
+    fn translate_key_up_returns_correct_key_released(
+        #[case] sdl_keycode: sdl2::keyboard::Keycode,
+        #[case] expected_key: Key,
+    ) {
+        // Arrange
+        let sdl_event = sdl2::event::Event::KeyUp {
+            timestamp: 0,
+            window_id: 0,
+            keycode: Some(sdl_keycode),
+            scancode: None,
+            keymod: sdl2::keyboard::Mod::empty(),
+            repeat: false,
+        };
+
+        // Act
+        let result = translate_sdl_event(sdl_event);
+
+        // Assert
+        assert_eq!(result, Some(InputEvent::KeyReleased(expected_key)));
+    }
+
+    #[test]
+    fn translate_unknown_key_up_returns_none() {
+        // Arrange
+        let sdl_event = sdl2::event::Event::KeyUp {
+            timestamp: 0,
+            window_id: 0,
+            keycode: Some(sdl2::keyboard::Keycode::A), // Not in our key mapping
+            scancode: None,
+            keymod: sdl2::keyboard::Mod::empty(),
+            repeat: false,
+        };
+
+        // Act
+        let result = translate_sdl_event(sdl_event);
+
+        // Assert
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn translate_unknown_sdl_event_returns_none() {
+        // Arrange
+        let sdl_event = sdl2::event::Event::MouseButtonDown {
+            timestamp: 0,
+            window_id: 0,
+            which: 0,
+            mouse_btn: sdl2::mouse::MouseButton::Left,
+            clicks: 1,
+            x: 0,
+            y: 0,
         };
 
         // Act

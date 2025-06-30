@@ -198,7 +198,7 @@ mod tests {
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text == "NEXT");
-        assert!(next_text_drawn, "NEXT text should be drawn");
+        assert!(next_text_drawn);
     }
 
     #[test]
@@ -223,7 +223,7 @@ mod tests {
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text == "Level: 4"); // current_level + 1
-        assert!(level_text_drawn, "Level text should be drawn");
+        assert!(level_text_drawn);
     }
 
     #[test]
@@ -248,7 +248,7 @@ mod tests {
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text == "Lines: 15");
-        assert!(lines_text_drawn, "Lines text should be drawn");
+        assert!(lines_text_drawn);
     }
 
     #[test]
@@ -274,16 +274,13 @@ mod tests {
             .drawn_rectangles
             .iter()
             .any(|(_, _, _, _, color)| *color == Color::RED);
-        assert!(
-            game_over_rectangle_drawn,
-            "Game over rectangle should be drawn"
-        );
+        assert!(game_over_rectangle_drawn);
 
         let game_over_text_drawn = display
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text == "GAME OVER");
-        assert!(game_over_text_drawn, "GAME OVER text should be drawn");
+        assert!(game_over_text_drawn);
     }
 
     #[test]
@@ -308,7 +305,7 @@ mod tests {
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text == "Score: 1240");
-        assert!(score_text_drawn, "Score text should be drawn");
+        assert!(score_text_drawn);
     }
 
     #[test]
@@ -334,9 +331,6 @@ mod tests {
             .drawn_blocks
             .iter()
             .any(|(_, tetromino_type)| *tetromino_type == TetrominoType::T);
-        assert!(
-            !tetromino_blocks_drawn,
-            "Tetromino blocks should not be drawn during game over"
-        );
+        assert!(!tetromino_blocks_drawn);
     }
 }

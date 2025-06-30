@@ -6,6 +6,7 @@ use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::Playfield;
 use crate::graphics::{MockHudRenderer, MockPlayfieldRenderer};
+use crate::screens::GameScreen;
 use crate::tetromino::{
     FixedTetrominoGenerator, TetrominoDefinitions, TetrominoInstance, TetrominoType,
 };
@@ -85,4 +86,13 @@ pub fn create_tetromino_instance_at(
 ) -> TetrominoInstance {
     let tetromino_definitions = TetrominoDefinitions::new();
     TetrominoInstance::new(tetromino_type, position, &tetromino_definitions)
+}
+
+pub fn get_tetromino_position_from_gamescreen(gamescreen: &GameScreen) -> Position {
+    gamescreen
+        .get_game()
+        .get_playfield()
+        .get_current_tetromino()
+        .unwrap()
+        .get_position()
 }
