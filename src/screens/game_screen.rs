@@ -42,23 +42,19 @@ impl GameScreen {
 
     fn translate_key_to_game_input(&self, key: Key) -> Option<GameInput> {
         match self.game.get_game_state() {
-            GameState::Playing => {
-                match key {
-                    Key::Left => Some(GameInput::MoveLeft),
-                    Key::Right => Some(GameInput::MoveRight),
-                    Key::Down => Some(GameInput::MoveDown),
-                    Key::Up | Key::X => Some(GameInput::RotateClockwise),
-                    Key::Z => Some(GameInput::RotateCounterclockwise),
-                    Key::Space => Some(GameInput::Drop),
-                    _ => None,
-                }
-            }
-            GameState::GameOver => {
-                match key {
-                    Key::Space | Key::Enter => Some(GameInput::StartGame),
-                    _ => None,
-                }
-            }
+            GameState::Playing => match key {
+                Key::Left => Some(GameInput::MoveLeft),
+                Key::Right => Some(GameInput::MoveRight),
+                Key::Down => Some(GameInput::MoveDown),
+                Key::Up | Key::X => Some(GameInput::RotateClockwise),
+                Key::Z => Some(GameInput::RotateCounterclockwise),
+                Key::Space => Some(GameInput::Drop),
+                _ => None,
+            },
+            GameState::GameOver => match key {
+                Key::Space | Key::Enter => Some(GameInput::StartGame),
+                _ => None,
+            },
         }
     }
 
@@ -218,7 +214,7 @@ mod tests {
     #[rstest]
     #[case(Key::Space, Some(GameInput::StartGame))]
     #[case(Key::Enter, Some(GameInput::StartGame))]
-    #[case(Key::Escape, Some(GameInput::StartGame))]
+    #[case(Key::Escape, None)] // Handled separately in handle_input
     #[case(Key::Left, None)]
     #[case(Key::Right, None)]
     #[case(Key::Down, None)]
