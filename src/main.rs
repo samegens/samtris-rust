@@ -5,6 +5,8 @@ use crate::graphics::SdlDisplay;
 use crate::input::translate_sdl_event;
 use crate::input::InputEvent;
 use crate::screens::GameScreen;
+use crate::screens::MenuScreen;
+use crate::screens::Screen;
 use crate::screens::ScreenResult;
 use sdl2::image::{self, InitFlag, LoadTexture};
 use sdl2::EventPump;
@@ -65,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut display = SdlDisplay::new(canvas, BLOCK_SIZE, tetrominos_texture, font);
 
-    let mut current_screen = GameScreen::new();
+    let mut current_screen: Box<dyn Screen> = Box::new(MenuScreen::new());
     let mut game_timer = GameTimer::new();
 
     'running: loop {
@@ -75,8 +77,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match result {
             ScreenResult::Continue => {}
             ScreenResult::Quit => break 'running,
+            ScreenResult::Play => {
+                current_screen = Box::new(GameScreen::new());
+            }
+            ScreenResult::ReturnToMainMenu => {
+                current_screen = Box::new(MenuScreen::new());
+            }
             // TODO: Handle other screen transitions later
-            _ => break 'running, // For now, treat others as quit
+            _ => {}
         }
 
         current_screen.update(game_timer.delta());

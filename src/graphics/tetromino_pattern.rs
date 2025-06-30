@@ -21,7 +21,7 @@ impl TetrominoPattern {
         Self { pattern }
     }
 
-    pub fn draw<D: Display>(&self, display: &mut D, x: u32, y: u32) -> Result<(), String> {
+    pub fn draw<D: Display + ?Sized>(&self, display: &mut D, x: u32, y: u32) -> Result<(), String> {
         for (row_index, row) in self.pattern.iter().enumerate() {
             for (col_index, &cell) in row.iter().enumerate() {
                 if cell >= 0 {
@@ -36,7 +36,11 @@ impl TetrominoPattern {
         Ok(())
     }
 
-    pub fn draw_centered<D: Display>(&self, display: &mut D, center_y: u32) -> Result<(), String> {
+    pub fn draw_centered<D: Display + ?Sized>(
+        &self,
+        display: &mut D,
+        center_y: u32,
+    ) -> Result<(), String> {
         let pattern_width = self.get_width() * BLOCK_SIZE;
         let center_x = (WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE - pattern_width) / 2;
         self.draw(display, center_x, center_y)

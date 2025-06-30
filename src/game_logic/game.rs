@@ -74,7 +74,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         }
     }
 
-    pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
+    pub fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
         display.clear()?;
 
         let playfield_view = self.playfield.get_view();

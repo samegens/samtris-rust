@@ -16,7 +16,11 @@ impl MockHudRenderer {
 }
 
 impl HudRenderer for MockHudRenderer {
-    fn draw<D: Display>(&self, hud_view: &HudView, _display: &mut D) -> Result<(), String> {
+    fn draw<D: Display + ?Sized>(
+        &self,
+        hud_view: &HudView,
+        _display: &mut D,
+    ) -> Result<(), String> {
         self.draw_calls.borrow_mut().push(hud_view.clone());
         Ok(())
     }

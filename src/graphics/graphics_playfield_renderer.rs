@@ -10,7 +10,7 @@ impl GraphicsPlayfieldRenderer {
         Self
     }
 
-    fn draw_border<D: Display>(&self, display: &mut D) -> Result<(), String> {
+    fn draw_border<D: Display + ?Sized>(&self, display: &mut D) -> Result<(), String> {
         let border_color = Color::WHITE;
 
         // Left border
@@ -37,7 +37,7 @@ impl GraphicsPlayfieldRenderer {
         Ok(())
     }
 
-    fn draw_playfield_blocks<D: Display>(
+    fn draw_playfield_blocks<D: Display + ?Sized>(
         &self,
         playfield_view: &PlayfieldView,
         display: &mut D,
@@ -64,7 +64,7 @@ impl GraphicsPlayfieldRenderer {
         Ok(())
     }
 
-    fn draw_playfield_position<D: Display>(
+    fn draw_playfield_position<D: Display + ?Sized>(
         &self,
         playfield_view: &PlayfieldView,
         display: &mut D,
@@ -80,7 +80,7 @@ impl GraphicsPlayfieldRenderer {
         Ok(())
     }
 
-    fn draw_current_tetromino<D: Display>(
+    fn draw_current_tetromino<D: Display + ?Sized>(
         &self,
         current_tetromino: Option<&TetrominoInstance>,
         display: &mut D,
@@ -103,7 +103,7 @@ impl GraphicsPlayfieldRenderer {
 }
 
 impl PlayfieldRenderer for GraphicsPlayfieldRenderer {
-    fn draw<D: Display>(
+    fn draw<D: Display + ?Sized>(
         &self,
         playfield_view: &PlayfieldView,
         display: &mut D,

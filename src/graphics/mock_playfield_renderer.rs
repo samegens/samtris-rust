@@ -27,7 +27,7 @@ impl MockPlayfieldRenderer {
 }
 
 impl PlayfieldRenderer for MockPlayfieldRenderer {
-    fn draw<D: Display>(
+    fn draw<D: Display + ?Sized>(
         &self,
         playfield_view: &PlayfieldView,
         _display: &mut D,

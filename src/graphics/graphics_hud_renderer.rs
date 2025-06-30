@@ -10,7 +10,11 @@ impl GraphicsHudRenderer {
         Self
     }
 
-    fn draw_level<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+    fn draw_level<D: Display + ?Sized>(
+        &self,
+        hud_view: &HudView,
+        display: &mut D,
+    ) -> Result<(), String> {
         let level = hud_view.current_level + 1; // Display as 1-based
         display.draw_text(
             &format!("Level: {level}"),
@@ -20,7 +24,7 @@ impl GraphicsHudRenderer {
         )
     }
 
-    fn draw_lines_cleared<D: Display>(
+    fn draw_lines_cleared<D: Display + ?Sized>(
         &self,
         hud_view: &HudView,
         display: &mut D,
@@ -33,7 +37,7 @@ impl GraphicsHudRenderer {
         )
     }
 
-    fn draw_game_over<D: Display>(&self, display: &mut D) -> Result<(), String> {
+    fn draw_game_over<D: Display + ?Sized>(&self, display: &mut D) -> Result<(), String> {
         let x: u32 = (PLAYFIELD_OFFSET_X as i32
             + (PLAYFIELD_WIDTH as i32 * BLOCK_SIZE as i32 - GAME_OVER_WIDTH as i32) / 2)
             as u32;
@@ -53,7 +57,7 @@ impl GraphicsHudRenderer {
         display.draw_text(text, text_x, text_y, Color::WHITE)
     }
 
-    fn draw_widget_for_next_tetromino<D: Display>(
+    fn draw_widget_for_next_tetromino<D: Display + ?Sized>(
         &self,
         hud_view: &HudView,
         display: &mut D,
@@ -63,7 +67,7 @@ impl GraphicsHudRenderer {
         self.draw_tetromino_for_next_tetromino(hud_view, display)
     }
 
-    fn draw_tetromino_for_next_tetromino<D: Display>(
+    fn draw_tetromino_for_next_tetromino<D: Display + ?Sized>(
         &self,
         hud_view: &HudView,
         display: &mut D,
@@ -104,7 +108,11 @@ impl GraphicsHudRenderer {
         Ok(())
     }
 
-    fn draw_score<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+    fn draw_score<D: Display + ?Sized>(
+        &self,
+        hud_view: &HudView,
+        display: &mut D,
+    ) -> Result<(), String> {
         display.draw_text(
             &format!("Score: {}", hud_view.score),
             SCORE_OFFSET_X,
@@ -114,7 +122,7 @@ impl GraphicsHudRenderer {
     }
 }
 
-fn draw_label_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), String> {
+fn draw_label_for_next_tetromino<D: Display + ?Sized>(display: &mut D) -> Result<(), String> {
     const TEXT: &str = "NEXT";
     const TEXT_WIDTH: u32 = TEXT.len() as u32 * CHAR_WIDTH;
     let x = NEXT_TETROMINO_OFFSET_X + (NEXT_TETROMINO_AREA_WIDTH - TEXT_WIDTH) / 2;
@@ -122,7 +130,7 @@ fn draw_label_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), Stri
     display.draw_text(TEXT, x, y, Color::WHITE)
 }
 
-fn draw_border_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), String> {
+fn draw_border_for_next_tetromino<D: Display + ?Sized>(display: &mut D) -> Result<(), String> {
     let border_color = Color::WHITE;
     display.draw_rectangle(
         NEXT_TETROMINO_OFFSET_X - 1,
@@ -155,7 +163,7 @@ fn draw_border_for_next_tetromino<D: Display>(display: &mut D) -> Result<(), Str
 }
 
 impl HudRenderer for GraphicsHudRenderer {
-    fn draw<D: Display>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
+    fn draw<D: Display + ?Sized>(&self, hud_view: &HudView, display: &mut D) -> Result<(), String> {
         self.draw_score(hud_view, display)?;
         self.draw_lines_cleared(hud_view, display)?;
         self.draw_level(hud_view, display)?;

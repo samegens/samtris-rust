@@ -1,7 +1,7 @@
 use crate::graphics::Display;
 use crate::input::{InputEvent, Key};
 use crate::menu::{GraphicsMenuRenderer, Menu, MenuItem, MenuRenderer};
-use crate::screens::ScreenResult;
+use crate::screens::{Screen, ScreenResult};
 use std::time::Duration;
 
 pub struct MenuScreen {
@@ -15,34 +15,6 @@ impl MenuScreen {
             menu: Menu::new(),
             menu_renderer: GraphicsMenuRenderer::new(),
         }
-    }
-
-    pub fn update(&mut self, _delta_time: Duration) {
-        // Menu doesn't need time-based updates for now
-    }
-
-    pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
-        display.clear()?;
-        self.menu_renderer.draw(&self.menu, display)?;
-        display.present()?;
-        Ok(())
-    }
-
-    pub fn handle_input(&mut self, input_events: &[InputEvent]) -> ScreenResult {
-        for event in input_events {
-            match event {
-                InputEvent::Quit => return ScreenResult::Quit,
-                InputEvent::KeyPressed(key) => {
-                    if let Some(result) = self.handle_key_press(*key) {
-                        return result;
-                    }
-                }
-                InputEvent::KeyReleased(_) => {
-                    // Menu doesn't need key release events
-                }
-            }
-        }
-        ScreenResult::Continue
     }
 
     fn handle_key_press(&mut self, key: Key) -> Option<ScreenResult> {
@@ -72,6 +44,36 @@ impl MenuScreen {
     #[cfg(test)]
     pub fn get_menu(&self) -> &Menu {
         &self.menu
+    }
+}
+
+impl Screen for MenuScreen {
+    fn update(&mut self, _delta_time: Duration) {
+        // Menu doesn't need time-based updates for now
+    }
+
+    fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
+        display.clear()?;
+        self.menu_renderer.draw(&self.menu, display)?;
+        display.present()?;
+        Ok(())
+    }
+
+    fn handle_input(&mut self, input_events: &[InputEvent]) -> ScreenResult {
+        for event in input_events {
+            match event {
+                InputEvent::Quit => return ScreenResult::Quit,
+                InputEvent::KeyPressed(key) => {
+                    if let Some(result) = self.handle_key_press(*key) {
+                        return result;
+                    }
+                }
+                InputEvent::KeyReleased(_) => {
+                    // Menu doesn't need key release events
+                }
+            }
+        }
+        ScreenResult::Continue
     }
 }
 

@@ -48,7 +48,7 @@ impl MenuTitle {
         }
     }
 
-    pub fn draw<D: Display>(&self, display: &mut D) -> Result<(), String> {
+    pub fn draw<D: Display + ?Sized>(&self, display: &mut D) -> Result<(), String> {
         let y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE / 6;
         self.pattern.draw_centered(display, y)
     }

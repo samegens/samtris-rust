@@ -10,6 +10,7 @@ use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::gui::GameInput;
 use crate::input::InputEvent;
 use crate::input::Key;
+use crate::screens::Screen;
 use crate::screens::ScreenResult;
 use crate::tetromino::RandomTetrominoGenerator;
 use std::sync::Arc;
@@ -37,31 +38,6 @@ impl GameScreen {
         game.start_level(0);
 
         Self { game }
-    }
-
-    pub fn update(&mut self, delta_time: Duration) {
-        self.game.update(delta_time);
-    }
-
-    pub fn draw<D: Display>(&mut self, display: &mut D) -> Result<(), String> {
-        self.game.draw(display)
-    }
-
-    pub fn handle_input(&mut self, input_events: &[InputEvent]) -> ScreenResult {
-        for event in input_events {
-            match event {
-                InputEvent::Quit => return ScreenResult::Quit,
-                InputEvent::KeyPressed(key) => {
-                    if let Some(game_input) = self.translate_key_to_game_input(*key) {
-                        self.game.handle_input(game_input);
-                    }
-                }
-                InputEvent::KeyReleased(_) => {
-                    // Game doesn't currently need key release events
-                }
-            }
-        }
-        ScreenResult::Continue
     }
 
     fn translate_key_to_game_input(&self, key: Key) -> Option<GameInput> {
@@ -96,6 +72,33 @@ impl GameScreen {
     }
 }
 
+impl Screen for GameScreen {
+    fn update(&mut self, delta_time: Duration) {
+        self.game.update(delta_time);
+    }
+
+    fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
+        self.game.draw(display)
+    }
+
+    fn handle_input(&mut self, input_events: &[InputEvent]) -> ScreenResult {
+        for event in input_events {
+            match event {
+                InputEvent::Quit => return ScreenResult::Quit,
+                InputEvent::KeyPressed(Key::Escape) => return ScreenResult::ReturnToMainMenu,
+                InputEvent::KeyPressed(key) => {
+                    if let Some(game_input) = self.translate_key_to_game_input(*key) {
+                        self.game.handle_input(game_input);
+                    }
+                }
+                InputEvent::KeyReleased(_) => {
+                    // Game doesn't currently need key release events
+                }
+            }
+        }
+        ScreenResult::Continue
+    }
+}
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -237,5 +240,18 @@ mod tests {
 
         // Assert
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn handle_input_escape_returns_to_main_menu() {
+        // Arrange
+        let mut sut = GameScreen::new();
+        let input_events = vec![InputEvent::KeyPressed(Key::Escape)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::ReturnToMainMenu);
     }
 }

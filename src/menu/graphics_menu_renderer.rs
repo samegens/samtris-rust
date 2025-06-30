@@ -17,7 +17,11 @@ impl GraphicsMenuRenderer {
         }
     }
 
-    fn draw_menu_items<D: Display>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
+    fn draw_menu_items<D: Display + ?Sized>(
+        &self,
+        menu: &Menu,
+        display: &mut D,
+    ) -> Result<(), String> {
         let menu_start_y = WINDOW_HEIGHT_IN_BLOCKS * BLOCK_SIZE * 3 / 5; // Lower to make room for tetromino title
         let line_height = CHAR_HEIGHT * 2;
 
@@ -39,7 +43,7 @@ impl GraphicsMenuRenderer {
         Ok(())
     }
 
-    fn draw_subtitle<D: Display>(&self, display: &mut D) -> Result<(), String> {
+    fn draw_subtitle<D: Display + ?Sized>(&self, display: &mut D) -> Result<(), String> {
         const SUBTITLE: &str = "- RUST EDITION -";
         let subtitle_width = SUBTITLE.len() as u32 * CHAR_WIDTH;
         let subtitle_x = (WINDOW_WIDTH_IN_BLOCKS * BLOCK_SIZE - subtitle_width) / 2;
@@ -50,7 +54,7 @@ impl GraphicsMenuRenderer {
 }
 
 impl MenuRenderer for GraphicsMenuRenderer {
-    fn draw<D: Display>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
+    fn draw<D: Display + ?Sized>(&self, menu: &Menu, display: &mut D) -> Result<(), String> {
         self.title.draw(display)?;
         self.draw_subtitle(display)?;
         self.draw_menu_items(menu, display)?;
