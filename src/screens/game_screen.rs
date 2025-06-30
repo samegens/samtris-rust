@@ -3,7 +3,6 @@ use crate::constants::*;
 use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::GameState;
-use crate::game_logic::GameTimer;
 use crate::game_logic::Playfield;
 use crate::graphics::Display;
 use crate::graphics::GraphicsHudRenderer;
@@ -37,9 +36,7 @@ impl GameScreen {
         );
         game.start_level(0);
 
-        Self {
-            game,
-        }
+        Self { game }
     }
 
     pub fn update(&mut self, delta_time: Duration) {
@@ -77,20 +74,19 @@ impl GameScreen {
                     Key::Up | Key::X => Some(GameInput::RotateClockwise),
                     Key::Z => Some(GameInput::RotateCounterclockwise),
                     Key::Space => Some(GameInput::Drop),
-                    Key::Escape => return Some(GameInput::StartGame), // TODO: Should go back to menu
+                    Key::Escape => Some(GameInput::StartGame), // TODO: Should go back to menu
                     _ => None,
                 }
             }
             GameState::GameOver => {
                 match key {
                     Key::Space | Key::Enter => Some(GameInput::StartGame),
-                    Key::Escape => return Some(GameInput::StartGame), // TODO: Should go back to menu
+                    Key::Escape => Some(GameInput::StartGame), // TODO: Should go back to menu
                     _ => None,
                 }
             }
         }
     }
-
 }
 
 #[cfg(test)]

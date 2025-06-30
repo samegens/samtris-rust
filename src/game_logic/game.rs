@@ -151,7 +151,7 @@ mod tests {
     use crate::common::{Dimensions, Position};
     use crate::constants::*;
     use crate::graphics::{MockDisplay, MockHudRenderer, MockPlayfieldRenderer};
-    use crate::gui::game_input::GameInput;
+    use crate::gui::GameInput;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::{TetrominoInstance, TetrominoType};

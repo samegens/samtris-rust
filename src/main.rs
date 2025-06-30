@@ -27,13 +27,13 @@ mod tetromino;
 /// Poll SDL2 events and translate them into platform-independent input events.
 fn poll_events(event_pump: &mut EventPump) -> Vec<InputEvent> {
     let mut events = Vec::new();
-    
+
     for sdl_event in event_pump.poll_iter() {
         if let Some(input_event) = translate_sdl_event(sdl_event) {
             events.push(input_event);
         }
     }
-    
+
     events
 }
 

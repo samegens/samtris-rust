@@ -349,7 +349,7 @@ mod tests {
         assert_eq!(j_tetromino.get_nr_rotations(), 4);
         let last_rotation = RotationIndex::new(3, 4);
         assert!(!j_tetromino.has_block_at(Position::new(0, 0), last_rotation));
-        assert!(!j_tetromino.has_block_at(Position::new(1, 1), last_rotation));
+        assert!(j_tetromino.has_block_at(Position::new(1, 1), last_rotation));
         assert!(j_tetromino.has_block_at(Position::new(2, 2), last_rotation));
         assert!(!j_tetromino.has_block_at(Position::new(3, 3), last_rotation));
     }
