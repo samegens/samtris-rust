@@ -589,7 +589,8 @@ mod tests {
     #[test]
     fn handle_input_move_down_returns_false_when_tetromino_cannot_move() {
         // Arrange
-        let mut sut = create_test_playfield();
+        let event_queue = Arc::new(EventQueue::new());
+        let mut sut = create_test_playfield_with_event_queue(event_queue.clone());
         // Place an O-tetromino 4 lines below the spawn line so the locked O will fit and a new O.
         let position = Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y + 4);
         let blocking_tetromino = create_tetromino_instance_at(TetrominoType::O, position);

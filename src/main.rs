@@ -83,7 +83,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ScreenResult::ReturnToMainMenu => {
                 current_screen = Box::new(MenuScreen::new());
             }
-            // TODO: Handle other screen transitions later
             _ => {}
         }
 

@@ -18,6 +18,5 @@ sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 
 ## TODO
 
-- Add start screen
 - Add high score screen
 - Find out if an integration test can be written that covers main and SdlDisplay.

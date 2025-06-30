@@ -50,14 +50,12 @@ impl GameScreen {
                     Key::Up | Key::X => Some(GameInput::RotateClockwise),
                     Key::Z => Some(GameInput::RotateCounterclockwise),
                     Key::Space => Some(GameInput::Drop),
-                    Key::Escape => Some(GameInput::StartGame), // TODO: Should go back to menu
                     _ => None,
                 }
             }
             GameState::GameOver => {
                 match key {
                     Key::Space | Key::Enter => Some(GameInput::StartGame),
-                    Key::Escape => Some(GameInput::StartGame), // TODO: Should go back to menu
                     _ => None,
                 }
             }
@@ -201,8 +199,8 @@ mod tests {
     #[case(Key::X, Some(GameInput::RotateClockwise))]
     #[case(Key::Z, Some(GameInput::RotateCounterclockwise))]
     #[case(Key::Space, Some(GameInput::Drop))]
-    #[case(Key::Enter, None)] // Enter does nothing when playing
-    #[case(Key::Escape, Some(GameInput::StartGame))] // TODO: Will change to ReturnToMainMenu
+    #[case(Key::Enter, None)]
+    #[case(Key::Escape, None)] // Handled separately in handle_input
     fn translate_key_to_game_input_when_playing(
         #[case] key: Key,
         #[case] expected: Option<GameInput>,

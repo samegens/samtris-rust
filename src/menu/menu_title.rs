@@ -7,8 +7,6 @@ pub struct MenuTitle {
     pattern: TetrominoPattern,
 }
 
-//TODO remove once use from main
-#[allow(dead_code)]
 impl MenuTitle {
     pub fn new() -> Self {
         // Pattern for "SAMTris" using readable letter constants

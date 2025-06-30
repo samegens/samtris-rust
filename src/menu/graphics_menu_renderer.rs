@@ -8,8 +8,6 @@ pub struct GraphicsMenuRenderer {
     title: MenuTitle,
 }
 
-//TODO remove once used from main
-#[allow(dead_code)]
 impl GraphicsMenuRenderer {
     pub fn new() -> Self {
         Self {

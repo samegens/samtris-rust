@@ -1,5 +1,3 @@
-//TODO remove once use from main
-#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MenuItem {
     Play,
