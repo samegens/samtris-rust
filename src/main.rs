@@ -19,6 +19,7 @@ mod events;
 mod game_logic;
 mod graphics;
 mod gui;
+mod high_scores;
 mod input;
 mod menu;
 mod screens;
