@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .window("SAMTris Rust", window_width, window_height)
         .position_centered()
         .build()?;
-    let canvas = window.into_canvas().build()?;
+    let canvas = window.into_canvas().present_vsync().build()?;
 
     let texture_creator = canvas.texture_creator();
     let png_data = include_bytes!("../assets/blocks.png");
