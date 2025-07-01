@@ -8,3 +8,6 @@
 *.html
 *.xml
 codecov.json
+
+# High scores file
+high_scores.dat
