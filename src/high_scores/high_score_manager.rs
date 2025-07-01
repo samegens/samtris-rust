@@ -82,7 +82,7 @@ mod tests {
         // Arrange
         let mut initial_scores = HighScores::new();
         for i in 1..=10 {
-            initial_scores.add(HighScore::new(format!("P{}", i), i * 1000, 1));
+            initial_scores.add(HighScore::new(format!("P{i}"), i * 1000, 1));
         }
         let repository = Box::new(MockHighScoresRepository::new(initial_scores));
         let mut sut = HighScoreManager::new(repository);

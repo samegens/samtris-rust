@@ -83,7 +83,7 @@ mod tests {
     fn is_high_score_returns_true_when_score_high_enough() {
         // Arrange
         let scores = (1..=MAX_NR_HIGH_SCORES as u32)
-            .map(|i| HighScore::new(format!("P{}", i), i * 1000, 1))
+            .map(|i| HighScore::new(format!("P{i}"), i * 1000, 1))
             .collect();
         let sut = HighScores::from_vec(scores);
 

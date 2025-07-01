@@ -607,7 +607,7 @@ mod tests {
     fn create_game_with_full_high_scores() -> TestGame {
         let mut existing_scores = HighScores::new();
         for i in 1..=10 {
-            existing_scores.add(HighScore::new(format!("P{}", i), i * 1000, 1));
+            existing_scores.add(HighScore::new(format!("P{i}"), i * 1000, 1));
         }
         let repository = Box::new(MockHighScoresRepository::new(existing_scores));
         let high_score_manager = HighScoreManager::new(repository);
