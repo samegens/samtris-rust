@@ -2,6 +2,8 @@ use crate::constants::*;
 use crate::game_logic::GameTimer;
 use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
+use crate::high_scores::FileHighScoresRepository;
+use crate::high_scores::HighScoreManager;
 use crate::input::translate_sdl_event;
 use crate::input::InputEvent;
 use crate::screens::GameScreen;
@@ -79,7 +81,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ScreenResult::Continue => {}
             ScreenResult::Quit => break 'running,
             ScreenResult::Play => {
-                current_screen = Box::new(GameScreen::new());
+                let high_scores_repository =
+                    FileHighScoresRepository::new("high_scores.dat".to_string());
+                let high_score_manager = HighScoreManager::new(Box::new(high_scores_repository));
+                current_screen = Box::new(GameScreen::new(high_score_manager));
             }
             ScreenResult::ReturnToMainMenu => {
                 current_screen = Box::new(MenuScreen::new());

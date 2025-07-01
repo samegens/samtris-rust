@@ -8,6 +8,9 @@ use crate::graphics::Display;
 use crate::graphics::GraphicsHudRenderer;
 use crate::graphics::GraphicsPlayfieldRenderer;
 use crate::gui::GameInput;
+use crate::high_scores::HighScoreManager;
+#[cfg(test)]
+use crate::high_scores::MockHighScoresRepository;
 use crate::input::InputEvent;
 use crate::input::Key;
 use crate::screens::Screen;
@@ -21,7 +24,7 @@ pub struct GameScreen {
 }
 
 impl GameScreen {
-    pub fn new() -> Self {
+    pub fn new(high_score_manager: HighScoreManager) -> Self {
         let playfield_dimensions = Dimensions::new(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
         let event_queue = Arc::new(EventQueue::new());
         let playfield = Playfield::new(
@@ -34,6 +37,7 @@ impl GameScreen {
             GraphicsPlayfieldRenderer::new(),
             GraphicsHudRenderer::new(),
             event_queue.clone(),
+            high_score_manager,
         );
         game.start_level(0);
 
@@ -103,7 +107,7 @@ mod tests {
     #[test]
     fn game_screen_can_be_created() {
         // Act
-        let sut = GameScreen::new();
+        let sut = create_test_game_screen();
 
         // Assert
         assert_eq!(*sut.game.get_game_state(), GameState::Playing);
@@ -112,7 +116,7 @@ mod tests {
     #[test]
     fn game_screen_can_draw() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         let mut display = MockDisplay::new();
 
         // Act
@@ -127,7 +131,7 @@ mod tests {
     #[test]
     fn update_advances_game_time() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         sut.game.spawn_tetromino();
         let initial_position = get_tetromino_position_from_gamescreen(&sut);
 
@@ -142,7 +146,7 @@ mod tests {
     #[test]
     fn handle_input_moves_tetromino_left() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         sut.game.spawn_tetromino();
         let initial_position = get_tetromino_position_from_gamescreen(&sut);
         let input_events = vec![InputEvent::KeyPressed(Key::Left)];
@@ -160,7 +164,7 @@ mod tests {
     #[test]
     fn handle_input_quit_returns_quit_screen_result() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         let input_events = vec![InputEvent::Quit];
 
         // Act
@@ -173,7 +177,7 @@ mod tests {
     #[test]
     fn handle_input_key_released_does_nothing() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         sut.game.spawn_tetromino();
         let initial_position = get_tetromino_position_from_gamescreen(&sut);
         let input_events = vec![InputEvent::KeyReleased(Key::Left)];
@@ -202,7 +206,7 @@ mod tests {
         #[case] expected: Option<GameInput>,
     ) {
         // Arrange
-        let sut = GameScreen::new(); // Starts in Playing state
+        let sut = create_test_game_screen(); // Starts in Playing state
 
         // Act
         let result = sut.translate_key_to_game_input(key);
@@ -226,7 +230,7 @@ mod tests {
         #[case] expected: Option<GameInput>,
     ) {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         sut.game.set_game_state_game_over();
 
         // Act
@@ -239,7 +243,7 @@ mod tests {
     #[test]
     fn handle_input_escape_returns_to_main_menu() {
         // Arrange
-        let mut sut = GameScreen::new();
+        let mut sut = create_test_game_screen();
         let input_events = vec![InputEvent::KeyPressed(Key::Escape)];
 
         // Act
@@ -247,5 +251,10 @@ mod tests {
 
         // Assert
         assert_eq!(result, ScreenResult::ReturnToMainMenu);
+    }
+
+    fn create_test_game_screen() -> GameScreen {
+        let high_score_manager = HighScoreManager::new(Box::new(MockHighScoresRepository::empty()));
+        GameScreen::new(high_score_manager)
     }
 }

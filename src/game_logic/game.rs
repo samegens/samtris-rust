@@ -3,6 +3,7 @@ use crate::game_logic::{GameState, LevelManager};
 use crate::game_logic::{Playfield, PlayfieldState};
 use crate::graphics::{Display, HudRenderer, HudView, PlayfieldRenderer};
 use crate::gui::GameInput;
+use crate::high_scores::HighScoreManager;
 use crate::tetromino::TetrominoGenerator;
 use std::sync::Arc;
 use std::time::Duration;
@@ -14,6 +15,7 @@ pub struct Game<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> {
     hud_renderer: H,
     game_state: GameState,
     level_manager: LevelManager,
+    high_score_manager: HighScoreManager,
 }
 
 impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> {
@@ -22,6 +24,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         playfield_renderer: R,
         hud_renderer: H,
         event_queue: Arc<EventQueue>,
+        high_score_manager: HighScoreManager,
     ) -> Self {
         let level_manager = LevelManager::new(event_queue.clone());
 
@@ -32,6 +35,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
             hud_renderer,
             game_state: GameState::Playing,
             level_manager,
+            high_score_manager,
         }
     }
 
@@ -152,6 +156,7 @@ mod tests {
     use crate::constants::*;
     use crate::graphics::{MockDisplay, MockHudRenderer, MockPlayfieldRenderer};
     use crate::gui::GameInput;
+    use crate::high_scores::MockHighScoresRepository;
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::{TetrominoInstance, TetrominoType};
@@ -425,11 +430,13 @@ mod tests {
         // Arrange
         let event_queue = Arc::new(EventQueue::new());
         let playfield = create_test_playfield_with_event_queue(event_queue.clone());
+        let high_score_manager = HighScoreManager::new(Box::new(MockHighScoresRepository::empty()));
         let mut sut = Game::new(
             playfield,
             MockPlayfieldRenderer::new(),
             MockHudRenderer::new(),
             event_queue.clone(),
+            high_score_manager,
         );
 
         event_queue.push_back(Event::LinesCleared(4));
@@ -450,11 +457,13 @@ mod tests {
         // Arrange
         let event_queue = Arc::new(EventQueue::new());
         let playfield = create_test_playfield_with_event_queue(event_queue.clone());
+        let high_score_manager = HighScoreManager::new(Box::new(MockHighScoresRepository::empty()));
         let mut sut = Game::new(
             playfield,
             MockPlayfieldRenderer::new(),
             MockHudRenderer::new(),
             event_queue.clone(),
+            high_score_manager,
         );
         sut.spawn_tetromino();
 
