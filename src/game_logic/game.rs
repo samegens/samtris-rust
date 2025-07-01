@@ -3,7 +3,7 @@ use crate::game_logic::{GameState, LevelManager};
 use crate::game_logic::{Playfield, PlayfieldState};
 use crate::graphics::{Display, HudRenderer, HudView, PlayfieldRenderer};
 use crate::gui::GameInput;
-use crate::high_scores::HighScoreManager;
+use crate::high_scores::{HighScore, HighScoreManager};
 use crate::tetromino::TetrominoGenerator;
 use std::sync::Arc;
 use std::time::Duration;
@@ -98,6 +98,11 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
 
         if let GameState::Playing = self.game_state {
             if self.playfield.update(delta_time) == PlayfieldState::GameOver {
+                if self.is_current_score_high_score() {
+                    if let Err(e) = self.save_current_high_score() {
+                        eprintln!("Failed to save high score: {}", e);
+                    }
+                }
                 self.game_state = GameState::GameOver;
             }
         }
@@ -147,6 +152,24 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
             show_game_over: self.game_state == GameState::GameOver,
         }
     }
+
+    fn is_current_score_high_score(&self) -> bool {
+        let current_score = self.level_manager.get_score();
+        self.high_score_manager.is_high_score(current_score)
+    }
+
+    fn save_current_high_score(&mut self) -> Result<(), String> {
+        let final_score = self.level_manager.get_score();
+        let high_score = HighScore::new(
+            "PLAYER".to_string(),
+            final_score,
+            self.level_manager.get_current_level(),
+        );
+
+        self.high_score_manager.add_high_score(high_score)?;
+        println!("New high score saved: {}", final_score);
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -156,7 +179,7 @@ mod tests {
     use crate::constants::*;
     use crate::graphics::{MockDisplay, MockHudRenderer, MockPlayfieldRenderer};
     use crate::gui::GameInput;
-    use crate::high_scores::MockHighScoresRepository;
+    use crate::high_scores::{HighScores, MockHighScoresRepository};
     use crate::test_helpers::*;
     use crate::tetromino::TetrominoDefinitions;
     use crate::tetromino::{TetrominoInstance, TetrominoType};
@@ -501,5 +524,100 @@ mod tests {
         // Assert
         assert_eq!(sut.level_manager.get_current_level(), 5);
         assert_eq!(sut.get_playfield().get_gravity_timer().get_level(), 5);
+    }
+
+    #[test]
+    fn is_current_score_high_score_returns_true_for_qualifying_score() {
+        // Arrange
+        let mut sut = create_game_with_empty_high_scores();
+        sut.level_manager.handle_lines_cleared(4);
+
+        // Act & Assert
+        assert!(sut.is_current_score_high_score());
+    }
+
+    #[test]
+    fn is_current_score_high_score_returns_false_for_low_score() {
+        // Arrange
+        let sut = create_game_with_full_high_scores();
+
+        // Act & Assert
+        assert!(!sut.is_current_score_high_score());
+    }
+
+    #[test]
+    fn save_current_high_score_adds_score_to_manager() {
+        // Arrange
+        let mut sut = create_game_with_empty_high_scores();
+        sut.level_manager.handle_lines_cleared(4);
+
+        // Act
+        let result = sut.save_current_high_score();
+
+        // Assert
+        assert!(result.is_ok());
+        assert_eq!(sut.high_score_manager.get_high_scores().len(), 1);
+        let saved_score = &sut.high_score_manager.get_high_scores().get_scores()[0];
+        assert_eq!(saved_score.name, "PLAYER");
+        assert!(saved_score.score > 0);
+    }
+
+    #[test]
+    fn update_saves_high_score_when_game_over_and_score_qualifies() {
+        // Arrange
+        let mut sut = create_game_with_empty_high_scores();
+        sut.level_manager.handle_lines_cleared(4);
+        sut.playfield.set_state(PlayfieldState::GameOver);
+
+        // Act
+        sut.update(Duration::from_millis(1));
+
+        // Assert
+        assert_eq!(sut.game_state, GameState::GameOver);
+        assert_eq!(sut.high_score_manager.get_high_scores().len(), 1);
+    }
+
+    #[test]
+    fn update_does_not_save_when_score_does_not_qualify() {
+        // Arrange
+        let mut sut = create_game_with_full_high_scores();
+        sut.playfield.set_state(PlayfieldState::GameOver);
+
+        // Act
+        sut.update(Duration::from_millis(1));
+
+        // Assert
+        assert_eq!(sut.game_state, GameState::GameOver);
+        assert_eq!(sut.high_score_manager.get_high_scores().len(), 10);
+    }
+
+    fn create_game_with_empty_high_scores() -> TestGame {
+        let repository = Box::new(MockHighScoresRepository::empty());
+        let high_score_manager = HighScoreManager::new(repository);
+        let playfield = create_test_playfield();
+        Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            Arc::new(EventQueue::new()),
+            high_score_manager,
+        )
+    }
+
+    fn create_game_with_full_high_scores() -> TestGame {
+        let mut existing_scores = HighScores::new();
+        for i in 1..=10 {
+            existing_scores.add(HighScore::new(format!("P{}", i), i * 1000, 1));
+        }
+        let repository = Box::new(MockHighScoresRepository::new(existing_scores));
+        let high_score_manager = HighScoreManager::new(repository);
+        let playfield = create_test_playfield();
+        Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            Arc::new(EventQueue::new()),
+            high_score_manager,
+        )
     }
 }
