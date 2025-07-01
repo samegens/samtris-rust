@@ -29,7 +29,7 @@ impl FileHighScoresRepository {
 
     fn add_checksum(&self, data: &str) -> String {
         let checksum = self.calculate_checksum(data);
-        format!("CHKSUM:{}\n{}", checksum, data)
+        format!("CHKSUM:{checksum}\n{data}")
     }
 
     fn verify_and_extract(&self, data: &str) -> Result<String, String> {
@@ -78,7 +78,7 @@ impl FileHighScoresRepository {
 
             let parts: Vec<&str> = line.split('|').collect();
             if parts.len() != 3 {
-                return Err(format!("Invalid line format: {}", line));
+                return Err(format!("Invalid line format: {line}"));
             }
 
             let name = parts[0].to_string();
@@ -103,11 +103,11 @@ impl HighScoresRepository for FileHighScoresRepository {
         }
 
         let encrypted_data =
-            fs::read(&self.file_path).map_err(|e| format!("Failed to read file: {}", e))?;
+            fs::read(&self.file_path).map_err(|e| format!("Failed to read file: {e}"))?;
 
         let decrypted_data = self.encrypt_decrypt(&encrypted_data);
         let data_str =
-            String::from_utf8(decrypted_data).map_err(|e| format!("Invalid UTF-8 data: {}", e))?;
+            String::from_utf8(decrypted_data).map_err(|e| format!("Invalid UTF-8 data: {e}"))?;
 
         let verified_content = self.verify_and_extract(&data_str)?;
         self.deserialize_high_scores(&verified_content)
@@ -119,7 +119,7 @@ impl HighScoresRepository for FileHighScoresRepository {
         let encrypted_data = self.encrypt_decrypt(with_checksum.as_bytes());
 
         fs::write(&self.file_path, encrypted_data)
-            .map_err(|e| format!("Failed to write file: {}", e))
+            .map_err(|e| format!("Failed to write file: {e}"))
     }
 }
 

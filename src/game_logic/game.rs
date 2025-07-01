@@ -100,7 +100,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
             if self.playfield.update(delta_time) == PlayfieldState::GameOver {
                 if self.is_current_score_high_score() {
                     if let Err(e) = self.save_current_high_score() {
-                        eprintln!("Failed to save high score: {}", e);
+                        eprintln!("Failed to save high score: {e}");
                     }
                 }
                 self.game_state = GameState::GameOver;
@@ -167,7 +167,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         );
 
         self.high_score_manager.add_high_score(high_score)?;
-        println!("New high score saved: {}", final_score);
+        println!("New high score saved: {final_score}");
         Ok(())
     }
 }
