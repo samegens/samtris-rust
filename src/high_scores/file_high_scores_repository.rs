@@ -118,8 +118,7 @@ impl HighScoresRepository for FileHighScoresRepository {
         let with_checksum = self.add_checksum(&serialized);
         let encrypted_data = self.encrypt_decrypt(with_checksum.as_bytes());
 
-        fs::write(&self.file_path, encrypted_data)
-            .map_err(|e| format!("Failed to write file: {e}"))
+        fs::write(&self.file_path, encrypted_data).map_err(|e| format!("Failed to write file: {e}"))
     }
 }
 
