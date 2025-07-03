@@ -18,10 +18,6 @@ impl MockHighScoresRepository {
             high_scores: RefCell::new(HighScores::new()),
         }
     }
-
-    pub fn get_saved_high_scores(&self) -> HighScores {
-        self.high_scores.borrow().clone()
-    }
 }
 
 impl HighScoresRepository for MockHighScoresRepository {

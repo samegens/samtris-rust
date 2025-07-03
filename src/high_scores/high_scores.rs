@@ -37,6 +37,7 @@ impl HighScores {
         &self.scores
     }
 
+    #[cfg(test)]
     pub fn len(&self) -> usize {
         self.scores.len()
     }

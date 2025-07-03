@@ -1,17 +1,21 @@
 // src/screens/high_scores_screen.rs
 use crate::graphics::{Color, Display};
-use crate::high_scores::HighScoreManager;
+use crate::high_scores::{HighScoreManager, HighScoresScreenBackground};
 use crate::input::{InputEvent, Key};
 use crate::screens::{Screen, ScreenResult};
 use std::time::Duration;
 
 pub struct HighScoresScreen {
     high_score_manager: HighScoreManager,
+    background: HighScoresScreenBackground,
 }
 
 impl HighScoresScreen {
     pub fn new(high_score_manager: HighScoreManager) -> Self {
-        Self { high_score_manager }
+        Self {
+            high_score_manager,
+            background: HighScoresScreenBackground::new(),
+        }
     }
 }
 
@@ -23,9 +27,11 @@ impl Screen for HighScoresScreen {
     fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
         display.clear()?;
 
+        self.background.draw(display)?;
+
         const LEFT: u32 = 90;
-        const TOP: u32 = 50;
-        const LINE_HEIGHT: u32 = 25;
+        const TOP: u32 = 70;
+        const LINE_HEIGHT: u32 = 22;
         display.draw_text("    SCORE   LEVEL  NAME", LEFT, TOP, Color::WHITE)?;
 
         let scores = self.high_score_manager.get_high_scores().get_scores();
@@ -41,7 +47,7 @@ impl Screen for HighScoresScreen {
             display.draw_text(&text, LEFT, y, Color::WHITE)?;
         }
 
-        display.draw_text("Press ESC to return", 120, 350, Color::WHITE)?;
+        display.draw_text("Press ESC to return", 150, 320, Color::WHITE)?;
 
         display.present()?;
         Ok(())
