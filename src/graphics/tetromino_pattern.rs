@@ -62,7 +62,9 @@ impl TetrominoPattern {
             4 => TetrominoType::S,
             5 => TetrominoType::J,
             6 => TetrominoType::L,
-            _ => TetrominoType::I, // Default fallback
+            _ => {
+                panic!("Invalid tetromino number: {}", number);
+            }
         }
     }
 }
