@@ -24,3 +24,4 @@ pub const GAME_OVER_WIDTH: u32 = (PLAYFIELD_WIDTH + 2) * BLOCK_SIZE;
 pub const GAME_OVER_HEIGHT: u32 = 50;
 pub const CHAR_WIDTH: u32 = 16;
 pub const CHAR_HEIGHT: u32 = 16;
+pub const HIGH_SCORES_FILE: &str = "high_scores.dat";

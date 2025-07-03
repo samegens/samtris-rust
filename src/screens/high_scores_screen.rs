@@ -23,25 +23,25 @@ impl Screen for HighScoresScreen {
     fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
         display.clear()?;
 
-        // Draw title
-        display.draw_text("HIGH SCORES", 100, 50, Color::WHITE)?;
+        const LEFT: u32 = 90;
+        const TOP: u32 = 50;
+        const LINE_HEIGHT: u32 = 25;
+        display.draw_text("    SCORE   LEVEL  NAME", LEFT, TOP, Color::WHITE)?;
 
-        // Draw scores
         let scores = self.high_score_manager.get_high_scores().get_scores();
         for (i, score) in scores.iter().enumerate() {
-            let y = 100 + (i as u32 * 30);
+            let y = TOP + LINE_HEIGHT + (i as u32 * LINE_HEIGHT);
             let text = format!(
-                "{}. {} - {} (Level {})",
+                "{:2}  {:06}  {:5}  {}",
                 i + 1,
-                score.name,
                 score.score,
-                score.level
+                score.level + 1,
+                score.name
             );
-            display.draw_text(&text, 100, y, Color::WHITE)?;
+            display.draw_text(&text, LEFT, y, Color::WHITE)?;
         }
 
-        // Draw instructions
-        display.draw_text("Press ESC to return", 100, 400, Color::WHITE)?;
+        display.draw_text("Press ESC to return", 120, 350, Color::WHITE)?;
 
         display.present()?;
         Ok(())
@@ -112,15 +112,10 @@ mod tests {
         assert!(display.presented);
 
         // Check that title and score were drawn
-        let has_title = display
-            .drawn_text
-            .iter()
-            .any(|(text, _, _, _)| text.contains("HIGH SCORES"));
         let has_score = display
             .drawn_text
             .iter()
             .any(|(text, _, _, _)| text.contains("SAM"));
-        assert!(has_title);
         assert!(has_score);
     }
 }

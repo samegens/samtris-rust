@@ -1,12 +1,12 @@
 use crate::constants::*;
 use crate::game_logic::GameTimer;
-use crate::graphics::Display;
 use crate::graphics::SdlDisplay;
 use crate::high_scores::FileHighScoresRepository;
 use crate::high_scores::HighScoreManager;
 use crate::input::translate_sdl_event;
 use crate::input::InputEvent;
 use crate::screens::GameScreen;
+use crate::screens::HighScoresScreen;
 use crate::screens::MenuScreen;
 use crate::screens::Screen;
 use crate::screens::ScreenResult;
@@ -29,19 +29,6 @@ mod screens;
 mod test_helpers;
 mod tetromino;
 
-/// Poll SDL2 events and translate them into platform-independent input events.
-fn poll_events(event_pump: &mut EventPump) -> Vec<InputEvent> {
-    let mut events = Vec::new();
-
-    for sdl_event in event_pump.poll_iter() {
-        if let Some(input_event) = translate_sdl_event(sdl_event) {
-            events.push(input_event);
-        }
-    }
-
-    events
-}
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sdl_context = sdl2::init()?;
     let _image_context = image::init(InitFlag::PNG)?;
@@ -56,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .window("SAMTris Rust", window_width, window_height)
         .position_centered()
         .build()?;
-    let canvas = window.into_canvas().build()?;
+    let canvas = window.into_canvas().present_vsync().build()?;
 
     let texture_creator = canvas.texture_creator();
     let png_data = include_bytes!("../assets/blocks.png");
@@ -81,21 +68,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ScreenResult::Continue => {}
             ScreenResult::Quit => break 'running,
             ScreenResult::Play => {
-                let high_scores_repository =
-                    FileHighScoresRepository::new("high_scores.dat".to_string());
-                let high_score_manager = HighScoreManager::new(Box::new(high_scores_repository));
-                current_screen = Box::new(GameScreen::new(high_score_manager));
+                current_screen = Box::new(GameScreen::new(create_high_score_manager()));
             }
             ScreenResult::ReturnToMainMenu => {
                 current_screen = Box::new(MenuScreen::new());
+            }
+            ScreenResult::ShowHighScores => {
+                current_screen = Box::new(HighScoresScreen::new(create_high_score_manager()));
             }
             _ => {}
         }
 
         current_screen.update(game_timer.delta());
-        display.clear()?;
         current_screen.draw(&mut display)?;
-        display.present()?;
 
         // This is not completely accurate, but it helps to keep the game running at a reasonably consistent frame rate.
         // It doesn't account for the time taken to process events or draw the frame. For Tetris it's good enough.
@@ -103,4 +88,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+/// Poll SDL2 events and translate them into platform-independent input events.
+fn poll_events(event_pump: &mut EventPump) -> Vec<InputEvent> {
+    let mut events = Vec::new();
+
+    for sdl_event in event_pump.poll_iter() {
+        if let Some(input_event) = translate_sdl_event(sdl_event) {
+            events.push(input_event);
+        }
+    }
+
+    events
+}
+
+fn create_high_score_manager() -> HighScoreManager {
+    let high_scores_repository = FileHighScoresRepository::new(HIGH_SCORES_FILE.to_string());
+    HighScoreManager::new(Box::new(high_scores_repository))
 }
