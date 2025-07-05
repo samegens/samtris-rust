@@ -18,5 +18,8 @@ sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 
 ## TODO
 
-- Add high score screen
+- Add enter high score screen
+- Add score when soft/hard dropping
+- Add sound
+- Add music
 - Find out if an integration test can be written that covers main and SdlDisplay.
