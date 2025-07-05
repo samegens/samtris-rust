@@ -1,4 +1,4 @@
-// src/screens/high_scores_screen.rs
+use crate::constants::*;
 use crate::graphics::{Color, Display};
 use crate::high_scores::{HighScoreManager, HighScoresScreenBackground};
 use crate::input::{InputEvent, Key};
@@ -29,14 +29,16 @@ impl Screen for HighScoresScreen {
 
         self.background.draw(display)?;
 
-        const LEFT: u32 = 90;
-        const TOP: u32 = 70;
-        const LINE_HEIGHT: u32 = 22;
-        display.draw_text("    SCORE   LEVEL  NAME", LEFT, TOP, Color::WHITE)?;
+        display.draw_text(
+            "    SCORE   LEVEL  NAME",
+            HIGH_SCORES_X,
+            HIGH_SCORES_Y,
+            Color::WHITE,
+        )?;
 
         let scores = self.high_score_manager.get_high_scores().get_scores();
         for (i, score) in scores.iter().enumerate() {
-            let y = TOP + LINE_HEIGHT + (i as u32 * LINE_HEIGHT);
+            let y = HIGH_SCORES_Y + HIGH_SCORES_LINE_HEIGHT + (i as u32 * HIGH_SCORES_LINE_HEIGHT);
             let text = format!(
                 "{:2}  {:06}  {:5}  {}",
                 i + 1,
@@ -44,7 +46,7 @@ impl Screen for HighScoresScreen {
                 score.level + 1,
                 score.name
             );
-            display.draw_text(&text, LEFT, y, Color::WHITE)?;
+            display.draw_text(&text, HIGH_SCORES_X, y, Color::WHITE)?;
         }
 
         display.draw_text("Press ESC to return", 150, 320, Color::WHITE)?;

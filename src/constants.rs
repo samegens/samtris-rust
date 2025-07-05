@@ -25,3 +25,6 @@ pub const GAME_OVER_HEIGHT: u32 = 50;
 pub const CHAR_WIDTH: u32 = 16;
 pub const CHAR_HEIGHT: u32 = 16;
 pub const HIGH_SCORES_FILE: &str = "high_scores.dat";
+pub const HIGH_SCORES_X: u32 = 90;
+pub const HIGH_SCORES_Y: u32 = 70;
+pub const HIGH_SCORES_LINE_HEIGHT: u32 = 22;

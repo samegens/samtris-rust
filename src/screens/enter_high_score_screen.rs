@@ -1,12 +1,15 @@
-// src/screens/enter_high_score_screen.rs
+use crate::constants::*;
 use crate::graphics::{Color, Display};
-use crate::high_scores::{HighScore, HighScoreManager};
+use crate::high_scores::{HighScore, HighScoreManager, HighScores, HighScoresScreenBackground};
 use crate::input::{InputEvent, Key};
 use crate::screens::{Screen, ScreenResult};
 use std::time::Duration;
 
 pub struct EnterHighScoreScreen {
     high_score_manager: HighScoreManager,
+    background: HighScoresScreenBackground,
+    preview_scores: HighScores,
+    editing_index: usize,
     player_name: String,
     score: u32,
     level: u32,
@@ -14,24 +17,49 @@ pub struct EnterHighScoreScreen {
 
 impl EnterHighScoreScreen {
     pub fn new(high_score_manager: HighScoreManager, score: u32, level: u32) -> Self {
+        let mut preview_scores = high_score_manager.get_high_scores().clone();
+        let placeholder_score = HighScore::new("........".to_string(), score, level);
+        let editing_index = preview_scores.add(placeholder_score);
         Self {
             high_score_manager,
+            background: HighScoresScreenBackground::new(),
+            preview_scores,
+            editing_index,
             player_name: String::new(),
             score,
             level,
         }
     }
 
-    fn save_high_score(&mut self) -> Result<(), String> {
-        let name = if self.player_name.is_empty() {
-            "PLAYER".to_string()
-        } else {
-            self.player_name.clone()
-        };
+    fn get_scores_to_display(&self) -> Vec<(usize, String, u32, u32)> {
+        self.preview_scores
+            .get_scores()
+            .iter()
+            .enumerate()
+            .map(|(i, score)| {
+                let display_name = if i == self.editing_index {
+                    format!("{:.<8}", self.player_name)
+                } else {
+                    score.name.clone()
+                };
+                (i + 1, display_name, score.score, score.level)
+            })
+            .collect()
+    }
 
-        let high_score = HighScore::new(name, self.score, self.level);
+    fn save_high_score(&mut self) -> Result<(), String> {
+        let final_player_name = self.get_final_player_name();
+        let high_score = HighScore::new(final_player_name, self.score, self.level);
         self.high_score_manager.add_high_score(high_score)?;
         Ok(())
+    }
+
+    fn get_final_player_name(&mut self) -> String {
+        if self.player_name.is_empty() {
+            "PLAYER".to_string()
+        } else {
+            self.player_name.to_string()
+        }
     }
 }
 
@@ -43,17 +71,23 @@ impl Screen for EnterHighScoreScreen {
     fn draw(&mut self, display: &mut dyn Display) -> Result<(), String> {
         display.clear()?;
 
-        display.draw_text("NEW HIGH SCORE!", 90, 50, Color::WHITE)?;
-        display.draw_text(&format!("Score: {:06}", self.score), 90, 80, Color::WHITE)?;
-        display.draw_text(&format!("Level: {}", self.level + 1), 90, 110, Color::WHITE)?;
+        self.background.draw(display)?;
 
-        display.draw_text("Enter your name:", 90, 160, Color::WHITE)?;
+        display.draw_text(
+            "    SCORE   LEVEL  NAME",
+            HIGH_SCORES_X,
+            HIGH_SCORES_Y,
+            Color::WHITE,
+        )?;
 
-        if !self.player_name.is_empty() {
-            display.draw_text(&self.player_name, 90, 190, Color::WHITE)?;
+        let scores = self.get_scores_to_display();
+        for (rank, name, score, level) in scores {
+            let y = HIGH_SCORES_Y + (rank as u32 * HIGH_SCORES_LINE_HEIGHT);
+            let text = format!("{:2}  {:06}  {:5}  {}", rank, score, level + 1, name);
+            display.draw_text(&text, HIGH_SCORES_X, y, Color::WHITE)?;
         }
 
-        display.draw_text("Press ENTER to save", 90, 240, Color::WHITE)?;
+        display.draw_text("NEW HIGH SCORE! ENTER YOUR NAME.", 70, 320, Color::WHITE)?;
 
         display.present()?;
         Ok(())
