@@ -1,6 +1,6 @@
 use crate::high_scores::HighScore;
 
-const MAX_NR_HIGH_SCORES: usize = 10;
+pub const MAX_NR_HIGH_SCORES: usize = 10;
 
 #[derive(Debug, Clone)]
 pub struct HighScores {
@@ -22,15 +22,22 @@ impl HighScores {
         self.scores.len() < MAX_NR_HIGH_SCORES || score > self.scores.last().unwrap().score
     }
 
-    pub fn add(&mut self, high_score: HighScore) -> bool {
+    /// Adds a new high score if it qualifies as a high score. Returns the index of high_score
+    /// was indeed a high score, otherwise MAX_NR_HIGH_SCORES.
+    pub fn add(&mut self, high_score: HighScore) -> usize {
         if !self.is_high_score(high_score.score) {
-            return false;
+            return MAX_NR_HIGH_SCORES;
         }
 
-        self.scores.push(high_score);
+        self.scores.push(high_score.clone());
         self.scores.sort_by(|a, b| b.score.cmp(&a.score));
         self.scores.truncate(MAX_NR_HIGH_SCORES);
-        true
+
+        if let Some(pos) = self.scores.iter().position(|s| s == &high_score) {
+            pos
+        } else {
+            MAX_NR_HIGH_SCORES
+        }
     }
 
     pub fn get_scores(&self) -> &[HighScore] {
@@ -96,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn add_returns_true_and_adds_valid_high_score() {
+    fn add_returns_0_when_no_highscores() {
         // Arrange
         let mut sut = HighScores::new();
         let new_score = HighScore::new("SAM".to_string(), 1000, 1);
@@ -105,13 +112,32 @@ mod tests {
         let result = sut.add(new_score.clone());
 
         // Assert
-        assert!(result);
+        assert_eq!(result, 0);
         assert_eq!(sut.len(), 1);
         assert_eq!(sut.get_scores()[0], new_score);
     }
 
     #[test]
-    fn add_returns_false_for_invalid_high_score() {
+    fn add_returns_correct_index_when_highscores_present() {
+        // Arrange
+        let mut sut = HighScores::new();
+        for i in 1..=10 {
+            let score = HighScore::new(format!("P{i}"), i * 100, 1);
+            sut.add(score);
+        }
+        let new_score = HighScore::new("SAM".to_string(), 550, 1);
+
+        // Act
+        let result = sut.add(new_score.clone());
+
+        // Assert
+        assert_eq!(result, 5);
+        assert_eq!(sut.len(), 10);
+        assert_eq!(sut.get_scores()[5], new_score);
+    }
+
+    #[test]
+    fn add_returns_max_for_invalid_high_score() {
         // Arrange
         let scores = (1..=MAX_NR_HIGH_SCORES as u32)
             .map(|i| HighScore::new(format!("P{i}"), i * 1000, 1))
@@ -123,7 +149,7 @@ mod tests {
         let result = sut.add(low_score);
 
         // Assert
-        assert!(!result);
+        assert_eq!(result, MAX_NR_HIGH_SCORES);
         assert_eq!(sut.len(), MAX_NR_HIGH_SCORES);
     }
 

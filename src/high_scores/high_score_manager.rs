@@ -1,5 +1,7 @@
 // src/high_scores/manager.rs
-use crate::high_scores::{HighScore, HighScores, HighScoresRepository};
+use crate::high_scores::{
+    high_scores::MAX_NR_HIGH_SCORES, HighScore, HighScores, HighScoresRepository,
+};
 
 pub struct HighScoreManager {
     repository: Box<dyn HighScoresRepository>,
@@ -20,7 +22,7 @@ impl HighScoreManager {
     }
 
     pub fn add_high_score(&mut self, high_score: HighScore) -> Result<bool, String> {
-        let was_added = self.high_scores.add(high_score);
+        let was_added = self.high_scores.add(high_score) < MAX_NR_HIGH_SCORES;
         if was_added {
             self.repository.save(&self.high_scores)?;
         }
