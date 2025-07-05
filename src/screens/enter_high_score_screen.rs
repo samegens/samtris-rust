@@ -48,7 +48,10 @@ impl Screen for EnterHighScoreScreen {
         display.draw_text(&format!("Level: {}", self.level + 1), 90, 110, Color::WHITE)?;
 
         display.draw_text("Enter your name:", 90, 160, Color::WHITE)?;
-        display.draw_text(&self.player_name, 90, 190, Color::WHITE)?;
+
+        if !self.player_name.is_empty() {
+            display.draw_text(&self.player_name, 90, 190, Color::WHITE)?;
+        }
 
         display.draw_text("Press ENTER to save", 90, 240, Color::WHITE)?;
 
@@ -82,12 +85,6 @@ mod tests {
     use super::*;
     use crate::graphics::MockDisplay;
     use crate::high_scores::MockHighScoresRepository;
-
-    fn create_test_screen() -> EnterHighScoreScreen {
-        let repository = Box::new(MockHighScoresRepository::empty());
-        let manager = HighScoreManager::new(repository);
-        EnterHighScoreScreen::new(manager, 1500, 3)
-    }
 
     #[test]
     fn new_creates_enter_high_score_screen() {
@@ -147,5 +144,29 @@ mod tests {
             .iter()
             .any(|(text, _, _, _)| text.contains("NEW HIGH SCORE"));
         assert!(has_high_score_text);
+    }
+
+    #[test]
+    fn draw_does_not_try_to_draw_text_for_empty_name() {
+        // Arrange
+        let mut sut = create_test_screen();
+        let mut display = MockDisplay::new();
+
+        // Act
+        let result = sut.draw(&mut display);
+
+        // Assert
+        assert!(result.is_ok());
+        let has_drawn_empty_text = display
+            .drawn_text
+            .iter()
+            .any(|(text, _, _, _)| text.is_empty());
+        assert!(!has_drawn_empty_text);
+    }
+
+    fn create_test_screen() -> EnterHighScoreScreen {
+        let repository = Box::new(MockHighScoresRepository::empty());
+        let manager = HighScoreManager::new(repository);
+        EnterHighScoreScreen::new(manager, 1500, 3)
     }
 }
