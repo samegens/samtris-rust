@@ -174,6 +174,7 @@ impl<T: TetrominoGenerator> Playfield<T> {
         true
     }
 
+    #[cfg(test)]
     pub fn clear(&mut self) {
         self.grid.clear();
         self.state = PlayfieldState::Playing;

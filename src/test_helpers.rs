@@ -6,7 +6,7 @@ use crate::events::EventQueue;
 use crate::game_logic::Game;
 use crate::game_logic::Playfield;
 use crate::graphics::{MockHudRenderer, MockPlayfieldRenderer};
-use crate::high_scores::{HighScoreManager, MockHighScoresRepository};
+use crate::high_scores::{HighScore, HighScoreManager, HighScores, MockHighScoresRepository};
 use crate::screens::GameScreen;
 use crate::tetromino::{
     FixedTetrominoGenerator, TetrominoDefinitions, TetrominoInstance, TetrominoType,
@@ -102,4 +102,17 @@ pub fn get_tetromino_position_from_gamescreen(gamescreen: &GameScreen) -> Positi
 pub fn create_test_high_score_manager() -> HighScoreManager {
     let high_scores_repository = MockHighScoresRepository::empty();
     HighScoreManager::new(Box::new(high_scores_repository))
+}
+
+pub fn create_test_high_score_manager_with_full_very_high_scores() -> HighScoreManager {
+    let mut high_scores = HighScores::new();
+    for i in 0..10 {
+        high_scores.add(HighScore::new(
+            format!("Player{i}"),
+            100000 - (i * 1000),
+            20,
+        ));
+    }
+    let repository = MockHighScoresRepository::new(high_scores);
+    HighScoreManager::new(Box::new(repository))
 }

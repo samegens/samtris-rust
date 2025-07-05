@@ -5,6 +5,7 @@ use crate::high_scores::FileHighScoresRepository;
 use crate::high_scores::HighScoreManager;
 use crate::input::translate_sdl_event;
 use crate::input::InputEvent;
+use crate::screens::EnterHighScoreScreen;
 use crate::screens::GameScreen;
 use crate::screens::HighScoresScreen;
 use crate::screens::MenuScreen;
@@ -76,7 +77,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ScreenResult::ShowHighScores => {
                 current_screen = Box::new(HighScoresScreen::new(create_high_score_manager()));
             }
-            _ => {}
+            ScreenResult::EnterHighScore(level, score) => {
+                current_screen = Box::new(EnterHighScoreScreen::new(
+                    create_high_score_manager(),
+                    level,
+                    score,
+                ));
+            }
         }
 
         current_screen.update(game_timer.delta());

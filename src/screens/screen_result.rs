@@ -4,6 +4,6 @@ pub enum ScreenResult {
     ReturnToMainMenu,
     Play,
     ShowHighScores,
-    EnterHighScore,
+    EnterHighScore(u32, u32), // Level, Score
     Quit,
 }

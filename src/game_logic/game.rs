@@ -53,6 +53,7 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         &self.game_state
     }
 
+    #[cfg(test)]
     pub fn spawn_tetromino(&mut self) -> bool {
         if self.playfield.spawn_tetromino() == PlayfieldState::GameOver {
             self.game_state = GameState::GameOver;
@@ -62,19 +63,33 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         true
     }
 
-    /// Handle game input, returns true if the tetromino was moved successfully, false otherwise.
-    pub fn handle_input(&mut self, input: GameInput) {
+    /// Handle game input, returns new game state.
+    pub fn handle_input(&mut self, input: GameInput) -> GameState {
         match self.game_state {
             GameState::Playing => {
-                let _ = self.playfield.handle_input(input);
+                if self.playfield.handle_input(input) == PlayfieldState::GameOver {
+                    GameState::GameOver
+                } else {
+                    GameState::Playing
+                }
             }
             GameState::GameOver => self.handle_game_over_input(input),
-        };
+            _ => self.game_state,
+        }
     }
 
-    pub fn handle_game_over_input(&mut self, input: GameInput) {
+    fn handle_game_over_input(&self, input: GameInput) -> GameState {
         if input == GameInput::StartGame {
-            self.start_game();
+            if self.is_current_score_high_score() {
+                GameState::EnterHighScore(
+                    self.level_manager.get_current_level(),
+                    self.level_manager.get_score(),
+                )
+            } else {
+                GameState::ReturnToMainMenu
+            }
+        } else {
+            self.game_state
         }
     }
 
@@ -115,12 +130,6 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         }
     }
 
-    fn start_game(&mut self) {
-        self.playfield.clear();
-        self.spawn_tetromino();
-        self.game_state = GameState::Playing;
-    }
-
     #[cfg(test)]
     pub fn set_game_state_game_over(&mut self) {
         self.game_state = GameState::GameOver;
@@ -153,9 +162,14 @@ impl<R: PlayfieldRenderer, H: HudRenderer, T: TetrominoGenerator> Game<R, H, T> 
         }
     }
 
-    fn is_current_score_high_score(&self) -> bool {
+    pub fn is_current_score_high_score(&self) -> bool {
         let current_score = self.level_manager.get_score();
-        self.high_score_manager.is_high_score(current_score)
+
+        if current_score > 0 {
+            self.high_score_manager.is_high_score(current_score)
+        } else {
+            false
+        }
     }
 
     fn save_current_high_score(&mut self) -> Result<(), String> {
@@ -310,9 +324,36 @@ mod tests {
     }
 
     #[test]
-    fn start_game_clears_playfield_spawns_tetromino_and_sets_playing_state() {
+    fn start_game_in_game_over_with_high_score_goes_to_high_scores_screen() {
         // Arrange
         let mut sut = create_test_game(TetrominoType::O);
+        lock_tetromino(
+            &mut sut,
+            TetrominoType::O,
+            Position::new(TETRIS_SPAWN_X, TETRIS_SPAWN_Y),
+        );
+        sut.level_manager.handle_lines_cleared(4);
+        let expected_score = sut.level_manager.get_score();
+        sut.set_game_state_game_over();
+
+        // Act
+        let result = sut.handle_input(GameInput::StartGame);
+
+        // Assert
+        assert_eq!(result, GameState::EnterHighScore(0, expected_score));
+    }
+
+    #[test]
+    fn start_game_in_game_over_with_no_high_score_returns_to_menu() {
+        // Arrange
+        let playfield = create_test_playfield_with_specific_type(TetrominoType::O);
+        let mut sut = Game::new(
+            playfield,
+            MockPlayfieldRenderer::new(),
+            MockHudRenderer::new(),
+            Arc::new(EventQueue::new()),
+            create_test_high_score_manager_with_full_very_high_scores(),
+        );
         lock_tetromino(
             &mut sut,
             TetrominoType::O,
@@ -321,14 +362,10 @@ mod tests {
         sut.set_game_state_game_over();
 
         // Act
-        sut.handle_input(GameInput::StartGame);
+        let result = sut.handle_input(GameInput::StartGame);
 
         // Assert
-        assert!(!sut
-            .playfield
-            .is_position_occupied(Position::new(TETRIS_SPAWN_X + 1, TETRIS_SPAWN_Y + 1)));
-        assert_eq!(sut.game_state, GameState::Playing);
-        assert!(sut.playfield.get_current_tetromino().is_some());
+        assert_eq!(result, GameState::ReturnToMainMenu);
     }
 
     #[test]
@@ -534,6 +571,18 @@ mod tests {
 
         // Act & Assert
         assert!(sut.is_current_score_high_score());
+    }
+
+    #[test]
+    fn is_current_score_high_score_returns_false_for_zero_score() {
+        // Arrange
+        let sut = create_game_with_empty_high_scores();
+
+        // Act
+        let result = sut.is_current_score_high_score();
+
+        // Assert
+        assert!(!result);
     }
 
     #[test]

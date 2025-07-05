@@ -59,7 +59,29 @@ impl GameScreen {
                 Key::Space | Key::Enter => Some(GameInput::StartGame),
                 _ => None,
             },
+            _ => None,
         }
+    }
+
+    fn handle_game_input(&mut self, key: Key) -> ScreenResult {
+        if let Some(game_input) = self.translate_key_to_game_input(key) {
+            match self.game.handle_input(game_input) {
+                GameState::Playing => {
+                    // Continue playing, no special action needed
+                }
+                GameState::GameOver => {
+                    // Continue showing game over, no special action needed
+                }
+                GameState::ReturnToMainMenu => {
+                    return ScreenResult::ReturnToMainMenu;
+                }
+                GameState::EnterHighScore(level, score) => {
+                    return ScreenResult::EnterHighScore(level, score);
+                }
+            }
+        }
+
+        ScreenResult::Continue
     }
 
     #[cfg(test)]
@@ -84,19 +106,17 @@ impl Screen for GameScreen {
             match event {
                 InputEvent::Quit => return ScreenResult::Quit,
                 InputEvent::KeyPressed(Key::Escape) => return ScreenResult::ReturnToMainMenu,
-                InputEvent::KeyPressed(key) => {
-                    if let Some(game_input) = self.translate_key_to_game_input(*key) {
-                        self.game.handle_input(game_input);
-                    }
-                }
+                InputEvent::KeyPressed(key) => return self.handle_game_input(*key),
                 InputEvent::KeyReleased(_) => {
                     // Game doesn't currently need key release events
                 }
             }
         }
+
         ScreenResult::Continue
     }
 }
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
