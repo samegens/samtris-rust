@@ -63,7 +63,7 @@ impl TetrominoPattern {
             5 => TetrominoType::J,
             6 => TetrominoType::L,
             _ => {
-                panic!("Invalid tetromino number: {}", number);
+                panic!("Invalid tetromino number: {number}");
             }
         }
     }

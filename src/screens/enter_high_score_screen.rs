@@ -100,7 +100,7 @@ impl Screen for EnterHighScoreScreen {
                 InputEvent::KeyPressed(Key::Escape) => return ScreenResult::ShowHighScores,
                 InputEvent::KeyPressed(Key::Enter) => {
                     if let Err(e) = self.save_high_score() {
-                        eprintln!("Failed to save high score: {}", e);
+                        eprintln!("Failed to save high score: {e}");
                     }
                     return ScreenResult::ShowHighScores;
                 }
