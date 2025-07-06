@@ -37,13 +37,19 @@ impl HighScoreManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::high_scores::MockHighScoresRepository;
+    use crate::{game_logic::GameResult, high_scores::MockHighScoresRepository};
 
     #[test]
     fn new_loads_high_scores_from_repository() {
         // Arrange
         let mut initial_scores = HighScores::new();
-        initial_scores.add(HighScore::new("SAM".to_string(), 1000, 5));
+        initial_scores.add(HighScore::new(
+            "SAM".to_string(),
+            GameResult {
+                score: 1000,
+                level: 5,
+            },
+        ));
         let repository = Box::new(MockHighScoresRepository::new(initial_scores));
 
         // Act
@@ -68,7 +74,13 @@ mod tests {
         // Arrange
         let repository = Box::new(MockHighScoresRepository::empty());
         let mut sut = HighScoreManager::new(repository);
-        let new_score = HighScore::new("TEST".to_string(), 500, 2);
+        let new_score = HighScore::new(
+            "TEST".to_string(),
+            GameResult {
+                score: 500,
+                level: 2,
+            },
+        );
 
         // Act
         let result = sut.add_high_score(new_score.clone());
@@ -84,11 +96,23 @@ mod tests {
         // Arrange
         let mut initial_scores = HighScores::new();
         for i in 1..=10 {
-            initial_scores.add(HighScore::new(format!("P{i}"), i * 1000, 1));
+            initial_scores.add(HighScore::new(
+                format!("P{i}"),
+                GameResult {
+                    score: i * 1000,
+                    level: 1,
+                },
+            ));
         }
         let repository = Box::new(MockHighScoresRepository::new(initial_scores));
         let mut sut = HighScoreManager::new(repository);
-        let low_score = HighScore::new("LOW".to_string(), 500, 1);
+        let low_score = HighScore::new(
+            "LOW".to_string(),
+            GameResult {
+                score: 500,
+                level: 1,
+            },
+        );
 
         // Act
         let result = sut.add_high_score(low_score);

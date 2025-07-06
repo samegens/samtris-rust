@@ -3,8 +3,8 @@ use std::sync::Arc;
 use crate::common::{Dimensions, Position};
 use crate::constants::*;
 use crate::events::EventQueue;
-use crate::game_logic::Game;
 use crate::game_logic::Playfield;
+use crate::game_logic::{Game, GameResult};
 use crate::graphics::{MockHudRenderer, MockPlayfieldRenderer};
 use crate::high_scores::{HighScore, HighScoreManager, HighScores, MockHighScoresRepository};
 use crate::screens::GameScreen;
@@ -109,8 +109,10 @@ pub fn create_test_high_score_manager_with_full_very_high_scores() -> HighScoreM
     for i in 0..10 {
         high_scores.add(HighScore::new(
             format!("Player{i}"),
-            100000 - (i * 1000),
-            20,
+            GameResult {
+                score: 100000 - (i * 1000),
+                level: 20,
+            },
         ));
     }
     let repository = MockHighScoresRepository::new(high_scores);

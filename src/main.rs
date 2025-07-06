@@ -77,11 +77,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ScreenResult::ShowHighScores => {
                 current_screen = Box::new(HighScoresScreen::new(create_high_score_manager()));
             }
-            ScreenResult::EnterHighScore(level, score) => {
+            ScreenResult::EnterHighScore(game_result) => {
                 current_screen = Box::new(EnterHighScoreScreen::new(
                     create_high_score_manager(),
-                    level,
-                    score,
+                    game_result,
                 ));
             }
         }

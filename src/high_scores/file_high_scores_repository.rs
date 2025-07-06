@@ -1,3 +1,4 @@
+use crate::game_logic::GameResult;
 // src/high_scores/file_repository.rs
 use crate::high_scores::{HighScore, HighScores, HighScoresRepository};
 use std::fs;
@@ -62,7 +63,10 @@ impl FileHighScoresRepository {
         let mut lines = Vec::new();
 
         for score in scores {
-            lines.push(format!("{}|{}|{}", score.name, score.score, score.level));
+            lines.push(format!(
+                "{}|{}|{}",
+                score.name, score.game_result.score, score.game_result.level
+            ));
         }
 
         lines.join("\n")
@@ -89,7 +93,7 @@ impl FileHighScoresRepository {
                 .parse::<u32>()
                 .map_err(|_| format!("Invalid level: {}", parts[2]))?;
 
-            scores.push(HighScore::new(name, score, level));
+            scores.push(HighScore::new(name, GameResult { score, level }));
         }
 
         Ok(HighScores::from_vec(scores))
@@ -133,8 +137,20 @@ mod tests {
         // Arrange
         let sut = FileHighScoresRepository::new("test.dat".to_string());
         let mut high_scores = HighScores::new();
-        high_scores.add(HighScore::new("SAM".to_string(), 1000, 5));
-        high_scores.add(HighScore::new("BOB".to_string(), 2000, 3));
+        high_scores.add(HighScore::new(
+            "SAM".to_string(),
+            GameResult {
+                score: 1000,
+                level: 5,
+            },
+        ));
+        high_scores.add(HighScore::new(
+            "BOB".to_string(),
+            GameResult {
+                score: 2000,
+                level: 3,
+            },
+        ));
 
         // Act
         let serialized = sut.serialize_high_scores(&high_scores);
@@ -145,9 +161,9 @@ mod tests {
         let deserialized = result.unwrap();
         assert_eq!(deserialized.len(), 2);
         assert_eq!(deserialized.get_scores()[0].name, "BOB"); // Should be sorted by score
-        assert_eq!(deserialized.get_scores()[0].score, 2000);
+        assert_eq!(deserialized.get_scores()[0].game_result.score, 2000);
         assert_eq!(deserialized.get_scores()[1].name, "SAM");
-        assert_eq!(deserialized.get_scores()[1].score, 1000);
+        assert_eq!(deserialized.get_scores()[1].game_result.score, 1000);
     }
 
     #[test]
@@ -216,7 +232,13 @@ mod tests {
         let test_file = "test_high_scores.dat";
         let sut = FileHighScoresRepository::new(test_file.to_string());
         let mut high_scores = HighScores::new();
-        high_scores.add(HighScore::new("TEST".to_string(), 500, 2));
+        high_scores.add(HighScore::new(
+            "TEST".to_string(),
+            GameResult {
+                score: 500,
+                level: 2,
+            },
+        ));
 
         // Act
         let save_result = sut.save(&high_scores);
@@ -229,8 +251,8 @@ mod tests {
         let loaded = load_result.unwrap();
         assert_eq!(loaded.len(), 1);
         assert_eq!(loaded.get_scores()[0].name, "TEST");
-        assert_eq!(loaded.get_scores()[0].score, 500);
-        assert_eq!(loaded.get_scores()[0].level, 2);
+        assert_eq!(loaded.get_scores()[0].game_result.score, 500);
+        assert_eq!(loaded.get_scores()[0].game_result.level, 2);
 
         // Cleanup
         if Path::new(test_file).exists() {

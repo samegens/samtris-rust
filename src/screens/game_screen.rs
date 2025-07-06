@@ -2,6 +2,7 @@ use crate::common::Dimensions;
 use crate::constants::*;
 use crate::events::EventQueue;
 use crate::game_logic::Game;
+use crate::game_logic::GameResult;
 use crate::game_logic::GameState;
 use crate::game_logic::Playfield;
 use crate::graphics::Display;
@@ -76,7 +77,7 @@ impl GameScreen {
                     return ScreenResult::ReturnToMainMenu;
                 }
                 GameState::EnterHighScore(level, score) => {
-                    return ScreenResult::EnterHighScore(level, score);
+                    return ScreenResult::EnterHighScore(GameResult { level, score });
                 }
             }
         }

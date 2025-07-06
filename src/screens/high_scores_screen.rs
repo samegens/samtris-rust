@@ -42,8 +42,8 @@ impl Screen for HighScoresScreen {
             let text = format!(
                 "{:2}  {:06}  {:5}  {}",
                 i + 1,
-                score.score,
-                score.level + 1,
+                score.game_result.score,
+                score.game_result.level + 1,
                 score.name
             );
             display.draw_text(&text, HIGH_SCORES_X, y, Color::WHITE)?;
@@ -70,6 +70,7 @@ impl Screen for HighScoresScreen {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::game_logic::GameResult;
     use crate::graphics::MockDisplay;
     use crate::high_scores::{HighScore, HighScores, MockHighScoresRepository};
 
@@ -105,7 +106,13 @@ mod tests {
     fn draw_displays_high_scores() {
         // Arrange
         let mut scores = HighScores::new();
-        scores.add(HighScore::new("SAM".to_string(), 1000, 5));
+        scores.add(HighScore::new(
+            "SAM".to_string(),
+            GameResult {
+                score: 1000,
+                level: 5,
+            },
+        ));
         let repository = Box::new(MockHighScoresRepository::new(scores));
         let manager = HighScoreManager::new(repository);
         let mut sut = HighScoresScreen::new(manager);
@@ -136,7 +143,7 @@ mod tests {
             let name = format!("PLAYER{i}");
             let score = 1000 + i * 100;
             let level = i;
-            let high_score = HighScore::new(name, score, level);
+            let high_score = HighScore::new(name, GameResult { score, level });
             manager.add_high_score(high_score).unwrap();
         }
         let mut sut = HighScoresScreen::new(manager);

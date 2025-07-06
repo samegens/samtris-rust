@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::game_logic::GameResult;
 use crate::graphics::{Color, Display};
 use crate::high_scores::{HighScore, HighScoreManager, HighScores, HighScoresScreenBackground};
 use crate::input::{InputEvent, Key};
@@ -11,14 +12,13 @@ pub struct EnterHighScoreScreen {
     preview_scores: HighScores,
     editing_index: usize,
     player_name: String,
-    score: u32,
-    level: u32,
+    game_result: GameResult,
 }
 
 impl EnterHighScoreScreen {
-    pub fn new(high_score_manager: HighScoreManager, score: u32, level: u32) -> Self {
+    pub fn new(high_score_manager: HighScoreManager, game_result: GameResult) -> Self {
         let mut preview_scores = high_score_manager.get_high_scores().clone();
-        let placeholder_score = HighScore::new("........".to_string(), score, level);
+        let placeholder_score = HighScore::new("........".to_string(), game_result);
         let editing_index = preview_scores.add(placeholder_score);
         Self {
             high_score_manager,
@@ -26,8 +26,7 @@ impl EnterHighScoreScreen {
             preview_scores,
             editing_index,
             player_name: String::new(),
-            score,
-            level,
+            game_result,
         }
     }
 
@@ -42,14 +41,25 @@ impl EnterHighScoreScreen {
                 } else {
                     score.name.clone()
                 };
-                (i + 1, display_name, score.score, score.level)
+                (
+                    i + 1,
+                    display_name,
+                    score.game_result.score,
+                    score.game_result.level,
+                )
             })
             .collect()
     }
 
     fn save_high_score(&mut self) -> Result<(), String> {
         let final_player_name = self.get_final_player_name();
-        let high_score = HighScore::new(final_player_name, self.score, self.level);
+        let high_score = HighScore::new(
+            final_player_name,
+            GameResult {
+                score: self.game_result.score,
+                level: self.game_result.level,
+            },
+        );
         self.high_score_manager.add_high_score(high_score)?;
         Ok(())
     }
@@ -133,8 +143,8 @@ mod tests {
         let sut = create_test_screen();
 
         // Assert
-        assert_eq!(sut.score, 1500);
-        assert_eq!(sut.level, 3);
+        assert_eq!(sut.game_result.score, 1500);
+        assert_eq!(sut.game_result.level, 3);
         assert!(sut.player_name.is_empty());
     }
 
@@ -209,12 +219,30 @@ mod tests {
     fn get_display_scores_uses_existing_score_names_for_non_editing_entries() {
         // Arrange
         let mut existing_scores = HighScores::new();
-        existing_scores.add(HighScore::new("ALICE".to_string(), 2000, 1));
-        existing_scores.add(HighScore::new("BOB".to_string(), 1000, 1));
+        existing_scores.add(HighScore::new(
+            "ALICE".to_string(),
+            GameResult {
+                score: 2000,
+                level: 1,
+            },
+        ));
+        existing_scores.add(HighScore::new(
+            "BOB".to_string(),
+            GameResult {
+                score: 1000,
+                level: 1,
+            },
+        ));
 
         let repository = Box::new(MockHighScoresRepository::new(existing_scores));
         let manager = HighScoreManager::new(repository);
-        let sut = EnterHighScoreScreen::new(manager, 1500, 3);
+        let sut = EnterHighScoreScreen::new(
+            manager,
+            GameResult {
+                score: 1500,
+                level: 3,
+            },
+        );
 
         // Act
         let display_scores = sut.get_scores_to_display();
@@ -248,7 +276,7 @@ mod tests {
         let mut sut = create_test_screen();
         let initial_player_name = sut.player_name.clone();
         let initial_editing_index = sut.editing_index;
-        let initial_score = sut.score;
+        let initial_score = sut.game_result.score;
 
         // Act
         sut.update(Duration::from_millis(100));
@@ -256,7 +284,7 @@ mod tests {
         // Assert
         assert_eq!(sut.player_name, initial_player_name);
         assert_eq!(sut.editing_index, initial_editing_index);
-        assert_eq!(sut.score, initial_score);
+        assert_eq!(sut.game_result.score, initial_score);
     }
 
     #[test]
@@ -278,7 +306,13 @@ mod tests {
         let mut failing_repository = Box::new(MockHighScoresRepository::empty());
         failing_repository.fail_on_save = true;
         let manager = HighScoreManager::new(failing_repository);
-        let mut sut = EnterHighScoreScreen::new(manager, 1500, 3);
+        let mut sut = EnterHighScoreScreen::new(
+            manager,
+            GameResult {
+                score: 1500,
+                level: 3,
+            },
+        );
 
         let input_events = vec![InputEvent::KeyPressed(Key::Enter)];
 
@@ -305,7 +339,13 @@ mod tests {
     fn create_test_screen() -> EnterHighScoreScreen {
         let repository = Box::new(MockHighScoresRepository::empty());
         let manager = HighScoreManager::new(repository);
-        EnterHighScoreScreen::new(manager, 1500, 3)
+        EnterHighScoreScreen::new(
+            manager,
+            GameResult {
+                score: 1500,
+                level: 3,
+            },
+        )
     }
 
     #[test]

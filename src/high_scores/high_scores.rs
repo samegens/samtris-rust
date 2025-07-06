@@ -13,24 +13,26 @@ impl HighScores {
     }
 
     pub fn from_vec(mut scores: Vec<HighScore>) -> Self {
-        scores.sort_by(|a, b| b.score.cmp(&a.score));
+        scores.sort_by(|a, b| b.game_result.score.cmp(&a.game_result.score));
         scores.truncate(MAX_NR_HIGH_SCORES);
         Self { scores }
     }
 
     pub fn is_high_score(&self, score: u32) -> bool {
-        self.scores.len() < MAX_NR_HIGH_SCORES || score > self.scores.last().unwrap().score
+        self.scores.len() < MAX_NR_HIGH_SCORES
+            || score > self.scores.last().unwrap().game_result.score
     }
 
     /// Adds a new high score if it qualifies as a high score. Returns the index of high_score
     /// was indeed a high score, otherwise MAX_NR_HIGH_SCORES.
     pub fn add(&mut self, high_score: HighScore) -> usize {
-        if !self.is_high_score(high_score.score) {
+        if !self.is_high_score(high_score.game_result.score) {
             return MAX_NR_HIGH_SCORES;
         }
 
         self.scores.push(high_score.clone());
-        self.scores.sort_by(|a, b| b.score.cmp(&a.score));
+        self.scores
+            .sort_by(|a, b| b.game_result.score.cmp(&a.game_result.score));
         self.scores.truncate(MAX_NR_HIGH_SCORES);
 
         if let Some(pos) = self.scores.iter().position(|s| s == &high_score) {
@@ -52,6 +54,8 @@ impl HighScores {
 
 #[cfg(test)]
 mod tests {
+    use crate::game_logic::GameResult;
+
     use super::*;
 
     #[test]
@@ -76,7 +80,15 @@ mod tests {
     fn is_high_score_returns_false_when_score_too_low() {
         // Arrange
         let scores = (1..=MAX_NR_HIGH_SCORES as u32)
-            .map(|i| HighScore::new(format!("P{i}"), i * 1000, 1))
+            .map(|i| {
+                HighScore::new(
+                    format!("P{i}"),
+                    GameResult {
+                        score: i * 1000,
+                        level: 1,
+                    },
+                )
+            })
             .collect();
         let sut = HighScores::from_vec(scores);
 
@@ -91,7 +103,15 @@ mod tests {
     fn is_high_score_returns_true_when_score_high_enough() {
         // Arrange
         let scores = (1..=MAX_NR_HIGH_SCORES as u32)
-            .map(|i| HighScore::new(format!("P{i}"), i * 1000, 1))
+            .map(|i| {
+                HighScore::new(
+                    format!("P{i}"),
+                    GameResult {
+                        score: i * 1000,
+                        level: 1,
+                    },
+                )
+            })
             .collect();
         let sut = HighScores::from_vec(scores);
 
@@ -106,7 +126,13 @@ mod tests {
     fn add_returns_0_when_no_highscores() {
         // Arrange
         let mut sut = HighScores::new();
-        let new_score = HighScore::new("SAM".to_string(), 1000, 1);
+        let new_score = HighScore::new(
+            "SAM".to_string(),
+            GameResult {
+                score: 1000,
+                level: 1,
+            },
+        );
 
         // Act
         let result = sut.add(new_score.clone());
@@ -122,10 +148,22 @@ mod tests {
         // Arrange
         let mut sut = HighScores::new();
         for i in 1..=10 {
-            let score = HighScore::new(format!("P{i}"), i * 100, 1);
+            let score = HighScore::new(
+                format!("P{i}"),
+                GameResult {
+                    score: i * 100,
+                    level: 1,
+                },
+            );
             sut.add(score);
         }
-        let new_score = HighScore::new("SAM".to_string(), 550, 1);
+        let new_score = HighScore::new(
+            "SAM".to_string(),
+            GameResult {
+                score: 550,
+                level: 1,
+            },
+        );
 
         // Act
         let result = sut.add(new_score.clone());
@@ -140,10 +178,24 @@ mod tests {
     fn add_returns_max_for_invalid_high_score() {
         // Arrange
         let scores = (1..=MAX_NR_HIGH_SCORES as u32)
-            .map(|i| HighScore::new(format!("P{i}"), i * 1000, 1))
+            .map(|i| {
+                HighScore::new(
+                    format!("P{i}"),
+                    GameResult {
+                        score: i * 1000,
+                        level: 1,
+                    },
+                )
+            })
             .collect();
         let mut sut = HighScores::from_vec(scores);
-        let low_score = HighScore::new("LOW".to_string(), 500, 1);
+        let low_score = HighScore::new(
+            "LOW".to_string(),
+            GameResult {
+                score: 500,
+                level: 1,
+            },
+        );
 
         // Act
         let result = sut.add(low_score);
@@ -157,9 +209,27 @@ mod tests {
     fn from_vec_sorts_scores_by_score_descending() {
         // Arrange
         let scores = vec![
-            HighScore::new("P1".to_string(), 1000, 1),
-            HighScore::new("P2".to_string(), 3000, 1),
-            HighScore::new("P3".to_string(), 2000, 1),
+            HighScore::new(
+                "P1".to_string(),
+                GameResult {
+                    score: 1000,
+                    level: 1,
+                },
+            ),
+            HighScore::new(
+                "P2".to_string(),
+                GameResult {
+                    score: 3000,
+                    level: 1,
+                },
+            ),
+            HighScore::new(
+                "P3".to_string(),
+                GameResult {
+                    score: 2000,
+                    level: 1,
+                },
+            ),
         ];
 
         // Act
@@ -167,8 +237,8 @@ mod tests {
 
         // Assert
         let scores = sut.get_scores();
-        assert_eq!(scores[0].score, 3000);
-        assert_eq!(scores[1].score, 2000);
-        assert_eq!(scores[2].score, 1000);
+        assert_eq!(scores[0].game_result.score, 3000);
+        assert_eq!(scores[1].game_result.score, 2000);
+        assert_eq!(scores[2].game_result.score, 1000);
     }
 }
