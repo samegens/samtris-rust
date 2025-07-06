@@ -68,9 +68,6 @@ impl Screen for MenuScreen {
                         return result;
                     }
                 }
-                InputEvent::KeyReleased(_) => {
-                    // Menu doesn't need key release events
-                }
             }
         }
         ScreenResult::Continue
@@ -134,21 +131,6 @@ mod tests {
 
         // Assert
         assert_eq!(result, ScreenResult::Quit);
-    }
-
-    #[test]
-    fn handle_input_key_released_does_nothing() {
-        // Arrange
-        let mut sut = MenuScreen::new();
-        let initial_selection = sut.get_menu().get_selected_index();
-        let input_events = vec![InputEvent::KeyReleased(Key::Up)];
-
-        // Act
-        let result = sut.handle_input(&input_events);
-
-        // Assert
-        assert_eq!(result, ScreenResult::Continue);
-        assert_eq!(sut.get_menu().get_selected_index(), initial_selection);
     }
 
     #[rstest]

@@ -107,7 +107,6 @@ impl Screen for EnterHighScoreScreen {
                 InputEvent::KeyPressed(_) => {
                     // Character input will be added next
                 }
-                InputEvent::KeyReleased(_) => {}
             }
         }
         ScreenResult::Continue

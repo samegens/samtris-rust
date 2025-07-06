@@ -50,8 +50,8 @@ impl GameScreen {
                 Key::Left => Some(GameInput::MoveLeft),
                 Key::Right => Some(GameInput::MoveRight),
                 Key::Down => Some(GameInput::MoveDown),
-                Key::Up | Key::X => Some(GameInput::RotateClockwise),
-                Key::Z => Some(GameInput::RotateCounterclockwise),
+                Key::Up | Key::Alphanumeric('X') => Some(GameInput::RotateClockwise),
+                Key::Alphanumeric('Z') => Some(GameInput::RotateCounterclockwise),
                 Key::Space => Some(GameInput::Drop),
                 _ => None,
             },
@@ -106,9 +106,11 @@ impl Screen for GameScreen {
             match event {
                 InputEvent::Quit => return ScreenResult::Quit,
                 InputEvent::KeyPressed(Key::Escape) => return ScreenResult::ReturnToMainMenu,
-                InputEvent::KeyPressed(key) => return self.handle_game_input(*key),
-                InputEvent::KeyReleased(_) => {
-                    // Game doesn't currently need key release events
+                InputEvent::KeyPressed(key) => {
+                    let result = self.handle_game_input(*key);
+                    if result != ScreenResult::Continue {
+                        return result;
+                    }
                 }
             }
         }
@@ -194,30 +196,13 @@ mod tests {
         assert_eq!(result, ScreenResult::Quit);
     }
 
-    #[test]
-    fn handle_input_key_released_does_nothing() {
-        // Arrange
-        let mut sut = create_test_game_screen();
-        sut.game.spawn_tetromino();
-        let initial_position = get_tetromino_position_from_gamescreen(&sut);
-        let input_events = vec![InputEvent::KeyReleased(Key::Left)];
-
-        // Act
-        let result = sut.handle_input(&input_events);
-
-        // Assert
-        assert_eq!(result, ScreenResult::Continue);
-        let final_position = get_tetromino_position_from_gamescreen(&sut);
-        assert_eq!(final_position, initial_position); // Position unchanged
-    }
-
     #[rstest]
     #[case(Key::Left, Some(GameInput::MoveLeft))]
     #[case(Key::Right, Some(GameInput::MoveRight))]
     #[case(Key::Down, Some(GameInput::MoveDown))]
     #[case(Key::Up, Some(GameInput::RotateClockwise))]
-    #[case(Key::X, Some(GameInput::RotateClockwise))]
-    #[case(Key::Z, Some(GameInput::RotateCounterclockwise))]
+    #[case(Key::Alphanumeric('X'), Some(GameInput::RotateClockwise))]
+    #[case(Key::Alphanumeric('Z'), Some(GameInput::RotateCounterclockwise))]
     #[case(Key::Space, Some(GameInput::Drop))]
     #[case(Key::Enter, None)]
     #[case(Key::Escape, None)] // Handled separately in handle_input
@@ -243,8 +228,8 @@ mod tests {
     #[case(Key::Right, None)]
     #[case(Key::Down, None)]
     #[case(Key::Up, None)]
-    #[case(Key::X, None)]
-    #[case(Key::Z, None)]
+    #[case(Key::Alphanumeric('Z'), None)]
+    #[case(Key::Alphanumeric('X'), None)]
     fn translate_key_to_game_input_when_game_over(
         #[case] key: Key,
         #[case] expected: Option<GameInput>,

@@ -2,7 +2,6 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InputEvent {
     KeyPressed(Key),
-    KeyReleased(Key),
     Quit,
 }
 
@@ -16,6 +15,5 @@ pub enum Key {
     Space,
     Enter,
     Escape,
-    X,
-    Z,
+    Alphanumeric(char),
 }
