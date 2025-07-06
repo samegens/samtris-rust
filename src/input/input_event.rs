@@ -15,5 +15,6 @@ pub enum Key {
     Space,
     Enter,
     Escape,
+    Backspace,
     Alphanumeric(char),
 }

@@ -104,9 +104,15 @@ impl Screen for EnterHighScoreScreen {
                     }
                     return ScreenResult::ShowHighScores;
                 }
-                InputEvent::KeyPressed(_) => {
-                    // Character input will be added next
+                InputEvent::KeyPressed(Key::Alphanumeric(ch)) => {
+                    if self.player_name.len() < 8 {
+                        self.player_name.push(*ch);
+                    }
                 }
+                InputEvent::KeyPressed(Key::Backspace) => {
+                    self.player_name.pop();
+                }
+                _ => {}
             }
         }
         ScreenResult::Continue
@@ -300,5 +306,54 @@ mod tests {
         let repository = Box::new(MockHighScoresRepository::empty());
         let manager = HighScoreManager::new(repository);
         EnterHighScoreScreen::new(manager, 1500, 3)
+    }
+
+    #[test]
+    fn handle_input_alphanumeric_adds_character_to_player_name() {
+        // Arrange
+        let mut sut = create_test_screen();
+        let input_events = vec![
+            InputEvent::KeyPressed(Key::Alphanumeric('S')),
+            InputEvent::KeyPressed(Key::Alphanumeric('A')),
+            InputEvent::KeyPressed(Key::Alphanumeric('M')),
+        ];
+
+        // Act
+        for event in input_events {
+            sut.handle_input(&[event]);
+        }
+
+        // Assert
+        assert_eq!(sut.player_name, "SAM");
+    }
+
+    #[test]
+    fn handle_input_backspace_on_empty_name_does_nothing() {
+        // Arrange
+        let mut sut = create_test_screen();
+        // player_name is empty by default
+        let input_events = vec![InputEvent::KeyPressed(Key::Backspace)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
+        assert_eq!(sut.player_name, "");
+    }
+
+    #[test]
+    fn handle_input_backspace_removes_last_character() {
+        // Arrange
+        let mut sut = create_test_screen();
+        sut.player_name = "SAM".to_string();
+        let input_events = vec![InputEvent::KeyPressed(Key::Backspace)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
+        assert_eq!(sut.player_name, "SA");
     }
 }

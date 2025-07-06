@@ -16,6 +16,7 @@ pub fn translate_sdl_event(event: sdl2::event::Event) -> Option<InputEvent> {
                 sdl2::keyboard::Keycode::Space => Key::Space,
                 sdl2::keyboard::Keycode::Return => Key::Enter,
                 sdl2::keyboard::Keycode::Escape => Key::Escape,
+                sdl2::keyboard::Keycode::Backspace => Key::Backspace,
                 sdl2::keyboard::Keycode::A => Key::Alphanumeric('A'),
                 sdl2::keyboard::Keycode::B => Key::Alphanumeric('B'),
                 sdl2::keyboard::Keycode::C => Key::Alphanumeric('C'),
