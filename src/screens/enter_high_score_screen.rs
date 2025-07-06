@@ -116,6 +116,8 @@ impl Screen for EnterHighScoreScreen {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
     use crate::graphics::MockDisplay;
     use crate::high_scores::MockHighScoresRepository;
@@ -196,6 +198,103 @@ mod tests {
             .iter()
             .any(|(text, _, _, _)| text.is_empty());
         assert!(!has_drawn_empty_text);
+    }
+
+    #[test]
+    fn get_display_scores_uses_existing_score_names_for_non_editing_entries() {
+        // Arrange
+        let mut existing_scores = HighScores::new();
+        existing_scores.add(HighScore::new("ALICE".to_string(), 2000, 1));
+        existing_scores.add(HighScore::new("BOB".to_string(), 1000, 1));
+
+        let repository = Box::new(MockHighScoresRepository::new(existing_scores));
+        let manager = HighScoreManager::new(repository);
+        let sut = EnterHighScoreScreen::new(manager, 1500, 3);
+
+        // Act
+        let display_scores = sut.get_scores_to_display();
+
+        // Assert
+        assert_eq!(display_scores[0].1, "ALICE"); // Uses existing score name
+        assert_eq!(display_scores[2].1, "BOB"); // Uses existing score name
+    }
+
+    #[rstest]
+    #[case("HERO", "HERO")]
+    #[case("", "PLAYER")]
+    fn get_final_player_name_returns_correct_name(
+        #[case] input_name: &str,
+        #[case] expected: &str,
+    ) {
+        // Arrange
+        let mut sut = create_test_screen();
+        sut.player_name = input_name.to_string();
+
+        // Act
+        let result = sut.get_final_player_name();
+
+        // Assert
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn update_does_not_change_state() {
+        // Arrange
+        let mut sut = create_test_screen();
+        let initial_player_name = sut.player_name.clone();
+        let initial_editing_index = sut.editing_index;
+        let initial_score = sut.score;
+
+        // Act
+        sut.update(Duration::from_millis(100));
+
+        // Assert
+        assert_eq!(sut.player_name, initial_player_name);
+        assert_eq!(sut.editing_index, initial_editing_index);
+        assert_eq!(sut.score, initial_score);
+    }
+
+    #[test]
+    fn handle_input_quit_returns_quit_screen_result() {
+        // Arrange
+        let mut sut = create_test_screen();
+        let input_events = vec![InputEvent::Quit];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Quit);
+    }
+
+    #[test]
+    fn handle_input_enter_handles_save_error_gracefully() {
+        // Arrange
+        let mut failing_repository = Box::new(MockHighScoresRepository::empty());
+        failing_repository.fail_on_save = true;
+        let manager = HighScoreManager::new(failing_repository);
+        let mut sut = EnterHighScoreScreen::new(manager, 1500, 3);
+
+        let input_events = vec![InputEvent::KeyPressed(Key::Enter)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::ShowHighScores); // Should still transition despite save error
+    }
+
+    #[test]
+    fn handle_input_unknown_key_returns_continue() {
+        // Arrange
+        let mut sut = create_test_screen();
+        let input_events = vec![InputEvent::KeyPressed(Key::Up)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
     }
 
     fn create_test_screen() -> EnterHighScoreScreen {

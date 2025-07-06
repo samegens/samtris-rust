@@ -126,4 +126,59 @@ mod tests {
             .any(|(text, _, _, _)| text.contains("SAM"));
         assert!(has_score);
     }
+
+    #[test]
+    fn update_does_not_change_state() {
+        // Arrange
+        let repository = Box::new(MockHighScoresRepository::empty());
+        let mut manager = HighScoreManager::new(repository);
+        for i in 0..7 {
+            let name = format!("PLAYER{i}");
+            let score = 1000 + i * 100;
+            let level = i;
+            let high_score = HighScore::new(name, score, level);
+            manager.add_high_score(high_score).unwrap();
+        }
+        let mut sut = HighScoresScreen::new(manager);
+        let initial_scores_len = sut.high_score_manager.get_high_scores().len();
+
+        // Act
+        sut.update(Duration::from_millis(100));
+
+        // Assert
+        assert_eq!(
+            sut.high_score_manager.get_high_scores().len(),
+            initial_scores_len
+        );
+    }
+
+    #[test]
+    fn handle_input_quit_returns_quit_screen_result() {
+        // Arrange
+        let repository = Box::new(MockHighScoresRepository::empty());
+        let manager = HighScoreManager::new(repository);
+        let mut sut = HighScoresScreen::new(manager);
+        let input_events = vec![InputEvent::Quit];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Quit);
+    }
+
+    #[test]
+    fn handle_input_unknown_key_returns_continue() {
+        // Arrange
+        let repository = Box::new(MockHighScoresRepository::empty());
+        let manager = HighScoreManager::new(repository);
+        let mut sut = HighScoresScreen::new(manager);
+        let input_events = vec![InputEvent::KeyPressed(Key::Space)];
+
+        // Act
+        let result = sut.handle_input(&input_events);
+
+        // Assert
+        assert_eq!(result, ScreenResult::Continue);
+    }
 }

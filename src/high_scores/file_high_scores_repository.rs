@@ -252,4 +252,65 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), original_data);
     }
+
+    #[test]
+    fn verify_and_extract_returns_error_for_missing_newline() {
+        // Arrange
+        let sut = FileHighScoresRepository::new("test.dat".to_string());
+        let data_without_newline = "CHKSUM:12345";
+
+        // Act
+        let result = sut.verify_and_extract(data_without_newline);
+
+        // Assert
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("missing checksum"));
+    }
+
+    #[test]
+    fn verify_and_extract_returns_error_for_missing_checksum_header() {
+        // Arrange
+        let sut = FileHighScoresRepository::new("test.dat".to_string());
+        let data_without_header = "12345\ncontent";
+
+        // Act
+        let result = sut.verify_and_extract(data_without_header);
+
+        // Assert
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("no checksum header"));
+    }
+
+    #[test]
+    fn deserialize_high_scores_skips_empty_lines() {
+        // Arrange
+        let sut = FileHighScoresRepository::new("test.dat".to_string());
+        let data_with_empty_lines = "SAM|1000|5\n\n\nBOB|2000|3\n   \n";
+
+        // Act
+        let result = sut.deserialize_high_scores(data_with_empty_lines);
+
+        // Assert
+        assert!(result.is_ok());
+        let high_scores = result.unwrap();
+        assert_eq!(high_scores.len(), 2);
+        assert_eq!(high_scores.get_scores()[0].name, "BOB"); // Sorted by score
+        assert_eq!(high_scores.get_scores()[1].name, "SAM");
+    }
+
+    #[test]
+    fn deserialize_high_scores_returns_error_for_invalid_line_format() {
+        // Arrange
+        let sut = FileHighScoresRepository::new("test.dat".to_string());
+        let data_with_invalid_format = "SAM|1000|5\nINVALID_LINE\nBOB|2000|3";
+
+        // Act
+        let result = sut.deserialize_high_scores(data_with_invalid_format);
+
+        // Assert
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .contains("Invalid line format: INVALID_LINE"));
+    }
 }
