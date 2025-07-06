@@ -19,6 +19,8 @@ sudo apt-get install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 ## TODO
 
 - Add enter high score screen
+- Add logging
+- Add metrics
 - Add score when soft/hard dropping
 - Add sound
 - Add music
