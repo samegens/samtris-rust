@@ -11,3 +11,6 @@ codecov.json
 
 # High scores file
 high_scores.dat
+
+# Ansible files
+.ansible
